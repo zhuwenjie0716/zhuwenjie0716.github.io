@@ -22,18 +22,18 @@
     <meta name="description" content="分布式系统中的谁先谁后情景描述前端会定时的更新 redis 中用户的学习时长（增量而非累加值），后端有定时任务定时同步 redis 中的值到业务数据库中。后来为了提高后端性能，又在其他节点部署了一份服务，通过 nginx 做了负载均衡，但是忘了修改定时任务为 xxl-job 实现（即每个节点可能都会执行）。 思考这样的执行逻辑：  后端服务1从 redis 中得知需要修改用户学习时长为原始值 +">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式系统中的谁先谁后">
-<meta property="og:url" content="http://example.com/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/index.html">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="分布式系统中的谁先谁后情景描述前端会定时的更新 redis 中用户的学习时长（增量而非累加值），后端有定时任务定时同步 redis 中的值到业务数据库中。后来为了提高后端性能，又在其他节点部署了一份服务，通过 nginx 做了负载均衡，但是忘了修改定时任务为 xxl-job 实现（即每个节点可能都会执行）。 思考这样的执行逻辑：  后端服务1从 redis 中得知需要修改用户学习时长为原始值 +">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/image-20260415132350063.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/image-20260415132350063.png">
 <meta property="article:published_time" content="2026-04-15T03:21:33.000Z">
-<meta property="article:modified_time" content="2026-04-16T01:45:21.742Z">
+<meta property="article:modified_time" content="2026-04-20T00:56:22.150Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="分布式">
 <meta property="article:tag" content="逻辑时钟">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/image-20260415132350063.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/image-20260415132350063.png">
   
   
   
@@ -75,7 +75,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -391,7 +391,7 @@
 <li>后端服务1从业务库中查询得到现在用户学习时长为 0，于是修改 PO 中该值为 3，在调用 dao.save(po) 前发生 gc</li>
 <li>redis 更新用户时长为 4</li>
 <li>后端服务2从 redis 中得知需要修改用户学习时长为原始值 + 4</li>
-<li>后端服务1从业务库中查询得到现在用户学习时长为 0，于是修改 PO 中该值为 4，调用 dao.save(po) 保存成功</li>
+<li>后端服务2从业务库中查询得到现在用户学习时长为 0，于是修改 PO 中该值为 4，调用 dao.save(po) 保存成功</li>
 <li>后端服务1从 gc 中恢复，调用 dao.save(po) 保存值成功</li>
 </ol>
 <p>此时数据库中的值是 3 而非 4，业务逻辑出现问题。这个问题并不是使用没有 gc 的语言就可以避免的，即使没有 gc、也可能会有网络延迟、主机缓冲区阻塞等情况。</p>
@@ -454,7 +454,7 @@
 <blockquote>
 <p>算法的数据结构</p>
 </blockquote>
-<p>每个进程 Pi 维护一个<strong>请求队列</strong>（本地，不与其他进程共享）。队列中存放形如 <code>(T, P_j)</code> 的消息，表示进程 Pj 在逻辑时间 T 发起的资源请求。初始时，队列中只有一条消息 <code>(T0, P0)</code>，其中 P0<em>P</em>0 是初始拥有资源的进程，T0<em>T</em>0 小于所有时钟的初始值。</p>
+<p>每个进程 Pi 维护一个<strong>请求队列</strong>（本地，不与其他进程共享）。队列中存放形如 <code>(T, P_j)</code> 的消息，表示进程 Pj 在逻辑时间 T 发起的资源请求。初始时，队列中只有一条消息 <code>(T0, P0)</code>，其中 P0 是初始拥有资源的进程，T0 小于所有时钟的初始值。</p>
 <hr>
 <blockquote>
 <p>算法规则</p>
@@ -575,7 +575,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>分布式系统中的谁先谁后</div>
-      <div>http://example.com/2026/04/15/分布式系统中的谁先谁后/</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/15/分布式系统中的谁先谁后/</div>
     </div>
     <div class="license-meta">
       
