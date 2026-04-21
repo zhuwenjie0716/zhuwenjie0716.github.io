@@ -1,0 +1,875 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MybatisPlus配置联合主键">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/21/MybatisPlus%E9%85%8D%E7%BD%AE%E8%81%94%E5%90%88%E4%B8%BB%E9%94%AE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-21T01:15:12.000Z">
+<meta property="article:modified_time" content="2026-04-21T01:20:52.036Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="MybatisPlus">
+<meta property="article:tag" content="配置">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>MybatisPlus配置联合主键 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MybatisPlus配置联合主键"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-21 09:15" pubdate>
+          2026年4月21日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          59 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">MybatisPlus配置联合主键</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。</p>
+<p>本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简称mpp） 的工具，因此总结一个 demo 出来，包括整合过程和其中遇到的问题和解决方式。</p>
+<p>1、引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">properties</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">mybatis-plus.version</span>&gt;</span>3.4.0<span class="hljs-tag">&lt;/<span class="hljs-name">mybatis-plus.version</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">mybatis-plus-plus.version</span>&gt;</span>1.5.1-RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">mybatis-plus-plus.version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">properties</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.baomidou<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>mybatis-plus-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;mybatis-plus.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.github.jeffreyning<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>mybatisplus-plus<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;mybatis-plus-plus.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>mp 和 mpp 的版本号对应关系是有要求的，版本不匹配会出现意想不到的错误</li>
+</ul>
+<p>2、实体类定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.pojo;<br><br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.annotation.TableField;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.annotation.TableName;<br><span class="hljs-keyword">import</span> com.github.jeffreyning.mybatisplus.anno.MppMultiId;<br><span class="hljs-keyword">import</span> lombok.Data;<br><br><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@TableName(value = &quot;MP_USER&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br><br>    <span class="hljs-meta">@MppMultiId</span><br>    <span class="hljs-meta">@TableField(value = &quot;id&quot;)</span><br>    <span class="hljs-keyword">private</span> String uuid;<br><br>    <span class="hljs-meta">@MppMultiId</span><br>    <span class="hljs-meta">@TableField(value = &quot;xh&quot;)</span><br>    <span class="hljs-keyword">private</span> Integer xh;<br><br>    <span class="hljs-keyword">private</span> String name;<br><br>    <span class="hljs-keyword">private</span> Integer age;<br><br>    <span class="hljs-keyword">private</span> String email;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我在项目中日常遇到的联合主键就是 uuid + xh 来解决，当然用 uuid 做主键，再用另一个字段来关联其他表也可以，而且也没有联合主键这个问题。</p>
+<p>注意事项：</p>
+<ul>
+<li>使用的是 <code>@MppMultiId</code> 而不是 <code>@TableId</code></li>
+<li>虽然数据库字段叫 id, 但我在类中的定义却是 uuid</li>
+</ul>
+<p>3、Mapper（dao）定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.mapper;<br><br><span class="hljs-keyword">import</span> com.github.jeffreyning.mybatisplus.base.MppBaseMapper;<br><span class="hljs-keyword">import</span> com.xsdl.pojo.User;<br><span class="hljs-keyword">import</span> org.apache.ibatis.annotations.Mapper;<br><br><span class="hljs-meta">@Mapper</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserMapper</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">MppBaseMapper</span>&lt;User&gt; &#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>继承的是 MppBaseMapper，而不是 BaseMapper</li>
+</ul>
+<p>4、简单使用</p>
+<p>如果你只是想要使用它进行简单的持久化操作，现在已经足够了，例如下面的用法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.controller;<br><br><span class="hljs-keyword">import</span> com.xsdl.mapper.UserMapper;<br><span class="hljs-keyword">import</span> com.xsdl.pojo.User;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RestController;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><span class="hljs-keyword">import</span> java.util.stream.Collectors;<br><span class="hljs-keyword">import</span> java.util.stream.IntStream;<br><br><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RequestMapping(&quot;/user&quot;)</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserController</span> &#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> UserMapper userMapper;<br><br>    <span class="hljs-meta">@GetMapping(&quot;/list&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">list</span><span class="hljs-params">()</span> &#123;<br>        List&lt;User&gt; users = userMapper.selectList(<span class="hljs-literal">null</span>);<br>        <span class="hljs-keyword">for</span> (User user : users) &#123;<br>            log.info(<span class="hljs-string">&quot;user:&#123;&#125;&quot;</span>, user);<br>        &#125;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; users.size(); i++) &#123;<br>            <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> users.get(i);<br>            user.setName(<span class="hljs-string">&quot;xsdl&quot;</span> + i);<br>            userMapper.updateByMultiId(user);<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>这里的 update 操作，我用的是 updateByMultiId，不能用 updateById</li>
+</ul>
+<p>但是我都用联合主键了，说明我大概率是想要批量保存的，而 MppBaseMapper 并不支持这样的操作，于是需要引入 Service</p>
+<p>5、Service 定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.service;<br><br><span class="hljs-keyword">import</span> com.github.jeffreyning.mybatisplus.service.IMppService;<br><span class="hljs-keyword">import</span> com.xsdl.pojo.User;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserService</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">IMppService</span>&lt;User&gt; &#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>继承了 IMppService</li>
+</ul>
+<p>6、ServiceImpl 定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.service;<br><br><span class="hljs-keyword">import</span> com.github.jeffreyning.mybatisplus.service.MppServiceImpl;<br><span class="hljs-keyword">import</span> com.xsdl.mapper.UserMapper;<br><span class="hljs-keyword">import</span> com.xsdl.pojo.User;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;<br><br><span class="hljs-meta">@Service(&quot;userService&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserServiceImpl</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">MppServiceImpl</span>&lt;UserMapper, User&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UserService</span> &#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>先继承 MppServiceImpl，并把对应的 Mapper 传入再实现对应的 Service</li>
+</ul>
+<p>7、使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.xsdl.controller;<br><br><span class="hljs-keyword">import</span> com.xsdl.mapper.UserMapper;<br><span class="hljs-keyword">import</span> com.xsdl.pojo.User;<br><span class="hljs-keyword">import</span> com.xsdl.service.UserService;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RestController;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><span class="hljs-keyword">import</span> java.util.stream.Collectors;<br><span class="hljs-keyword">import</span> java.util.stream.IntStream;<br><br><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RequestMapping(&quot;/user&quot;)</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserController</span> &#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> UserMapper userMapper;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> UserService userService;<br><br>    <span class="hljs-meta">@GetMapping(&quot;/list&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">list</span><span class="hljs-params">()</span> &#123;<br>        List&lt;User&gt; users = userMapper.selectList(<span class="hljs-literal">null</span>);<br>        <span class="hljs-keyword">for</span> (User user : users) &#123;<br>            log.info(<span class="hljs-string">&quot;user:&#123;&#125;&quot;</span>, user);<br>        &#125;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; users.size(); i++) &#123;<br>            <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> users.get(i);<br>            user.setName(<span class="hljs-string">&quot;zss&quot;</span> + i);<br>            userMapper.updateByMultiId(user);<br>        &#125;<br><br>        List&lt;User&gt; userList = IntStream.rangeClosed(<span class="hljs-number">1</span>, <span class="hljs-number">10</span>).mapToObj(i -&gt; &#123;<br>            <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>            user.setUuid(i + <span class="hljs-string">&quot;&quot;</span> + i);<br>            user.setXh(i);<br>            user.setName(<span class="hljs-string">&quot;zss&quot;</span> + i);<br>            user.setAge(i);<br>            user.setEmail(<span class="hljs-string">&quot;zss&quot;</span> + i + <span class="hljs-string">&quot;@qq.com&quot;</span>);<br>            <span class="hljs-keyword">return</span> user;<br>        &#125;).collect(Collectors.toList());<br>        userService.saveBatch(userList);<br><br>        List&lt;User&gt; list = userService.list();<br>        <span class="hljs-keyword">for</span> (User user : list) &#123;<br>            log.info(<span class="hljs-string">&quot;user:&#123;&#125;&quot;</span>, user);<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>可能出现的问题:</p>
+<ol>
+<li>我在第二步 实体类定义 这里强调说，虽然数据库字段名是 id，但我的属性名却是 uuid，如果设置为 id，启动项目会出现这样的错误 org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name ‘userController’: Unsatisfied dependency expressed through field ‘userMapper’; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name ‘userMapper’ defined in file Invocation of init method failed; nested exception is java.lang.IllegalArgumentException: java.lang.RuntimeException: not found column for id</li>
+</ol>
+<p>大概意思就是说创建 UserMapper 失败，原因是找不到 id 列，我没详细去解决这个错误，推测原因可能是 mp 里把类里的 id 属性自动解释为主键，解决方式就是像我一样，给它起个新的名字，然后使用  <code>@TableField(value = &quot;id&quot;)</code> 标记一下</p>
+<ol start="2">
+<li>因为我接手的这个项目早期是 mybatis 嘛，我虽然引入了 mp，但不敢删除之前的 mybatis 的依赖，于是二者共存了，有机会遇到这样的错误 Error creating bean with name ‘com.github.jeffreyning.mybatisplus.conf.PlusConfig’: Invocation of init method failed; nested exception is java.lang.NoSuchFieldException: CLASS_RESOLVER</li>
+</ol>
+<p>这个错误就通俗易懂多了，说创建这个 bean 失败，原因是根本就没有一个 CLASS_RESOLVER 的字段，进入 PlusConfig 查看源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.github.jeffreyning.mybatisplus.conf;<br><br><span class="hljs-meta">@Import(&#123;PlusACUtils.class, MppSqlInjector.class&#125;)</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PlusConfig</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(PlusConfig.class);<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> Environment env;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">PlusConfig</span><span class="hljs-params">()</span> &#123;<br>    &#125;<br><br>    <span class="hljs-meta">@PostConstruct</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">initRM</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">NhOgnlClassResolver</span> <span class="hljs-variable">resolver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NhOgnlClassResolver</span>();<br>        resolver.baseList.add(<span class="hljs-string">&quot;com.github.jeffreyning.mybatisplus.check&quot;</span>);<br>        LambdaUtil.setValue(OgnlCache.class, <span class="hljs-string">&quot;CLASS_RESOLVER&quot;</span>, resolver);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">utilBasePaths</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.env.getProperty(<span class="hljs-string">&quot;mpp.utilBasePath&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>17 行通过工具类向 OgnlCache 的 CLASS_RESOLVER 设置值，但是这个字段在 OgnlCache 类不存在，这个其实是 mybatis 和 mpp  版本问题，mybatis 的早期版本中，OgnlCache 没有这个字段，因此修改下 mybatis 的版本就可以了，我这里修改到了 3.5.5</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;dependency&gt;<br>	&lt;groupId&gt;org.mybatis&lt;/groupId&gt;<br>	&lt;artifactId&gt;mybatis&lt;/artifactId&gt;<br>	&lt;version&gt;<span class="hljs-number">3.5</span><span class="hljs-number">.5</span>&lt;/version&gt;<br>&lt;/dependency&gt;<br></code></pre></td></tr></table></figure>
+
+<p>不过我后来发现 mp 和 springboot 的依赖中其实已经引入了 mybatis 的依赖，似乎把老的删了就行，总之这个问题跟 mybatis 的版本有关系</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/MybatisPlus/" class="print-no-link">#MybatisPlus</a>
+      
+        <a href="/tags/%E9%85%8D%E7%BD%AE/" class="print-no-link">#配置</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MybatisPlus配置联合主键</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/21/MybatisPlus配置联合主键/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/20/%E4%BA%91%E5%8E%9F%E7%94%9F%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E6%9C%8D%E5%8A%A1/" title="云原生部署常见服务">
+                        <span class="hidden-mobile">云原生部署常见服务</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
