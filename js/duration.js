@@ -1,5 +1,5 @@
 function updateRunDays() {
-    var startDate = new Date("2026-04-08T12:00:00"); // 建站时间，使用 ISO 格式
+    var startDate = new Date("2026-04-08T00:00:00"); // 建站时间，使用 ISO 格式
     var now = new Date();                             // 当前真实时间
     var diffDays = (now - startDate) / (1000 * 60 * 60 * 24);
     var daysNum = Math.floor(diffDays);
