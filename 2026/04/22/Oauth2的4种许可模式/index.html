@@ -1,0 +1,860 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Oauth2的4种许可模式Oauth 即 Open auth ，一种开放授权协议，通过为每个第三方软件和每个用户的组合分别生成对受保护资源具有受限的访问权限的凭据，也就是访问令牌，来代替之前的用户名和密码。而生成访问令牌之前的登录操作，又是在用户跟平台之间进行的，第三方软件根本无从得知用户的任何信息，使第三方软件调用大量 API 的时候，不再传输用户名和密码，从而减少网络安全的攻击面。 假如你是一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Oauth2的4种许可模式">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Oauth2的4种许可模式Oauth 即 Open auth ，一种开放授权协议，通过为每个第三方软件和每个用户的组合分别生成对受保护资源具有受限的访问权限的凭据，也就是访问令牌，来代替之前的用户名和密码。而生成访问令牌之前的登录操作，又是在用户跟平台之间进行的，第三方软件根本无从得知用户的任何信息，使第三方软件调用大量 API 的时候，不再传输用户名和密码，从而减少网络安全的攻击面。 假如你是一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205163038227.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135407760.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135737527.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140020043.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140806952.png">
+<meta property="article:published_time" content="2026-04-22T05:32:58.000Z">
+<meta property="article:modified_time" content="2026-04-22T05:36:57.578Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Oauth2">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png">
+  
+  
+  
+  <title>Oauth2的4种许可模式 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Oauth2的4种许可模式"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-22 13:32" pubdate>
+          2026年4月22日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Oauth2的4种许可模式</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Oauth2的4种许可模式"><a href="#Oauth2的4种许可模式" class="headerlink" title="Oauth2的4种许可模式"></a>Oauth2的4种许可模式</h1><p><strong>Oauth</strong> 即 Open auth ，一种开放授权协议，通过为每个第三方软件和每个用户的组合分别生成对受保护资源具有受限的访问权限的凭据，也就是访问令牌，来代替之前的用户名和密码。而生成访问令牌之前的登录操作，又是在用户跟平台之间进行的，第三方软件根本无从得知用户的任何信息，<strong>使第三方软件调用大量 API 的时候，不再传输用户名和密码，从而减少网络安全的攻击面</strong>。</p>
+<p>假如你是一个卖家小明，在京东商城开了一个店铺， 日常运营中你要将订单打印出来以便给用户发货。但打印这事儿也挺繁琐的，之前你总是手工操作，后来发现有个叫“小兔”的第三方软件，它可以帮你高效率地处理这事。 但你想想，小兔是怎么访问到这些订单数据的呢？其实是这样，京东商城提供了开放平台， 小兔通过京东商家开放平台的 API 就能访问到用户的订单数据。只要你在软件里点击同意，小兔就可以拿到一个访问令牌，通过访问令牌来获取到你的订单数据帮你干活儿了。</p>
+<p>在 OAuth 2.0 的体系里面有 4 种角色，按照官方的称呼它们分别是资源拥有者、客户端、授权服务和受保护资源。在上述例子中对应关系如下：资源拥有者 -&gt; 小明，客户端 -&gt; 小兔软件，授权服务 -&gt; 京东商家开放平台的授权服务，受保护资源 -&gt; 小明店铺在京东上面的订单。  </p>
+<h2 id="授权码许可（Authorization-Code）"><a href="#授权码许可（Authorization-Code）" class="headerlink" title="授权码许可（Authorization Code）"></a>授权码许可（Authorization Code）</h2><p>在授权码许可类型中，授权服务的工作，可以划分为两大部分，一个是颁发授权码 code，一个是颁发访问令牌 access_token。</p>
+<p>整体流程图如下：</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png" srcset="/img/loading.gif" lazyload alt="image-20241205162722046"> </p>
+<p>时序图如下：</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205163038227.png" srcset="/img/loading.gif" lazyload alt="image-20241205163038227"> </p>
+<p>其中重要的是两次重定向的过程：</p>
+<ul>
+<li>第一次重定向，由第三方软件（客户端）发起，重定向到京东的开放平台授权页面，引导用户进行授权</li>
+<li>第二次重定向，在用户授权完成后，授权服务生成了授权码 code，携带其重定向回三方软件</li>
+</ul>
+<p>为什么需要这么做：</p>
+<ul>
+<li>为什么不直接返回访问令牌 access_token，而先返回授权码 code</li>
+</ul>
+<p>如果直接返回</p>
+<ul>
+<li>若直接返回给小兔软件前端，相当于把非常重要的许可证暴露在了浏览器上，为了安全考虑这是不允许的</li>
+<li>若直接返回给小兔软件后端，小兔软件此时已经可以去请求数据了，但是用户还停留在授权界面，并没有返回到小兔软件，影响用户体验。（相当于你打王者荣耀，使用微信登录，微信登录完成并授权后，一直没返回王者荣耀界面，虽然你已经登录成功了，但是还是停留在微信的授权界面）</li>
+</ul>
+<p>综合这样的安全性和用户体验考虑，授权码许可类型设置为了这样的流程。但是有前置条件：</p>
+<ul>
+<li>第三方软件首先要到授权服务处注册自己的一些信息，如回调地址，可选权限范围（王者荣耀在请求微信授权登录时可选头像、好友关系等），生成自己的 app_id 和 app_secret</li>
+</ul>
+<p>如果不进行注册，虽然在获取授权码的时候第三方软件携带了想要的回调地址，但授权服务发现自己根本不知道这个软件是什么，也不知道这个软件的回调地址是否安全，自然不能进行授权</p>
+<p>这种认证方式的 grant_type 为：<code>authorization_code</code></p>
+<h2 id="资源拥有者凭证许可（Resource-Owner-Password-Credentials）"><a href="#资源拥有者凭证许可（Resource-Owner-Password-Credentials）" class="headerlink" title="资源拥有者凭证许可（Resource  Owner Password Credentials）"></a>资源拥有者凭证许可（Resource  Owner Password Credentials）</h2><p>试想一种这样的情况，小兔此时就是京东官方出品的一款软件，小明也是京东的用户，那么小明其实是可以使用用户名和密码来直接使用小兔这款软件的。</p>
+<p>那么，只需要在小明首次登录时，带着用户名和密码去授权模块认证一次，就可以返回 access_token 用于后续操作了。</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135407760.png" srcset="/img/loading.gif" lazyload alt="image-20241206135407760"> </p>
+<p>这种认证方式的 grant_type 为：<code>password</code></p>
+<h2 id="客户端凭证许可（Client-Credentials）"><a href="#客户端凭证许可（Client-Credentials）" class="headerlink" title="客户端凭证许可（Client Credentials）"></a>客户端凭证许可（Client Credentials）</h2><p>如果<code>没有明确的资源拥有者</code>，换句话说就是，小兔软件访问了一个不需要用户小明授权的数据，比如获取京东 LOGO 的图片地址，这个 LOGO 信息不属于任何一个第三方用户，再比如其它类型的第三方软件来访问平台提供的省份信息，省份信息也不属于任何一个第 三方用户。</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135737527.png" srcset="/img/loading.gif" lazyload alt="image-20241206135737527"></p>
+<p>这种认证方式的 grant_type 为：<code>client_credentials</code></p>
+<h2 id="隐式许可（Implicit）"><a href="#隐式许可（Implicit）" class="headerlink" title="隐式许可（Implicit）"></a>隐式许可（Implicit）</h2><p>隐式许可流程是<code>唯一在前端通信中要求返回 access_token 的流程</code></p>
+<p>如果小明使用的小兔打单软件应用<code>没有后端服务</code>，就是在浏览器里面执行的，比如纯粹的 JavaScript 应用，应该如何使用 OAuth 2.0 呢？ 在这种情况下，小兔软件对于浏览器就没有任何保密的数据可以隐藏了，也不再需要应用密钥 app_secret 的值了，也不用再通过授权码 code 来换取访问令牌 access_token 的值了。</p>
+<p>因为<code>使用授权码的目的之一，就是把浏览器和第三方软件的信息做一个隔离，确保浏览器看不到第三方软件最重要的访问令牌 access_token 的值</code>。</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140020043.png" srcset="/img/loading.gif" lazyload alt="image-20241206140020043"> </p>
+<h2 id="PKCE-协议"><a href="#PKCE-协议" class="headerlink" title="PKCE 协议"></a>PKCE 协议</h2><p>随着移动端应用的兴起，比如现在有一个<code>没有服务端的 APP</code>，也想要像 Web 应用那样自由的请求和响应，那它应该把 app_secret 存在哪里呢？因为 APP 会被安装到成千上万台设备上，如果 app_secret 被破解，可能造成灾难性的后果。</p>
+<p>OAuth 2.0 里面就有这样的指导方法。这个方法就是我们将要介绍的 PKCE 协议，，全称是 Proof Key for Code Exchange by OAuth Public Clients。</p>
+<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140806952.png" srcset="/img/loading.gif" lazyload alt="image-20241206140806952"> </p>
+<p>首先，App 自己要生成一个随机的、长度在 43~128 字符之间的，参数为 code_verifier  的字符串验证码；接着，我们再利用这个 code_verifier，来生成一个被称为“挑战码”的参数 code_challenge。</p>
+<p>生成 code_challenge 的几种方式如下：</p>
+<ul>
+<li>一种 code_challenge_method&#x3D;plain，此时 code_verifier 的值就是 code_challenge  的值</li>
+<li>另外一种 code_challenge_method&#x3D;S256，就是将 code_verifier 值进行 ASCII 编码之后再进行哈希，然后再将哈希之后的值进行 BASE64-URL 编码，代码示例如下：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))<br></code></pre></td></tr></table></figure>
+
+<p>在第一步获取授权码 code 的时候，我们使用 code_challenge  和 code_challenge_method 参数也传过去，目的是让授权服务知道生成 code_challenge 值的方法是 plain 还是 S256</p>
+<p>在第二步获取访问令牌 access_token 的时候，我们使用 code_verifier 参数和授权码 code，授权服务根据上一步 code 和 （code_challenge，code_challenge_method）的对应关系，结合 code_challenge_method 生成 code_challenge，与第一步的值进行比较，，如果相同就颁发访问令牌。</p>
+<p>PKCE 发布的目的是为了缓解针对公开客户端的攻击，主要是解决授权码窃听的攻击。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Oauth2/" class="print-no-link">#Oauth2</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Oauth2的4种许可模式</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/22/Oauth2的4种许可模式/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/21/Linux-JDK-NIO%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="Linux-JDK-NIO源码分析">
+                        <span class="hidden-mobile">Linux-JDK-NIO源码分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
