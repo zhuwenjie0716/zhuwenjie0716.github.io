@@ -1,0 +1,905 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="系统性能优化之磁盘篇磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~ 文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。  最简单的网络传输  最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="系统性能优化之磁盘篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="系统性能优化之磁盘篇磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~ 文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。  最简单的网络传输  最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112749023.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624113104692.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132341046.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132423219.png">
+<meta property="article:published_time" content="2026-04-27T02:13:36.000Z">
+<meta property="article:modified_time" content="2026-04-27T03:08:51.939Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="磁盘">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png">
+  
+  
+  
+  <title>系统性能优化之磁盘篇 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="系统性能优化之磁盘篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-27 10:13" pubdate>
+          2026年4月27日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          38 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">系统性能优化之磁盘篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="系统性能优化之磁盘篇"><a href="#系统性能优化之磁盘篇" class="headerlink" title="系统性能优化之磁盘篇"></a>系统性能优化之磁盘篇</h1><p>磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~</p>
+<p>文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。</p>
+<blockquote>
+<p>最简单的网络传输</p>
+</blockquote>
+<p>最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，再通过网络 API 发送给客户端，重复上述流程直到把文件发送完成。</p>
+<p>顺便一提，缓冲区的设置还是有必要的，java 有单字节的读取写入方式（FileInputStream.read()），这样会很慢，缓冲区可以有效的提升读取文件的性能。</p>
+<p>但是这样的性能依旧不是很高，原因是这需要进行多次的内容拷贝，会导致大量的上下文切换</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png" srcset="/img/loading.gif" lazyload alt="image-20250624112007687"></p>
+<ul>
+<li>每次读取发送都经历了 4 次用户态与内核态的上下文切换</li>
+<li>每次发送的缓存区内容被拷贝了 4 次</li>
+</ul>
+<p>接下来就从<code>减少上下文切换次数</code>和<code>减少内存拷贝次数</code>来进行优化</p>
+<h2 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h2><p>读取磁盘或者操作网卡都由操作系统内核完成。内核负责管理系统上的所有进程，它的权限最高，工作环境与用户进程完全不同。<code>只要我们的代码执行 read 或者 write 这样的系统调用，一定会发生 2 次上下文切换</code>：首先从用户态切换到内核态，当内核执行完任务后，再切换回用户态交由进程代码执行。</p>
+<p>因此<code>如果要减少上下文切换次数，就要减少系统调用次数</code>。解决方案就是把 read 和 write 系统调用合二为一，直接在内核中完成文件的读取和发送，可以把原本的 4 次上下文切换减少为 2 次。</p>
+<p>那如何减少内存拷贝次数呢？对于常见的文件下载场景，我们并不需要进程对文件进行处理，如添加公司信息等，那么用户缓冲区就没有存在的必要，直接由 PageCache 拷贝到 Socket 缓冲区就可以，这可以把原本的 4 次内容拷贝缩短为 3 次，</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112749023.png" srcset="/img/loading.gif" lazyload alt="image-20250624112749023"></p>
+<p>如果 网卡支持 DMA <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_56517253/article/details/128706625"> SG-DMA（The Scatter-Gather Direct Memory Access）</a>，那么 PageCache 可以直接拷贝到网卡，可以再减少一次内存拷贝。</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624113104692.png" srcset="/img/loading.gif" lazyload alt="image-20250624113104692"></p>
+<p>其实这就是零拷贝技术，它是操作系统提供的新函数，<code>同时接收文件描述符和 TCP socket 作为输入参数</code>，这样<code>执行时就可以完全在内核态完成内存拷贝</code>，既减少了内存拷贝次数，也降低了上下文切换次数。</p>
+<p>零拷贝使用户无需关心 socket 缓冲区的大小（因为 socket 缓冲区是动态变化的，它既用于 TCP 滑动窗口，也用于应用缓冲区，还受到整个系统内存的影响）。综合种种优点，零拷贝可以极大的提升文件传输性能。</p>
+<h2 id="PageCache-磁盘高速缓存"><a href="#PageCache-磁盘高速缓存" class="headerlink" title="PageCache 磁盘高速缓存"></a>PageCache 磁盘高速缓存</h2><p>正常读取文件时，是先把磁盘文件拷贝到 PageCache 上，再拷贝到进程中。原因是磁盘的读取速度是最慢的，而在内存中的 PageCache 速度就会快很多，那选择哪些数据复制到内存呢？根据<code>时间局部性</code>原理（刚被访问的数据在短时间内再次被访问的概率很高），用 PageCache 缓存最近访问的数据，当空间不足时淘汰最久未被访问的缓存（即 LRU 算法）。读磁盘时优先到 PageCache 中找一找，如果数据存在便直接返回，这便大大提升了读磁盘的性能。</p>
+<p>对于机械硬盘来说，需要旋转磁头到数据所在的扇区，再开始顺序读取数据。其中，旋转磁头耗时很长，为了降低它的影响，PageCache 使用了<strong>预读功能</strong>。也就是即使你可能目前只读 32KB 数据，但内核会把后续的部分数据也读取到 PageCache，因为这个读取成本很低，而如果后续一段时间访问到了这些数据，带来的收益是很值得的。</p>
+<p>PageCache 在 90% 以上场景下都会提升磁盘性能，<strong>但在某些情况下，PageCache 会不起作用，甚至由于多做了一次内存拷贝，造成性能的降低。</strong></p>
+<p>先说结论：<code>在读取大文件时，不应使用 PageCache，进而也不应使用零拷贝技术处理。</code></p>
+<p>当用户访问大文件时，内核就会把它们载入到 PageCache 中，这些大文件很快会把有限的 PageCache 占满。一方面这些大文件被再次访问的概率其实很低，耗费 CPU 多拷贝到 PageCache 一次；另一方面大文件占用 PageCache 会导致热点小文件无法被加载到 PageCache 中，读取的速度变慢。</p>
+<ul>
+<li>比如视频文件通常按时间顺序播放，播放器只会按需加载一定长度的视频数据。虽然文件本身很大，但只有少部分数据会在某一时间点内被访问到，其余的数据部分在播放过程中可能根本不会被访问到。</li>
+<li>某些大数据库文件也是按顺序或按块读取的，而数据库的查询操作通常集中在特定区域或范围内。大文件的其他部分可能在较长时间内不会被访问，导致它们在 PageCache 中的缓存效果差。</li>
+</ul>
+<p>那么高并发场景下该怎么处理大文件呢？</p>
+<h2 id="异步-IO-直接-IO"><a href="#异步-IO-直接-IO" class="headerlink" title="异步 IO + 直接 IO"></a>异步 IO + 直接 IO</h2><p>高并发场景处理大文件时，应当使用异步 IO 和直接 IO 来替换零拷贝技术。</p>
+<p>当调用 read 方法读取文件时，实际上 read 方法会在磁盘寻址过程中阻塞等待，导致进程无法并发地处理其他任务，如下图所示：</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132341046.png" srcset="/img/loading.gif" lazyload alt="image-20250624132341046"></p>
+<p>异步 IO（异步 IO 既可以处理网络 IO，也可以处理磁盘 IO，这里我们只关注磁盘 IO）把读操作分为两部分，前半部分向内核发起读请求，但<strong>不等待数据就位就立刻返回</strong>，此时进程可以并发地处理其他任务。当内核将磁盘中的数据拷贝到进程缓冲区后，进程将接收到内核的通知，再去处理数据，这是异步 IO 的后半部分。如下图所示：</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132423219.png" srcset="/img/loading.gif" lazyload alt="image-20250624132423219"></p>
+<p>异步 IO 并没有把数据拷贝到 PageCache 中，这其实是异步 IO 实现上的缺陷。<code>经过 PageCache 的 IO 我们称为缓存 IO</code>，它与虚拟内存系统耦合太紧，导致异步 IO 从诞生起到现在都不支持缓存 IO。<code>绕过 PageCache 的 IO 是个新物种，我们把它称为直接 IO</code>。对于磁盘，异步 IO 只支持直接 IO。</p>
+<p>直接 IO 的应用场景为：</p>
+<ul>
+<li>应用程序已经实现了磁盘文件的缓存，不需要 PageCache 再次缓存，引发额外的性能消耗。比如 MySQL 等数据库就使用直接 IO</li>
+<li>高并发下传输大文件</li>
+</ul>
+<p>缺点为无法享受 PageCache 造成的性能提升（内核会缓存尽量多的连续IO在 PageCache 中，合并为一个更大的 IO 发给磁盘，减少磁盘的寻址操作；内核也会<strong>预读</strong>后续的 IO 放在 PageCache 中，减少磁盘操作）。</p>
+<h2 id="SSD-vs-HDD"><a href="#SSD-vs-HDD" class="headerlink" title="SSD vs HDD"></a>SSD vs HDD</h2><p>一般情况下把程序使用的 HDD（传统机械硬盘）换为 SSD 后吞吐量可以得到明显的提升，但 SSD 并不是 “更快的 HDD”，它的结构和 HDD 有明显区别。</p>
+<p>一个硬盘的性能最主要体现在这三个指标：IOPS，带宽 &#x2F; 吞吐率和访问延迟。<strong>IOPS</strong> (Input&#x2F;Output Per Second) ，即每秒钟系统能处理的读写请求数量。<strong>吞吐率</strong>（Throughput）或者带宽（Bandwidth），衡量的是实际数据传输速率。<strong>访问延迟</strong>，指的是从发起 IO 请求到存储系统把 IO 处理完成的时间间隔。SSD 的随机 IO 延迟比传统硬盘快百倍以上，一般在微妙级别；IO 带宽也高很多倍，可以达到每秒几个 GB；随机 IOPS 更是快了上千倍，可以达到几十万。</p>
+<p>对于传统硬盘，当应用程序发出硬盘 IO 请求后，这个请求会进入硬盘的 IO 队列。当轮到这个 IO 来存取数据时，磁头需要机械运动到数据存放的位置，这就需要磁头寻址到相应的磁道和旋转到相应的扇区，然后才是数据的传输。</p>
+<p>对于 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Da411a7SF/">SSD</a> 而言，它有<strong>单元（Cell）</strong>、<strong>页面（Page）</strong>、<strong>块（Block）</strong>这几个核心概念，Cell 是 Page 中的存储数据的基本单位（物理层面），但 CPU 和 SSD 控制器不能单独寻址一个 Cell，因此Page 是执行编程或读写操作的最小单元，一般为 4KB&#x2F;8KB&#x2F;16KB。SSD 上没有“重写”操作，<strong>不像 HDD 可以直接对任何字节重写覆盖</strong>。一个页面一旦写入内容后就不能进行部分重写，必须和其它相邻页面一起被整体擦除重置。Block 是可以被执行擦除的最小单元，包含多个 Page。</p>
+<h3 id="IO-和垃圾回收"><a href="#IO-和垃圾回收" class="headerlink" title="IO 和垃圾回收"></a>IO 和垃圾回收</h3><p>对 SSD 的 IO 共有三种类型：读取、写入和擦除。读取和写入以页为单位。IO 写入的延迟具体取决于磁盘的历史状态，因为如果 SSD 已经存储了许多数据，那么对页的写入就经常需要移动已有的数据。一般的读写延迟都很低，在微秒级别，远远低于 HDD。擦除是以块为单位的。擦除速度相对很慢，通常为几毫秒。</p>
+<p>所以对同步的 IO，发出 IO 的应用程序可能会因为块的擦除，而经历很大的写入延迟。为了尽量地减少这样的场景，<code>保持空闲块的阈值</code>对于快速的写响应是很有必要的。SSD 的垃圾回收（GC）的目的就在于此。GC 可以回收用过的块，这样可以确保以后的页写入可以快速分配到一个全新的页。</p>
+<h3 id="写入放大（Write-Amplification"><a href="#写入放大（Write-Amplification" class="headerlink" title="写入放大（Write Amplification)"></a>写入放大（Write Amplification)</h3><p>这是 SSD 相对于 HDD 的一个缺点，即实际写入 SSD 的物理数据量，有可能是应用层写入数据量的多倍。一方面，页级别的写入需要移动已有的数据来腾空页面。另一方面，GC 的操作也会移动用户数据来进行块级别的擦除。所以对 SSD 真正的写操作的数据可能比实际写的数据量大，这就是写入放大。一块 SSD 只能进行有限的擦除次数，也称为编程 &#x2F; 擦除（P&#x2F;E）周期，所以写入放大效用会缩短 SSD 的寿命。</p>
+<h3 id="耗损平衡-（Wear-Leveling）"><a href="#耗损平衡-（Wear-Leveling）" class="headerlink" title="耗损平衡 （Wear Leveling）"></a>耗损平衡 （Wear Leveling）</h3><p>数据有冷热之分，它们存储在不同的块上，对每一个块而言，一旦达到最大操作数量，该块就会死亡。对于 SLC 块，P&#x2F;E 周期的典型数目是十万次；对于 MLC 块，P&#x2F;E 周期的数目是一万；而对于 TLC 块，则可能是几千。</p>
+<p>为了确保 SSD 的容量和性能，我们需要在擦除次数上保持平衡，SSD 控制器具有这种“耗损平衡”机制可以实现这一目标。在损耗平衡期间，数据在各个块之间移动，以实现均衡的损耗，这种机制也会对前面讲的写入放大推波助澜。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>零拷贝技术基于 PageCache（缓存最近读的数据），合并读取和发送的系统调用，能够有效减少传输文件过程中的上下文切换次数和内存拷贝次数，同时最大程度利用 socket 缓冲区。但缺点是用户进程无法对文件做任何修改，比如压缩后再发送。当文件大小超过某个阈值后，PageCache 还可能引发副作用，因此，实践中通常会<code>设定一个文件大小阈值，针对大文件使用异步 IO 和直接 IO，而对小文件使用零拷贝</code>( 例如 Nginx 的 directio 指令)。</p>
+<p>文件传输场景中的优化可以大概分为三个方向：</p>
+<ul>
+<li>减少磁盘工作量（PageCache）</li>
+<li>减少 CPU 工作量 （直接 IO）</li>
+<li>提高内存利用率（零拷贝）</li>
+</ul>
+<p>在使用 SSD 时，遵循以下准则可以或者更好的性能：</p>
+<ul>
+<li><strong>使用多个并发线程来执行 IO</strong>。这利用了 SSD 的内部并行性，不过多线程也可能由于操作系统的预读和回写而产生线程竞争。多 IO 线程对 HDD 则毫无益处，因为 HDD 只有一个磁头。</li>
+<li><strong>避免长而繁重的写入</strong>。原因是 SSD 的 GC 机制会在空闲块数量下降到阈值时后台启动，不断地回收存储块以供以后使用，但如果写入的速率远超 GC 速率，则将触发前台 GC，导致较大的应用程序 IO 延迟。</li>
+<li><strong>避免 SSD 存储太满</strong>。GC 创建空闲块时，需要对数据进行压缩整理，但平均数据量 80% 时，需要压缩 5 个块获得一个空闲块，而当平均数据量 95% 时，压缩 20 个块才能获得一个块。</li>
+<li><strong>减少就地更新</strong>。HDD 可以重写任意字节的数据，但 SSD 以页为操作单位的特性决定了其就地更新需要经历“读取-修改-写入”（RMW）步骤，而随机更新在空间使用率不满的情况下就较少引起读取和修改步骤（即仅仅“写入”），因此速度更快。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E9%80%9A%E7%94%A8/" class="category-chain-item">通用</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+        <a href="/tags/%E7%A3%81%E7%9B%98/" class="print-no-link">#磁盘</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>系统性能优化之磁盘篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/27/系统性能优化之磁盘篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/27/Netty%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98/" title="Netty如何高效使用内存">
+                        <span class="hidden-mobile">Netty如何高效使用内存</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
