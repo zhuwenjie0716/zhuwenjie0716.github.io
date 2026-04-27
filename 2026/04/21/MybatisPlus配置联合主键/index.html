@@ -19,15 +19,15 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简">
+    <meta name="description" content="MybatisPlus配置联合主键背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 myb">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MybatisPlus配置联合主键">
 <meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/21/MybatisPlus%E9%85%8D%E7%BD%AE%E8%81%94%E5%90%88%E4%B8%BB%E9%94%AE/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简">
+<meta property="og:description" content="MybatisPlus配置联合主键背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 myb">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-21T01:15:12.000Z">
-<meta property="article:modified_time" content="2026-04-21T01:20:52.036Z">
+<meta property="article:modified_time" content="2026-04-27T06:29:21.286Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="MybatisPlus">
 <meta property="article:tag" content="配置">
@@ -401,7 +401,7 @@
             
               <div class="markdown-body">
                 
-                <p>背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。</p>
+                <h1 id="MybatisPlus配置联合主键"><a href="#MybatisPlus配置联合主键" class="headerlink" title="MybatisPlus配置联合主键"></a>MybatisPlus配置联合主键</h1><p>背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。</p>
 <p>本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 mybatisplus-plus（以下简称mpp） 的工具，因此总结一个 demo 出来，包括整合过程和其中遇到的问题和解决方式。</p>
 <p>1、引入依赖</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">properties</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">mybatis-plus.version</span>&gt;</span>3.4.0<span class="hljs-tag">&lt;/<span class="hljs-name">mybatis-plus.version</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">mybatis-plus-plus.version</span>&gt;</span>1.5.1-RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">mybatis-plus-plus.version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">properties</span>&gt;</span><br></code></pre></td></tr></table></figure>

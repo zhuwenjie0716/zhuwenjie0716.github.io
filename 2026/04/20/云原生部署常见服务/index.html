@@ -19,16 +19,16 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。 该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。 镜像拉取内网环境一般公司会自行搭建 Harbor 镜像仓库，在拉">
+    <meta name="description" content="云原生部署常见服务在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。 该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。 镜像拉取内网环境一般公司会自行搭建 Harbo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="云原生部署常见服务">
 <meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/20/%E4%BA%91%E5%8E%9F%E7%94%9F%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E6%9C%8D%E5%8A%A1/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。 该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。 镜像拉取内网环境一般公司会自行搭建 Harbor 镜像仓库，在拉">
+<meta property="og:description" content="云原生部署常见服务在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。 该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。 镜像拉取内网环境一般公司会自行搭建 Harbo">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/20/%E4%BA%91%E5%8E%9F%E7%94%9F%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E6%9C%8D%E5%8A%A1/image-20260420163935539.png">
 <meta property="article:published_time" content="2026-04-20T08:18:37.000Z">
-<meta property="article:modified_time" content="2026-04-20T09:34:39.256Z">
+<meta property="article:modified_time" content="2026-04-27T05:38:41.720Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Docker">
 <meta property="article:tag" content="Kubernetes">
@@ -403,9 +403,9 @@
             
               <div class="markdown-body">
                 
-                <p>在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。</p>
+                <h1 id="云原生部署常见服务"><a href="#云原生部署常见服务" class="headerlink" title="云原生部署常见服务"></a>云原生部署常见服务</h1><p>在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。</p>
 <p>该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。</p>
-<h1 id="镜像拉取"><a href="#镜像拉取" class="headerlink" title="镜像拉取"></a>镜像拉取</h1><p>内网环境一般公司会自行搭建 Harbor 镜像仓库，在拉取时配置 secret 秘钥即可。公网环境由于网络等限制，一般需要配置镜像加速，阿里云中提供了方法：<a target="_blank" rel="noopener" href="https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors">阿里云配置镜像加速</a></p>
+<h2 id="镜像拉取"><a href="#镜像拉取" class="headerlink" title="镜像拉取"></a>镜像拉取</h2><p>内网环境一般公司会自行搭建 Harbor 镜像仓库，在拉取时配置 secret 秘钥即可。公网环境由于网络等限制，一般需要配置镜像加速，阿里云中提供了方法：<a target="_blank" rel="noopener" href="https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors">阿里云配置镜像加速</a></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">mkdir</span> -p /etc/docker<br></code></pre></td></tr></table></figure>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tee</span> /etc/docker/daemon.json &lt;&lt;-<span class="hljs-string">&#x27;EOF&#x27;</span><br>&#123;<br>  <span class="hljs-string">&quot;registry-mirrors&quot;</span>: [<span class="hljs-string">&quot;https://quype1o7.mirror.aliyuncs.com&quot;</span>]<br>&#125;<br>EOF<br></code></pre></td></tr></table></figure>
@@ -428,7 +428,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker load -i jre11.tar<br></code></pre></td></tr></table></figure>
 
 <p>其实部署服务时镜像的选择有很多知识，如果是想要绝对安全的环境（内部 curl、vim等指令均不存在），则使用只包含基础工具的镜像，像 Java 程序运行时其实只依赖 jre，如果使用 jdk 会导致最后的镜像体积很大，当然这也是一种权衡，有了 jdk 后可以定位一些问题。</p>
-<h1 id="Docker-运行-Mysql"><a href="#Docker-运行-Mysql" class="headerlink" title="Docker 运行 Mysql"></a>Docker 运行 Mysql</h1><p>数据库想必是开发中最常用的工具了，启动指令也非常简单：</p>
+<h2 id="Docker-运行-Mysql"><a href="#Docker-运行-Mysql" class="headerlink" title="Docker 运行 Mysql"></a>Docker 运行 Mysql</h2><p>数据库想必是开发中最常用的工具了，启动指令也非常简单：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d mysql:5.7<br></code></pre></td></tr></table></figure>
 
 <p>这是个用完即丢的示例，因为这个指令并没有保存 mysql 的数据，非常适合测试，如果想要保存数据，则命令如下：</p>
@@ -436,12 +436,12 @@
 
 <p>其中 <code>-v /data/mysql:/var/lib/mysql</code> 即把容器外的 &#x2F;data&#x2F;mysql 目录挂载到 容器内的 &#x2F;var&#x2F;lib&#x2F;mysql 目录</p>
 <p>注：不同版本的镜像数据目录、环境变量未必完全相同，使用时注意看文档。</p>
-<h1 id="Docker-运行-Redis"><a href="#Docker-运行-Redis" class="headerlink" title="Docker 运行 Redis"></a>Docker 运行 Redis</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name redis -d -p 6379:6379 redis:5.0.8<br></code></pre></td></tr></table></figure>
+<h2 id="Docker-运行-Redis"><a href="#Docker-运行-Redis" class="headerlink" title="Docker 运行 Redis"></a>Docker 运行 Redis</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name redis -d -p 6379:6379 redis:5.0.8<br></code></pre></td></tr></table></figure>
 
 <p>依然是用完即丢的示例，并且没有设置账号和密码，这种都倾向于用完即弃，生产环境千万不要这样</p>
 <hr>
 <p>像一些常见的还有 consul、kafka 等….</p>
-<h1 id="Kubernetes-部署-Redis-Cluster-集群"><a href="#Kubernetes-部署-Redis-Cluster-集群" class="headerlink" title="Kubernetes 部署 Redis-Cluster 集群"></a>Kubernetes 部署 Redis-Cluster 集群</h1><p>Redis-Cluster 和 主从哨兵集群的区别与优劣就不在此比对了，本文是以部署为主。</p>
+<h2 id="Kubernetes-部署-Redis-Cluster-集群"><a href="#Kubernetes-部署-Redis-Cluster-集群" class="headerlink" title="Kubernetes 部署 Redis-Cluster 集群"></a>Kubernetes 部署 Redis-Cluster 集群</h2><p>Redis-Cluster 和 主从哨兵集群的区别与优劣就不在此比对了，本文是以部署为主。</p>
 <ol>
 <li>从三方仓库拉取 Redis7 镜像：</li>
 </ol>

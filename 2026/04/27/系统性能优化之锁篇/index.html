@@ -19,29 +19,28 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="系统性能优化之磁盘篇磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~ 文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。  最简单的网络传输  最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，">
+    <meta name="description" content="系统性能优化之锁篇多线程下为了确保程序不会出错，必须加锁后才能访问共享资源。锁也是有层级之分的，在不同的场景下加不同的锁，对系统性能也有着很大影响。 互斥锁与自旋锁互斥锁与自旋锁是最底层的两个锁，其他的锁几乎都是基于此实现的。**互斥锁加锁失败时会释放CPU进入阻塞状态，自旋锁则会忙等待**。 **当无法确定锁住的代码需要执行多久时，应当首选互斥锁。**互斥锁是一种独占锁，当被线程取得后，除非线程">
 <meta property="og:type" content="article">
-<meta property="og:title" content="系统性能优化之磁盘篇">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/index.html">
+<meta property="og:title" content="系统性能优化之锁篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="系统性能优化之磁盘篇磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~ 文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。  最简单的网络传输  最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，">
+<meta property="og:description" content="系统性能优化之锁篇多线程下为了确保程序不会出错，必须加锁后才能访问共享资源。锁也是有层级之分的，在不同的场景下加不同的锁，对系统性能也有着很大影响。 互斥锁与自旋锁互斥锁与自旋锁是最底层的两个锁，其他的锁几乎都是基于此实现的。**互斥锁加锁失败时会释放CPU进入阻塞状态，自旋锁则会忙等待**。 **当无法确定锁住的代码需要执行多久时，应当首选互斥锁。**互斥锁是一种独占锁，当被线程取得后，除非线程">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112749023.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624113104692.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132341046.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132423219.png">
-<meta property="article:published_time" content="2026-04-27T02:13:36.000Z">
-<meta property="article:modified_time" content="2026-04-27T03:08:51.939Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111249735.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111309693.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625110845779.png">
+<meta property="article:published_time" content="2026-04-27T05:25:29.000Z">
+<meta property="article:modified_time" content="2026-04-27T06:03:40.898Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="性能优化">
-<meta property="article:tag" content="磁盘">
+<meta property="article:tag" content="锁">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png">
   
   
   
-  <title>系统性能优化之磁盘篇 - Hexo</title>
+  <title>系统性能优化之锁篇 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -316,7 +315,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="系统性能优化之磁盘篇"></span>
+            <span id="subtitle" data-typed-text="系统性能优化之锁篇"></span>
           
         </div>
 
@@ -327,8 +326,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-04-27 10:13" pubdate>
-          2026年4月27日 上午
+        <time datetime="2026-04-27 13:25" pubdate>
+          2026年4月27日 下午
         </time>
       </span>
     
@@ -339,7 +338,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.5k 字
+          2.3k 字
         
       </span>
     
@@ -350,7 +349,7 @@
         
         
         
-          38 分钟
+          20 分钟
         
       </span>
     
@@ -402,78 +401,43 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">系统性能优化之磁盘篇</h1>
+            <h1 id="seo-header">系统性能优化之锁篇</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="系统性能优化之磁盘篇"><a href="#系统性能优化之磁盘篇" class="headerlink" title="系统性能优化之磁盘篇"></a>系统性能优化之磁盘篇</h1><p>磁盘作为计算机中速度最慢的硬件之一，常常是系统的性能瓶颈，优化磁盘一般能得到明显的提升~</p>
-<p>文章前部分以如何高效的传输文件来讨论针对磁盘的优化技术，如零拷贝、直接 IO、异步 IO等，后部分介绍 SSD 和 HDD 的区别，探讨如何编写对 SSD 友好的程序。</p>
-<blockquote>
-<p>最简单的网络传输</p>
-</blockquote>
-<p>最简单的方式的当然是找到文件存储的路径，创建一个固定的大小的缓冲区，每次读取缓冲区大小的文件内容，再通过网络 API 发送给客户端，重复上述流程直到把文件发送完成。</p>
-<p>顺便一提，缓冲区的设置还是有必要的，java 有单字节的读取写入方式（FileInputStream.read()），这样会很慢，缓冲区可以有效的提升读取文件的性能。</p>
-<p>但是这样的性能依旧不是很高，原因是这需要进行多次的内容拷贝，会导致大量的上下文切换</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112007687.png" srcset="/img/loading.gif" lazyload alt="image-20250624112007687"></p>
-<ul>
-<li>每次读取发送都经历了 4 次用户态与内核态的上下文切换</li>
-<li>每次发送的缓存区内容被拷贝了 4 次</li>
-</ul>
-<p>接下来就从<code>减少上下文切换次数</code>和<code>减少内存拷贝次数</code>来进行优化</p>
-<h2 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h2><p>读取磁盘或者操作网卡都由操作系统内核完成。内核负责管理系统上的所有进程，它的权限最高，工作环境与用户进程完全不同。<code>只要我们的代码执行 read 或者 write 这样的系统调用，一定会发生 2 次上下文切换</code>：首先从用户态切换到内核态，当内核执行完任务后，再切换回用户态交由进程代码执行。</p>
-<p>因此<code>如果要减少上下文切换次数，就要减少系统调用次数</code>。解决方案就是把 read 和 write 系统调用合二为一，直接在内核中完成文件的读取和发送，可以把原本的 4 次上下文切换减少为 2 次。</p>
-<p>那如何减少内存拷贝次数呢？对于常见的文件下载场景，我们并不需要进程对文件进行处理，如添加公司信息等，那么用户缓冲区就没有存在的必要，直接由 PageCache 拷贝到 Socket 缓冲区就可以，这可以把原本的 4 次内容拷贝缩短为 3 次，</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624112749023.png" srcset="/img/loading.gif" lazyload alt="image-20250624112749023"></p>
-<p>如果 网卡支持 DMA <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_56517253/article/details/128706625"> SG-DMA（The Scatter-Gather Direct Memory Access）</a>，那么 PageCache 可以直接拷贝到网卡，可以再减少一次内存拷贝。</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624113104692.png" srcset="/img/loading.gif" lazyload alt="image-20250624113104692"></p>
-<p>其实这就是零拷贝技术，它是操作系统提供的新函数，<code>同时接收文件描述符和 TCP socket 作为输入参数</code>，这样<code>执行时就可以完全在内核态完成内存拷贝</code>，既减少了内存拷贝次数，也降低了上下文切换次数。</p>
-<p>零拷贝使用户无需关心 socket 缓冲区的大小（因为 socket 缓冲区是动态变化的，它既用于 TCP 滑动窗口，也用于应用缓冲区，还受到整个系统内存的影响）。综合种种优点，零拷贝可以极大的提升文件传输性能。</p>
-<h2 id="PageCache-磁盘高速缓存"><a href="#PageCache-磁盘高速缓存" class="headerlink" title="PageCache 磁盘高速缓存"></a>PageCache 磁盘高速缓存</h2><p>正常读取文件时，是先把磁盘文件拷贝到 PageCache 上，再拷贝到进程中。原因是磁盘的读取速度是最慢的，而在内存中的 PageCache 速度就会快很多，那选择哪些数据复制到内存呢？根据<code>时间局部性</code>原理（刚被访问的数据在短时间内再次被访问的概率很高），用 PageCache 缓存最近访问的数据，当空间不足时淘汰最久未被访问的缓存（即 LRU 算法）。读磁盘时优先到 PageCache 中找一找，如果数据存在便直接返回，这便大大提升了读磁盘的性能。</p>
-<p>对于机械硬盘来说，需要旋转磁头到数据所在的扇区，再开始顺序读取数据。其中，旋转磁头耗时很长，为了降低它的影响，PageCache 使用了<strong>预读功能</strong>。也就是即使你可能目前只读 32KB 数据，但内核会把后续的部分数据也读取到 PageCache，因为这个读取成本很低，而如果后续一段时间访问到了这些数据，带来的收益是很值得的。</p>
-<p>PageCache 在 90% 以上场景下都会提升磁盘性能，<strong>但在某些情况下，PageCache 会不起作用，甚至由于多做了一次内存拷贝，造成性能的降低。</strong></p>
-<p>先说结论：<code>在读取大文件时，不应使用 PageCache，进而也不应使用零拷贝技术处理。</code></p>
-<p>当用户访问大文件时，内核就会把它们载入到 PageCache 中，这些大文件很快会把有限的 PageCache 占满。一方面这些大文件被再次访问的概率其实很低，耗费 CPU 多拷贝到 PageCache 一次；另一方面大文件占用 PageCache 会导致热点小文件无法被加载到 PageCache 中，读取的速度变慢。</p>
-<ul>
-<li>比如视频文件通常按时间顺序播放，播放器只会按需加载一定长度的视频数据。虽然文件本身很大，但只有少部分数据会在某一时间点内被访问到，其余的数据部分在播放过程中可能根本不会被访问到。</li>
-<li>某些大数据库文件也是按顺序或按块读取的，而数据库的查询操作通常集中在特定区域或范围内。大文件的其他部分可能在较长时间内不会被访问，导致它们在 PageCache 中的缓存效果差。</li>
-</ul>
-<p>那么高并发场景下该怎么处理大文件呢？</p>
-<h2 id="异步-IO-直接-IO"><a href="#异步-IO-直接-IO" class="headerlink" title="异步 IO + 直接 IO"></a>异步 IO + 直接 IO</h2><p>高并发场景处理大文件时，应当使用异步 IO 和直接 IO 来替换零拷贝技术。</p>
-<p>当调用 read 方法读取文件时，实际上 read 方法会在磁盘寻址过程中阻塞等待，导致进程无法并发地处理其他任务，如下图所示：</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132341046.png" srcset="/img/loading.gif" lazyload alt="image-20250624132341046"></p>
-<p>异步 IO（异步 IO 既可以处理网络 IO，也可以处理磁盘 IO，这里我们只关注磁盘 IO）把读操作分为两部分，前半部分向内核发起读请求，但<strong>不等待数据就位就立刻返回</strong>，此时进程可以并发地处理其他任务。当内核将磁盘中的数据拷贝到进程缓冲区后，进程将接收到内核的通知，再去处理数据，这是异步 IO 的后半部分。如下图所示：</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/image-20250624132423219.png" srcset="/img/loading.gif" lazyload alt="image-20250624132423219"></p>
-<p>异步 IO 并没有把数据拷贝到 PageCache 中，这其实是异步 IO 实现上的缺陷。<code>经过 PageCache 的 IO 我们称为缓存 IO</code>，它与虚拟内存系统耦合太紧，导致异步 IO 从诞生起到现在都不支持缓存 IO。<code>绕过 PageCache 的 IO 是个新物种，我们把它称为直接 IO</code>。对于磁盘，异步 IO 只支持直接 IO。</p>
-<p>直接 IO 的应用场景为：</p>
-<ul>
-<li>应用程序已经实现了磁盘文件的缓存，不需要 PageCache 再次缓存，引发额外的性能消耗。比如 MySQL 等数据库就使用直接 IO</li>
-<li>高并发下传输大文件</li>
-</ul>
-<p>缺点为无法享受 PageCache 造成的性能提升（内核会缓存尽量多的连续IO在 PageCache 中，合并为一个更大的 IO 发给磁盘，减少磁盘的寻址操作；内核也会<strong>预读</strong>后续的 IO 放在 PageCache 中，减少磁盘操作）。</p>
-<h2 id="SSD-vs-HDD"><a href="#SSD-vs-HDD" class="headerlink" title="SSD vs HDD"></a>SSD vs HDD</h2><p>一般情况下把程序使用的 HDD（传统机械硬盘）换为 SSD 后吞吐量可以得到明显的提升，但 SSD 并不是 “更快的 HDD”，它的结构和 HDD 有明显区别。</p>
-<p>一个硬盘的性能最主要体现在这三个指标：IOPS，带宽 &#x2F; 吞吐率和访问延迟。<strong>IOPS</strong> (Input&#x2F;Output Per Second) ，即每秒钟系统能处理的读写请求数量。<strong>吞吐率</strong>（Throughput）或者带宽（Bandwidth），衡量的是实际数据传输速率。<strong>访问延迟</strong>，指的是从发起 IO 请求到存储系统把 IO 处理完成的时间间隔。SSD 的随机 IO 延迟比传统硬盘快百倍以上，一般在微妙级别；IO 带宽也高很多倍，可以达到每秒几个 GB；随机 IOPS 更是快了上千倍，可以达到几十万。</p>
-<p>对于传统硬盘，当应用程序发出硬盘 IO 请求后，这个请求会进入硬盘的 IO 队列。当轮到这个 IO 来存取数据时，磁头需要机械运动到数据存放的位置，这就需要磁头寻址到相应的磁道和旋转到相应的扇区，然后才是数据的传输。</p>
-<p>对于 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Da411a7SF/">SSD</a> 而言，它有<strong>单元（Cell）</strong>、<strong>页面（Page）</strong>、<strong>块（Block）</strong>这几个核心概念，Cell 是 Page 中的存储数据的基本单位（物理层面），但 CPU 和 SSD 控制器不能单独寻址一个 Cell，因此Page 是执行编程或读写操作的最小单元，一般为 4KB&#x2F;8KB&#x2F;16KB。SSD 上没有“重写”操作，<strong>不像 HDD 可以直接对任何字节重写覆盖</strong>。一个页面一旦写入内容后就不能进行部分重写，必须和其它相邻页面一起被整体擦除重置。Block 是可以被执行擦除的最小单元，包含多个 Page。</p>
-<h3 id="IO-和垃圾回收"><a href="#IO-和垃圾回收" class="headerlink" title="IO 和垃圾回收"></a>IO 和垃圾回收</h3><p>对 SSD 的 IO 共有三种类型：读取、写入和擦除。读取和写入以页为单位。IO 写入的延迟具体取决于磁盘的历史状态，因为如果 SSD 已经存储了许多数据，那么对页的写入就经常需要移动已有的数据。一般的读写延迟都很低，在微秒级别，远远低于 HDD。擦除是以块为单位的。擦除速度相对很慢，通常为几毫秒。</p>
-<p>所以对同步的 IO，发出 IO 的应用程序可能会因为块的擦除，而经历很大的写入延迟。为了尽量地减少这样的场景，<code>保持空闲块的阈值</code>对于快速的写响应是很有必要的。SSD 的垃圾回收（GC）的目的就在于此。GC 可以回收用过的块，这样可以确保以后的页写入可以快速分配到一个全新的页。</p>
-<h3 id="写入放大（Write-Amplification"><a href="#写入放大（Write-Amplification" class="headerlink" title="写入放大（Write Amplification)"></a>写入放大（Write Amplification)</h3><p>这是 SSD 相对于 HDD 的一个缺点，即实际写入 SSD 的物理数据量，有可能是应用层写入数据量的多倍。一方面，页级别的写入需要移动已有的数据来腾空页面。另一方面，GC 的操作也会移动用户数据来进行块级别的擦除。所以对 SSD 真正的写操作的数据可能比实际写的数据量大，这就是写入放大。一块 SSD 只能进行有限的擦除次数，也称为编程 &#x2F; 擦除（P&#x2F;E）周期，所以写入放大效用会缩短 SSD 的寿命。</p>
-<h3 id="耗损平衡-（Wear-Leveling）"><a href="#耗损平衡-（Wear-Leveling）" class="headerlink" title="耗损平衡 （Wear Leveling）"></a>耗损平衡 （Wear Leveling）</h3><p>数据有冷热之分，它们存储在不同的块上，对每一个块而言，一旦达到最大操作数量，该块就会死亡。对于 SLC 块，P&#x2F;E 周期的典型数目是十万次；对于 MLC 块，P&#x2F;E 周期的数目是一万；而对于 TLC 块，则可能是几千。</p>
-<p>为了确保 SSD 的容量和性能，我们需要在擦除次数上保持平衡，SSD 控制器具有这种“耗损平衡”机制可以实现这一目标。在损耗平衡期间，数据在各个块之间移动，以实现均衡的损耗，这种机制也会对前面讲的写入放大推波助澜。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>零拷贝技术基于 PageCache（缓存最近读的数据），合并读取和发送的系统调用，能够有效减少传输文件过程中的上下文切换次数和内存拷贝次数，同时最大程度利用 socket 缓冲区。但缺点是用户进程无法对文件做任何修改，比如压缩后再发送。当文件大小超过某个阈值后，PageCache 还可能引发副作用，因此，实践中通常会<code>设定一个文件大小阈值，针对大文件使用异步 IO 和直接 IO，而对小文件使用零拷贝</code>( 例如 Nginx 的 directio 指令)。</p>
-<p>文件传输场景中的优化可以大概分为三个方向：</p>
-<ul>
-<li>减少磁盘工作量（PageCache）</li>
-<li>减少 CPU 工作量 （直接 IO）</li>
-<li>提高内存利用率（零拷贝）</li>
-</ul>
-<p>在使用 SSD 时，遵循以下准则可以或者更好的性能：</p>
-<ul>
-<li><strong>使用多个并发线程来执行 IO</strong>。这利用了 SSD 的内部并行性，不过多线程也可能由于操作系统的预读和回写而产生线程竞争。多 IO 线程对 HDD 则毫无益处，因为 HDD 只有一个磁头。</li>
-<li><strong>避免长而繁重的写入</strong>。原因是 SSD 的 GC 机制会在空闲块数量下降到阈值时后台启动，不断地回收存储块以供以后使用，但如果写入的速率远超 GC 速率，则将触发前台 GC，导致较大的应用程序 IO 延迟。</li>
-<li><strong>避免 SSD 存储太满</strong>。GC 创建空闲块时，需要对数据进行压缩整理，但平均数据量 80% 时，需要压缩 5 个块获得一个空闲块，而当平均数据量 95% 时，压缩 20 个块才能获得一个块。</li>
-<li><strong>减少就地更新</strong>。HDD 可以重写任意字节的数据，但 SSD 以页为操作单位的特性决定了其就地更新需要经历“读取-修改-写入”（RMW）步骤，而随机更新在空间使用率不满的情况下就较少引起读取和修改步骤（即仅仅“写入”），因此速度更快。</li>
-</ul>
+                <h1 id="系统性能优化之锁篇"><a href="#系统性能优化之锁篇" class="headerlink" title="系统性能优化之锁篇"></a>系统性能优化之锁篇</h1><p>多线程下为了确保程序不会出错，必须加锁后才能访问共享资源。锁也是有层级之分的，在不同的场景下加不同的锁，对系统性能也有着很大影响。</p>
+<h2 id="互斥锁与自旋锁"><a href="#互斥锁与自旋锁" class="headerlink" title="互斥锁与自旋锁"></a>互斥锁与自旋锁</h2><p>互斥锁与自旋锁是最底层的两个锁，其他的锁几乎都是基于此实现的。**<code>互斥锁加锁失败时会释放CPU进入阻塞状态，自旋锁则会忙等待</code>**。</p>
+<p>**<code>当无法确定锁住的代码需要执行多久时，应当首选互斥锁。</code>**互斥锁是一种独占锁，当被线程取得后，除非线程释放，其他线程的取锁代码都会阻塞。阻塞通常是由操作系统内核实现的，取锁失败时将线程置于休眠状态，当锁释放后寻找合适的时机唤醒线程。</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png" srcset="/img/loading.gif" lazyload alt="image-20250625105013432"></p>
+<p>但是线程取锁失败时的阻塞与唤醒增加了上下文切换的成本，或许这段时间比锁住的代码段执行时间还长。而且，线程主动进入休眠是高并发服务无法容忍的行为，这让其他异步请求都无法执行。</p>
+<p><strong><code>如果被锁住的代码执行时间很短，就应该用自旋锁取代互斥锁。</code></strong></p>
+<p>自旋锁比互斥锁快得多，因为它通过 CPU 提供的 CAS 函数（全称 Compare And Swap），在用户态代码中完成加锁与解锁操作。它将比较与交换合成为一条硬件级原子指令，避免了多线程下的可能出现的问题。</p>
+<p>假设锁为变量 lock，整数 0 表示锁是空闲状态，整数 pid 表示线程 ID，那么 CAS(lock, 0, pid) 就表示自旋锁的加锁操作，CAS(lock, pid, 0) 则表示解锁操作。<code>多线程竞争锁的时候，加锁失败的线程会进入“忙等待”，但这并不意味着一直执行 CAS 函数</code>，生产级的自旋锁在“忙等待”时，会与 CPU 紧密配合 ，它通过 CPU 提供的 PAUSE 指令，减少循环等待时的耗电量；<code>对于单核 CPU，忙等待并没有意义，此时它会主动把线程休眠</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>  <span class="hljs-comment">// 因为判断lock变量的值比CAS操作更快，所以先判断 lock 再调用 CAS 效率更高</span><br>  <span class="hljs-keyword">if</span> (lock == <span class="hljs-number">0</span> &amp;&amp;  CAS(lock, <span class="hljs-number">0</span>, pid) == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span>;<br>  <br>  <span class="hljs-keyword">if</span> (CPU_count &gt; <span class="hljs-number">1</span> ) &#123; 	<span class="hljs-comment">//如果是多核CPU，“忙等待”才有意义</span><br>      <span class="hljs-keyword">for</span> (n = <span class="hljs-number">1</span>; n &lt; <span class="hljs-number">2048</span>; n &lt;&lt;= <span class="hljs-number">1</span>) &#123;		<span class="hljs-comment">// pause 的时间，应当越来越长</span><br>        <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; n; i++) pause();	<span class="hljs-comment">// CPU 专为自旋锁设计了 pause 指令</span><br>        <span class="hljs-keyword">if</span> (lock == <span class="hljs-number">0</span> &amp;&amp; CAS(lock, <span class="hljs-number">0</span>, pid)) <span class="hljs-keyword">return</span>;	<span class="hljs-comment">// pause后再尝试获取锁</span><br>      &#125;<br>  &#125;<br>    <br>  <span class="hljs-comment">// 单核 CPU，或者长时间不能获取到锁，应主动休眠，让出CPU </span><br>  sched_yield();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当取不到锁时，互斥锁用“线程切换”来面对，自旋锁则用“忙等待”来面对。<strong>这是两种最基本的处理方式，更高级别的锁都会选择其中一种来实现，比如读写锁就既可以基于互斥锁实现，也可以基于自旋锁实现。</strong></p>
+<h2 id="读写锁"><a href="#读写锁" class="headerlink" title="读写锁"></a>读写锁</h2><p>如果项目中能明确的区分出读写场景，则可以选择读写锁。</p>
+<p>读写锁的优势在于：当写锁未被持有时，读锁可以被多个线程并发持有，提高了资源的使用率。而当写锁被持有后，获取读锁和写锁的线程都会被阻塞。写锁是独占锁，读锁是共享锁。</p>
+<p><strong>因此，读写锁真正发挥优势的场景，必然是读多写少的场景，否则读锁将很难并发持有。</strong></p>
+<p>实际上，读写锁既可以倾向于读线程，又可以倾向于写线程。前者我们称为读优先锁，后者称为写优先锁。</p>
+<p>读优先锁更强调效率，它期待锁能被更多的线程持有：当读锁被持有时，先来一个线程希望取写锁，又来一个线程希望取读锁，即使取写锁的线程先来，后续前来获取读锁的线程依然可以立刻加锁成功，因为这样两个线程在并发持有锁，效率更高。当然如果有源源不断的读线程，则会导致写线程饥饿。</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111249735.png" srcset="/img/loading.gif" lazyload alt="image-20250625111249735"></p>
+<p>写优先锁由于写锁的优先级更高，当有源源不断的写线程，则会导致读线程饥饿。</p>
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111309693.png" srcset="/img/loading.gif" lazyload alt="image-20250625111309693"></p>
+<p>除此之外还有<code>读写公平锁，按照请求顺序排队，读线程依然可以并发持有读锁，但是无法“加队”到写线程前</code>。</p>
+<h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>无论互斥锁、自旋锁还是读写锁，都属于悲观锁。“乐观”，就是假定冲突的概率很低，所以它采用的“加锁”方式是，<code>先修改完共享资源，再验证这段时间内有没有发生冲突</code>。如果没有其他线程在修改资源，那么操作完成。如果发现其他线程已经修改了这个资源，就放弃本次操作。</p>
+<p>至于放弃后如何重试，则与业务场景相关，虽然<code>重试的成本很高</code>，但出现冲突的概率足够低的话，还是可以接受的。可见，<strong>乐观锁全程并没有加锁，所以它也叫无锁编程。</strong></p>
+<p>例如在线修改文档，可以记录下获取到当前文档时的版本号，在提交时携带原始版本号，如果期间有其他用户修改，则原始版本号无法对应，就放弃本次修改。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">update</span> #&#123;<span class="hljs-keyword">table</span>&#125; <span class="hljs-keyword">set</span> version <span class="hljs-operator">=</span> #&#123;newVersion&#125; <span class="hljs-keyword">where</span> id <span class="hljs-operator">=</span> #&#123;id&#125; <span class="hljs-keyword">and</span> version <span class="hljs-operator">=</span> #&#123;oldVersion&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625110845779.png" srcset="/img/loading.gif" lazyload alt="image-20250625110845779"></p>
+<p>乐观锁除了应用在 Web 分布式场景，在数据库等单机上也有广泛的应用。只是面向多线程时，最后的验证步骤是通过 CPU 提供的 CAS 操作完成的。</p>
+<p>乐观锁虽然去除了锁操作，但是一旦发生冲突，重试的成本非常高。所以，<strong>只有在冲突概率非常低，且加锁成本较高时，才考虑使用乐观锁。</strong></p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>互斥锁能够满足各类功能性要求，特别是被锁住的代码执行时间不可控时，它通过内核执行线程切换及时释放了资源，但它的性能消耗最大。如果能够确定被锁住的代码取到锁后很快就能释放，应该使用更高效的自旋锁。</p>
+<p>如果能区分出读写场景，读写锁是第一选择，它允许多个读线程同时持有读锁，提高了并发性。</p>
+<p>当并发访问共享资源，冲突概率非常低的时候，可以选择无锁编程。</p>
+<p>总之，**<code>不管使用哪种锁，锁范围内的代码都应尽量的少，执行速度要快。</code>**</p>
 
                 
               </div>
@@ -516,7 +480,7 @@
       
         <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
       
-        <a href="/tags/%E7%A3%81%E7%9B%98/" class="print-no-link">#磁盘</a>
+        <a href="/tags/%E9%94%81/" class="print-no-link">#锁</a>
       
     </div>
   
@@ -528,8 +492,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>系统性能优化之磁盘篇</div>
-      <div>https://zhuwenjie0716.github.io/2026/04/27/系统性能优化之磁盘篇/</div>
+      <div>系统性能优化之锁篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/27/系统性能优化之锁篇/</div>
     </div>
     <div class="license-meta">
       
@@ -573,18 +537,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/" title="系统性能优化之锁篇">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">系统性能优化之锁篇</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/04/27/Netty%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98/" title="Netty如何高效使用内存">
-                        <span class="hidden-mobile">Netty如何高效使用内存</span>
+                      <a href="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/" title="系统性能优化之磁盘篇">
+                        <span class="hidden-mobile">系统性能优化之磁盘篇</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
