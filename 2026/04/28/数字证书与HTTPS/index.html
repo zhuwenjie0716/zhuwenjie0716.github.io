@@ -19,27 +19,25 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="谈谈我的软考经历我 2020 年高考进入大学，软件工程专业，去年（24年7月）毕业开始工作。我实习是在一家云计算公司，公司内部对软考的证书没有什么激励或补助之类的，我也一直认为计算机嘛，“talk is cheap，show me the code”，能力在代码水平上是能体现出来的，综合这些，一直没有去准备相关考试。 正式工作后，公司对这个有激励标准，加上当年考过后第二年可凭证书免当年最高 360">
+    <meta name="description" content="数字证书与HTTPS我们知道网络包是可以被截获的，那么如果涉及到敏感信息的发送，例如各种密码，就不能明文在网络上传输了，因此需要进行加密，即在网络上传输密文，到服务端后服务端经过解密进行后续操作。 加密加密分为两种  对称加密，双方使用相同的秘钥或者算法来进行加密解密，例如异或操作，客户端发送 111 给服务端，使用全 1 字符串进行异或操作，得到 000，服务端收到 000 后，使用全 1 字符">
 <meta property="og:type" content="article">
-<meta property="og:title" content="谈谈我的软考经历">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/index.html">
+<meta property="og:title" content="数字证书与HTTPS">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/28/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E4%B8%8EHTTPS/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="谈谈我的软考经历我 2020 年高考进入大学，软件工程专业，去年（24年7月）毕业开始工作。我实习是在一家云计算公司，公司内部对软考的证书没有什么激励或补助之类的，我也一直认为计算机嘛，“talk is cheap，show me the code”，能力在代码水平上是能体现出来的，综合这些，一直没有去准备相关考试。 正式工作后，公司对这个有激励标准，加上当年考过后第二年可凭证书免当年最高 360">
+<meta property="og:description" content="数字证书与HTTPS我们知道网络包是可以被截获的，那么如果涉及到敏感信息的发送，例如各种密码，就不能明文在网络上传输了，因此需要进行加密，即在网络上传输密文，到服务端后服务端经过解密进行后续操作。 加密加密分为两种  对称加密，双方使用相同的秘钥或者算法来进行加密解密，例如异或操作，客户端发送 111 给服务端，使用全 1 字符串进行异或操作，得到 000，服务端收到 000 后，使用全 1 字符">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/dc60dfe97a3894d16aec5650a0126248.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/e3bc65304aed9a5bf985eed7286485dd.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/7129785e7a7803eb900893aa322b7185.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/9ad765bf503f983810b8c8216cf11d41.png">
-<meta property="article:published_time" content="2026-04-17T07:11:22.000Z">
-<meta property="article:modified_time" content="2026-04-28T00:50:58.573Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/28/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E4%B8%8EHTTPS/df1685dd308cef1db97e91493f911ab4.jpg">
+<meta property="article:published_time" content="2026-04-28T08:32:38.000Z">
+<meta property="article:modified_time" content="2026-04-28T08:34:07.676Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="证书">
+<meta property="article:tag" content="计算机网络">
+<meta property="article:tag" content="HTTPS">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/dc60dfe97a3894d16aec5650a0126248.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/28/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E4%B8%8EHTTPS/df1685dd308cef1db97e91493f911ab4.jpg">
   
   
   
-  <title>谈谈我的软考经历 - Hexo</title>
+  <title>数字证书与HTTPS - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -314,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="谈谈我的软考经历"></span>
+            <span id="subtitle" data-typed-text="数字证书与HTTPS"></span>
           
         </div>
 
@@ -325,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-04-17 15:11" pubdate>
-          2026年4月17日 下午
+        <time datetime="2026-04-28 16:32" pubdate>
+          2026年4月28日 下午
         </time>
       </span>
     
@@ -348,7 +346,7 @@
         
         
         
-          21 分钟
+          22 分钟
         
       </span>
     
@@ -400,37 +398,68 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">谈谈我的软考经历</h1>
+            <h1 id="seo-header">数字证书与HTTPS</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="谈谈我的软考经历"><a href="#谈谈我的软考经历" class="headerlink" title="谈谈我的软考经历"></a>谈谈我的软考经历</h1><p>我 2020 年高考进入大学，软件工程专业，去年（24年7月）毕业开始工作。我实习是在一家云计算公司，公司内部对软考的证书没有什么激励或补助之类的，我也一直认为计算机嘛，“talk is cheap，show me the code”，能力在代码水平上是能体现出来的，综合这些，一直没有去准备相关考试。</p>
-<p>正式工作后，公司对这个有激励标准，加上当年考过后第二年可凭证书免当年最高 3600 的税，至于那些大城市的什么积分落户，我没有详细了解过也不觉得自己能留在大城市。除此之外，我刚毕业来到新的城市嘛，本身也不是很忙，刚好有点空闲时间，就开始看这个软考，2024 年 11 月过了软考中级（软件设计师），今天 25 年 5 月的考试成绩发布，过了系统架构设计师，就想记录一下我考试的经历和一些过程。</p>
-<p><img src="/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/dc60dfe97a3894d16aec5650a0126248.png" srcset="/img/loading.gif" lazyload alt="image-20250626165025209"></p>
-<p><img src="/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/e3bc65304aed9a5bf985eed7286485dd.png" srcset="/img/loading.gif" lazyload alt="image-20250626164917140"></p>
-<p>说真的分不算很高，两次选择题基本上都是压着线过的，论文也是。</p>
-<p>先来说说软件设计师，这个准备的时间比架构师要久，原因一是当时刚工作，没什么事情，公司电脑打开个 pdf 软件做历年真题领导都不在意，二是当时初来乍到，也确实没有太多事情。</p>
-<blockquote>
-<p> 软件设计师我是如何准备的</p>
-</blockquote>
-<p>上午题我本来在 b 站搜索一些视频（视频还是挺多的），但是里面讲的大部分知识，其实我在上大学时候已经知道了，大部分都是数据结构、计算机网络、操作系统、计算机组成原理、编译原理、数据库里的内容，但是不要觉得说只有把这些全都学会、学好了才能过，原因一方面是<code>这些东西虽然多，考的杂，但考的不是很深</code>，另一方面<code>这是考试，又不是真正工作遇到那种完全摸不着头脑的问题，考试就有重点、历年真题规律、每一部分占的分值等，按照分值比重去重点复习</code>就行了。此外还会有 5 分的全英语完形填空（说实话这 5 分全选一个就行，如果你其他部分准备的很好，这 5 分真的不是很在意，我就全选的 A）。这个部分**<code>一定要做题</code>**，看视频和文档容易睡着，我刷题用的是微信小程序，叫小鸡软考，我看同事也有用希赛之类的。因为我设计师没怎么看上午题的视频，这里就不胡乱推荐了。</p>
-<p>下午题我看的是 <a target="_blank" rel="noopener" href="https://space.bilibili.com/91286799?spm_id_from=333.337.0.0">B站zst(炸薯条)老师</a> 的，从普通人的角度讲述题该怎么做，下午题我个人觉得比上午题好过，原因是题型固定，我那年刚好算法题还出的很简单（正常做往年题算法题15分我都做好了一分不要的准备，但那次我应该拿了9分附近），但是需要掌握 java 或者 c++ 的一些语法规则（二选一），这会有15分，虽然这题官方考的叫设计模式，但我说实话懂语法就够了，当然设计模式也很重要，尤其是创建型那几个，选择题经常考到。<code>up 动态置顶有网友，路人朋友总结的笔记，历年真题，是一个云盘链接，真的啥都准备齐全了，下午题跟就行了。而且每次出成绩，up 的视频下面都会有很多朋友留言，过了，充电支持之类的</code>，虽然他已经很久不更新了，留下的视频还是足够应对考试的。当然学习前可以先问问上次考试的朋友，对比下题型变化之类的，万一改版很大就不好了~</p>
-<p><img src="/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/7129785e7a7803eb900893aa322b7185.png" srcset="/img/loading.gif" lazyload alt="image-20250626171441632"></p>
-<p>这是我写文字的时候刚看到的评论~</p>
-<blockquote>
-<p>系统架构师我是怎么准备的</p>
-</blockquote>
-<p>我先说我是很有自知之明的，我知道这个过了我离架构师也很遥远，这里顺便一提，这个和系分据说是高级里比较难的，如果没有必须要求，考那个管理师也是可以的，比如我们公司就只要是高级就行，补贴待遇一致。</p>
-<p>这个的上午题我本来想着跟设计师差不多，无脑做题去了，一看一脸懵，什么质量属性，什么敏感点权衡点，这个是真得看视频了，于是我几经搜罗，找到了一个很不错的视频 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1G2ApeQEm7/?p=42">系统架构设计师</a>，看了两三遍质量属性，架构风格相关的章节，视频老师讲的真好，我刚刚去搜，视频已经被拿下了，所以我也没办法推荐了，讲师是王建平老师，视频里好像有慕课，不知道是不是慕课平台的。讲的真的很好，我一直分不清那么多开发模型，什么瀑布，V 模型，极限水晶什么什么的，这个老师解释完还给了总结。</p>
-<p>案例分析题也相对固定，比如有一题考一直在考 Redis ，比如 redis 的主从复制，主节点 fork 子线程创建 rdb，传给从节点同步，同步期间使用扇形缓冲区记录新的操作，rdb 同步完成后再把这段时间的操作发过去，细节其实是很多的，包括 rdb，aof 的优缺点，怎么保持缓存和数据库的一致性，我恰好在极客时间买了 redis 的一个专栏，所以这部分我答的还算可以。共 5 题，第一题必做，剩下 4 选 2，我记得第一题是质量属性的必选，剩下的数据库，嵌入式，web和一个什么（记不大清了，但是我肯定不会），我能选的基本上是固定的，数据库和 web，web 是跟架构有关系的，比如某几个软件是一个层，让你把这个层对应的字母选上，最后还会有一些问答题，总之一定要学好 **<code>架构风格和质量属性</code>**。</p>
-<p>论文题是四选一，网上有很详细的分析，我也看了往年的题，基本上每年都只会其中一两个，而且不是说你知道这个东西就能写，论文里会有三个子标题，比如我这次考试有个负载均衡，我知道负载均衡这个概念，但当时我真不知道负载均衡的 4 种策略（子标题之一），我只知道个加权的。还好有个事件驱动的，最后我写了事件驱动，以 spring 里的事件为例讲的，结合消息队列。这都是有格式的，本人是xxx架构师，参与了项目，耗时 N 个月，B 站找几个模板就行，但是事前一定要写几篇，确定要写哪个项目，另外<code>这个对知识的广度真的很大，分布式理论，负载均衡，消息队列，事件驱动，一致性哈希，共识算法.......所以架构师也确实是比软件设计师难度大的</code>。</p>
-<p><img src="/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/9ad765bf503f983810b8c8216cf11d41.png" srcset="/img/loading.gif" lazyload alt="image-20250626173848830"></p>
-<p>当然最后我想说，考试<code>肯定也是有运气成分的，要有赌的勇气，所以不要因为没有完全准备好就不考</code>，要用于尝试~</p>
-<p>这个考试，报名费也不是很贵，而且有些公司报销报名费，过了给奖金，每月有补贴，性价比还是很高的。</p>
-<p>考了这个架构师虽然说对我直接编码能力提升不大，但是知道了很多东西，soa，ejb，webservice，rpc 和很多相关的东西，对 rpc、多路复用的理解也更深刻了~</p>
-<p>后续补：所谓的抵扣个税 3600 并不是指能抵扣 3600 的税款，而是比如超出 6w 的部分需要交税，而恰好年收入是 63600，那么抵扣 3600 就不需要交税了。</p>
-<p>注：刚开始写在其它平台，所以文中的日期可能已不大符合，原文发布于：2025-06-26。</p>
+                <h1 id="数字证书与HTTPS"><a href="#数字证书与HTTPS" class="headerlink" title="数字证书与HTTPS"></a>数字证书与HTTPS</h1><p>我们知道网络包是可以被截获的，那么如果涉及到敏感信息的发送，例如各种密码，就不能明文在网络上传输了，因此需要进行加密，即在网络上传输密文，到服务端后服务端经过解密进行后续操作。</p>
+<h2 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h2><p>加密分为两种</p>
+<ul>
+<li>对称加密，双方使用相同的秘钥或者算法来进行加密解密，例如异或操作，客户端发送 111 给服务端，使用全 1 字符串进行异或操作，得到 000，服务端收到 000 后，使用全 1 字符串进行异或解密，得到原数据 111（这里不考虑网络过程中出现的意外情况）。<ul>
+<li>优点：简单，效率高</li>
+<li>缺点：怎么通知对方使用同一个秘钥（即上文的全1字符串），放在公网上传输有暴露的风险，且长时间使用同一个对称秘钥容易被破解</li>
+</ul>
+</li>
+<li>非对称加密，双方各生成一套公钥私钥，客户端发送数据时，使用服务端的公钥加密，服务端收到后，使用自己的私钥解密。双方都保存自己的私钥，传递消息时使用对方的公钥加密，这样即使网络包被截获，由于没有接收方的私钥，也无法被破解。<ul>
+<li>优点：安全</li>
+<li>缺点：效率低；存在如何获取对方的公钥且保证对方的公钥真的是对方的公钥的问题（伪造者冒充服务端，把自己的公钥发送给客户端，客户端无法验证这个公钥到底是服务端还是伪造者）</li>
+</ul>
+</li>
+</ul>
+<h2 id="数字证书"><a href="#数字证书" class="headerlink" title="数字证书"></a>数字证书</h2><p>为了解决非对称加密的获取及验证对方公钥的问题，有了数字证书。</p>
+<p>我们想一下现实生活中如何确定对方的身份，可以要求对方拿出【公安机关】开具的【身份证明】，如果【公安机关】是可信的，且【身份证明】确实是该【公安机关】开具的，那么【身份证明】也认为是可信的。</p>
+<ul>
+<li>如何验证【公安机关】是可信的呢？可以去【上级公安机关】验证，依次递归，最后可以去【顶级公安机关】验证。</li>
+<li>如何验证【身份证明】确实是该【公安机关】开具的？【身份证明】需要【公安机关】使用私钥加密，这样如果可以使用【公安机关】的公钥解密，就可以证明了。</li>
+</ul>
+<p>上述流程中提到的【公安机关】我们认为是【权威机构】（即<strong>CA</strong>（ <strong>Certificate Authority</strong>）），而【身份证明】称之为【证书】（<strong>Certificate</strong>）。</p>
+<p>现在我是服务端，我希望让客户端相信我的身份，那我就需要去 CA 备案，于是我把我的公钥、域名等信息发给了 CA，CA 在核实了我的身份之后，会将我的公钥、域名等信息封装进一个证书，并用自己的私钥对其进行签名。签名后的证书相当于一个【身份证明】，证明我是该公钥的合法拥有者，相当于 CA 为我背书。</p>
+<p>当客户端访问服务端的时候，服务端不需要把公钥给客户端，而是给客户端一个证书，证书里有 CA 的信息，客户端自己拿 CA 的公钥校验，校验通过后就确认了服务端的身份，也拿到了服务端的公钥。</p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p><strong>摘要（或哈希值）</strong>是指通过特定的算法<code>对数据进行处理，得到一个固定长度的唯一表示</code>。这个过程是<code>不可逆</code>的，即从摘要值无法恢复原数据。摘要在数字证书中有非常重要的作用，特别是在签名过程和数据验证中。</p>
+<p>摘要的过程：</p>
+<ol>
+<li><strong>数据摘要</strong>：CA 对证书内容（如公钥、有效期、持有者信息等）进行哈希计算，生成唯一的摘要值。</li>
+<li><strong>确保完整性</strong>：摘要算法确保数据的完整性。如果证书的任何部分被修改，摘要值就会发生变化，从而可以检测到证书是否被篡改。</li>
+</ol>
+<h2 id="签名"><a href="#签名" class="headerlink" title="签名"></a>签名</h2><p>在生成数字证书的过程中，<strong>签名</strong>是一个至关重要的步骤，通常是通过证书颁发机构（CA）来完成。</p>
+<p>签名的过程：</p>
+<ol>
+<li><strong>摘要</strong>：CA 会对证书的内容（如公钥、证书有效期、持有者信息等）计算一个哈希值（摘要）。</li>
+<li><strong>私钥加密</strong>：然后，CA 使用自己的私钥对这个哈希值进行加密，生成数字签名。</li>
+<li><strong>数字签名</strong>：数字签名会附加在证书中，作为证书的一部分，客户端在验证时会使用 CA 的公钥来解密数字签名，并比对摘要值，确保证书内容没有被篡改。</li>
+</ol>
+<p>这里顺便提一下：为什么不对证书的内容进行签名而是对其哈希值（摘要）进行签名呢？因为数据本身内容可能会很多，如果数据量大的情况下，计算出数字签名会很耗时。</p>
+<h2 id="Https"><a href="#Https" class="headerlink" title="Https"></a>Https</h2><p>在最开始的加密中我们提到，对称加密效率高但不安全，存在双方传递秘钥的问题，非对称加密安全但效率比较低，那么能不能对二者进行结合，利用非对称加密传输对称加密的秘钥，之后都用对称加密的秘钥来加密数据呢？</p>
+<p>Https 就是这么设计的，参考图示（图来自于 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/9492">趣谈网络协议-Https</a>）：</p>
+<p><img src="/2026/04/28/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E4%B8%8EHTTPS/df1685dd308cef1db97e91493f911ab4.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这是一个双向验证证书（客户端验证服务端证书 &amp;&amp; 服务端验证客户端证书）的流程图，流程如下：</p>
+<ul>
+<li>客户端会发送 Client Hello 消息到服务器，以明文传输 TLS 版本信息、加密套件候选列表、压缩算法候选列表等信息。另外，还会有一个随机数，在协商对称密钥的时候使用。</li>
+<li>服务器返回 Server Hello 消息, 告诉客户端，服务器选择使用的协议版本、加密套件、压缩算法等，还有一个随机数，用于后续的密钥协商。</li>
+<li>随后，服务器会给客户端一个服务器端的证书，然后说：“Server Hello Done”。</li>
+<li>客户端会从 CA 仓库中，拿 CA 的证书里面的公钥去解密服务器的证书，这个过程可能会递归一直找到可以验证的 CA（因为 CA 是有层级的），验证通过后就进行后续步骤。</li>
+<li>客户端计算产生随机数字 Pre-master，发送 Client Key Exchange，用证书中的公钥加密，再发送给服务器，服务器可以通过私钥解密出来。</li>
+<li>双方此时都有了 3 个随机数，分别是自己的、对端的、Pre-master，通过这三个随机数，可以在客户端和服务器产生相同的对称密钥。</li>
+<li>客户端发送：“Change Cipher Spec，以后都采用协商的通信密钥和加密算法进行加密通信了”。然后发送一个 Encrypted Handshake Message，将已经商定好的参数等，采用协商密钥进行加密，发送给服务器用于数据与握手验证。</li>
+<li>同样，服务器也可以发送 Change Cipher Spec”，并且也发送 Encrypted Handshake Message 的消息试试。当双方握手结束之后，就可以通过对称密钥进行加密传输了。</li>
+</ul>
+<p>以上流程省略了服务端验证客户端证书的过程，在安全性要求比较高的环境里，可以采用服务端和客户端双向验证证书的方式。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>加密分对称加密和非对称加密。对称加密效率高，但是解决不了密钥传输问题；非对称加密可以解决这个问题，但是效率不高。 </li>
+<li>非对称加密需要通过【证书】和【权威机构】来验证公钥的合法性。</li>
+<li>Https 是综合了对称加密和非对称加密算法的 HTTP 协议。既保证传输安全，也保证传输效率。</li>
+</ul>
 
                 
               </div>
@@ -443,7 +472,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%AF%81%E4%B9%A6/" class="print-no-link">#证书</a>
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
+      
+        <a href="/tags/HTTPS/" class="print-no-link">#HTTPS</a>
       
     </div>
   
@@ -455,8 +486,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>谈谈我的软考经历</div>
-      <div>https://zhuwenjie0716.github.io/2026/04/17/谈谈我的软考经历/</div>
+      <div>数字证书与HTTPS</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/28/数字证书与HTTPS/</div>
     </div>
     <div class="license-meta">
       
@@ -468,7 +499,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年4月17日</div>
+          <div>2026年4月28日</div>
         </div>
       
       
@@ -500,18 +531,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/04/19/Kubernetes%E8%BF%90%E7%BB%B4%E6%9F%A5%E6%BC%8F%E8%A1%A5%E7%BC%BA/" title="Kubernetes查漏补缺">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Kubernetes查漏补缺</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/" title="AI 时代的无力感">
-                        <span class="hidden-mobile">AI 时代的无力感</span>
+                      <a href="/2026/04/28/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E4%B8%8D%E5%90%8C%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%AF%B9%E6%AF%94/" title="IO多路复用不同实现及对比">
+                        <span class="hidden-mobile">IO多路复用不同实现及对比</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
