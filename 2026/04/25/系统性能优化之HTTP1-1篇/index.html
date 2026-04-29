@@ -19,25 +19,29 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="系统性能优化之内存篇绝大部分的高级语言都是用 C 语言编写的，包括 Java，申请内存（堆外内存）必须经过 C 库，而C 库会通过预分配更大的空间作为内存池，来加快后续申请内存的速度，同时这种池化技术有很多优点，例如 内存池中可以利用享元模式将常用的对象一直保留着，减少重复申请导致的性能的顺耗等。但预分配更大的空间也可能导致 Java 进程的内存占用超出 Xmx 的限制。 隐藏的内存池当代码申请内">
+    <meta name="description" content="系统性能优化之HTTP1.1篇由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。 在不升级协议的情况下，有 3 种优化思路：首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求">
 <meta property="og:type" content="article">
-<meta property="og:title" content="系统性能优化之内存篇">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/index.html">
+<meta property="og:title" content="系统性能优化之HTTP1.1篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="系统性能优化之内存篇绝大部分的高级语言都是用 C 语言编写的，包括 Java，申请内存（堆外内存）必须经过 C 库，而C 库会通过预分配更大的空间作为内存池，来加快后续申请内存的速度，同时这种池化技术有很多优点，例如 内存池中可以利用享元模式将常用的对象一直保留着，减少重复申请导致的性能的顺耗等。但预分配更大的空间也可能导致 Java 进程的内存占用超出 Xmx 的限制。 隐藏的内存池当代码申请内">
+<meta property="og:description" content="系统性能优化之HTTP1.1篇由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。 在不升级协议的情况下，有 3 种优化思路：首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/image-20250619144007444.png">
-<meta property="article:published_time" content="2026-04-24T00:27:16.000Z">
-<meta property="article:modified_time" content="2026-04-27T00:26:45.120Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175614482.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175840983.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250701085303286.png">
+<meta property="article:published_time" content="2026-04-25T05:19:28.000Z">
+<meta property="article:modified_time" content="2026-04-29T05:27:08.478Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="内存">
+<meta property="article:tag" content="计算机网络">
 <meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="HTTP">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/image-20250619144007444.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png">
   
   
   
-  <title>系统性能优化之内存篇 - Hexo</title>
+  <title>系统性能优化之HTTP1.1篇 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +316,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="系统性能优化之内存篇"></span>
+            <span id="subtitle" data-typed-text="系统性能优化之HTTP1.1篇"></span>
           
         </div>
 
@@ -323,8 +327,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-04-24 08:27" pubdate>
-          2026年4月24日 早上
+        <time datetime="2026-04-25 13:19" pubdate>
+          2026年4月25日 下午
         </time>
       </span>
     
@@ -335,7 +339,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.4k 字
+          1.6k 字
         
       </span>
     
@@ -346,7 +350,7 @@
         
         
         
-          21 分钟
+          14 分钟
         
       </span>
     
@@ -398,46 +402,52 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">系统性能优化之内存篇</h1>
+            <h1 id="seo-header">系统性能优化之HTTP1.1篇</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="系统性能优化之内存篇"><a href="#系统性能优化之内存篇" class="headerlink" title="系统性能优化之内存篇"></a>系统性能优化之内存篇</h1><p>绝大部分的高级语言都是用 C 语言编写的，包括 Java，申请内存<strong>（堆外内存）</strong>必须经过 C 库，而<code>C 库会通过预分配更大的空间作为内存池</code>，来加快后续申请内存的速度，同时这种池化技术有很多优点，例如 内存池中可以利用享元模式将常用的对象一直保留着，减少重复申请导致的性能的顺耗等。但预分配更大的空间也可能导致 Java 进程的内存占用超出 Xmx 的限制。</p>
-<h2 id="隐藏的内存池"><a href="#隐藏的内存池" class="headerlink" title="隐藏的内存池"></a>隐藏的内存池</h2><p>当代码申请内存时，首先会到应用层内存池，如果应用层内存池足够，就会反回给业务代码，否则会向更底层的 C 库内存池申请内存。Java 程序启动时通过 Xmx 指定的值就设定了JVM 堆内存池的大小。Google 的 TCMalloc 和 FaceBook 的 JEMalloc 就是 C 库内存池，当 C 库内存池也无法满足内存申请时，就会向操作系统内核申请分配内存。</p>
-<p><img src="/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/image-20250619144007444.png" srcset="/img/loading.gif" lazyload alt="image-20250619144007444"></p>
-<p>除了 JVM 负责管理的堆内存外，<strong>Java 还拥有一些堆外内存，由于它不使用 JVM 的垃圾回收机制，且缩短了内存分配的路径，所以更稳定、持久，处理 IO 的速度也更快</strong>。这些堆外内存就会由 C 库内存池负责分配，因此 Java 程序有了堆内存池还会受到C库内存池的影响。</p>
-<p>Linux 系统的默认 C 库内存池 Ptmalloc2 在工作时，会预分配比你申请的字节数更大的空间作为内存池。比如说，当主进程下申请 1 字节的内存时，Ptmalloc2 会预分配 132K 字节的内存（Ptmalloc2 中叫 Main Arena），应用代码再申请内存时，会从这已经申请到的 132KB 中继续分配。当我们释放这 1 字节时，Ptmalloc2 也不会把内存归还给操作系统。</p>
-<p>这点空间其实不算很多。但是<strong>多线程和单线程的预分配策略是不同的</strong>，每个<strong>子线程预分配的内存是 64MB</strong>（Ptmalloc2 中被称为 Thread Arena，32 位系统下为 1MB，64 位系统下为 64MB）。如果有 100 个线程，就将有 6GB 的内存都会被内存池占用。当然，并不是设置了 1000 个线程，就会预分配 60GB 的内存，<code>子线程内存池最多只能到 8 倍的 CPU 核数</code>，比如在 32 核的服务器上，最多只会有 256 个子线程内存池，但这也非常夸张了，16GB（64MB * 256 &#x3D; 16GB）的内存将一直被 Ptmalloc2 占用。</p>
-<p><code>Linux 下的 JVM 编译时默认使用了 Ptmalloc2 内存池</code>，因此每个线程都预分配了 64MB 的内存，在多数情况下，这些预分配出来的内存池，可以提升后续内存分配的性能。</p>
-<p>当然如果接受不了这么多的对外内存，也有方式可以改变：</p>
-<ul>
-<li>设置 <code>MALLOC_ARENA_MAX</code> 环境变量，可以限制线程内存池的最大数量，但是注意线程内存池的数量减少后，会影响 Ptmalloc2 分配内存的速度。不过由于 Java 主要使用 JVM 内存池来管理对象，这点影响并不重要。</li>
-<li>更换掉 Ptmalloc2 内存池，选择一个预分配内存更少的内存池，比如 Google 的 TCMalloc。</li>
-</ul>
-<h2 id="TCMalloc-与-Ptmalloc2"><a href="#TCMalloc-与-Ptmalloc2" class="headerlink" title="TCMalloc 与 Ptmalloc2"></a>TCMalloc 与 Ptmalloc2</h2><p>Ptmalloc2 假定，如果线程 A 申请并释放了的内存，线程 B 可能也会申请类似的内存，所以它允许内存池在线程间复用以提升性能。因此，<code>每次分配内存，Ptmalloc2 一定要加锁</code>，才能解决共享资源的互斥问题。那么当线程数多的时候，Ptmalloc2 出现锁竞争的概率也会变高，分配内存就会更慢。</p>
-<p>TCMalloc 特意针对小内存做了优化。TCMalloc 把内存分为 3 个档次，小于等于 256KB 的称为小内存，从 256KB 到 1M 称为中等内存，大于 1MB 的叫做大内存。</p>
-<p>总结：<strong>TCMalloc</strong> 对<code>多线程</code>下<code>小内存</code>的分配特别友好，<strong>Ptmalloc2</strong> 则更擅长<code>大内存的分配</code>，TCMalloc 对中等内存、大内存的分配速度很慢</p>
-<p>因此，<strong>如果主要分配 256KB 以下的内存，特别是在多线程环境下，应当选择 TCMalloc；否则应使用 Ptmalloc2，它的通用性更好。</strong></p>
-<p><strong>mysql 很多人建议把内存分配换成 tcmalloc，就是因为 mysql 要支持大量并发，适合 tcmalloc 的应用场景。</strong>性能测试参见：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wangdong/p/9252668.html">MySQL5.7.18(ptmalloc VS tcmalloc VS jemalloc)性能测试</a></p>
-<h2 id="堆内存与栈内存"><a href="#堆内存与栈内存" class="headerlink" title="堆内存与栈内存"></a>堆内存与栈内存</h2><p>如果使用的是静态语言：C&#x2F;C++&#x2F;Java ，正常不使用 new 关键字的对象就是栈内存，使用 new 或者 malloc 的则是分配在堆内存上</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 栈内存</span><br>C/C++/Java语言：<span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;<br><br><span class="hljs-comment">// 堆内存</span><br>C语言：<span class="hljs-type">int</span> * a = (<span class="hljs-type">int</span>*) malloc(sizeof(<span class="hljs-type">int</span>));<br>C++语言：<span class="hljs-type">int</span> * a = <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>;<br>Java语言：<span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Integer</span>(<span class="hljs-number">10</span>);<br></code></pre></td></tr></table></figure>
+                <h1 id="系统性能优化之HTTP1-1篇"><a href="#系统性能优化之HTTP1-1篇" class="headerlink" title="系统性能优化之HTTP1.1篇"></a>系统性能优化之HTTP1.1篇</h1><p>由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。</p>
+<p>在不升级协议的情况下，有 3 种优化思路：<code>首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求的个数；最后则是减少服务器响应的体积</code>。</p>
+<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>客户端缓存：浏览器把收到的请求和响应保存在磁盘上，关键字为 （url + 部分请求头部），这样后续发生请求时，就可以先从本地磁盘上找，查询磁盘的几十毫秒相对于慢了上百倍且不稳定的网络请求要好的多。不过当服务器的资源更新后，如何让客户端感知呢？服务端在首次响应时返回一个<code>预计过期时间</code>和<code>消息摘要</code>，当客户端发现已经过期了就会重新发送请求。</p>
+<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png" srcset="/img/loading.gif" lazyload alt="image-20250630175141930"></p>
+<p>此外，过期缓存也是可以提升性能的，客户端发现缓存过期后，取出首次响应返回的摘要，放在 Etag 头部中，服务器获取到请求后，会将本地资源的摘要与请求中的 Etag 相比较，如果不同，那么缓存没有价值，重新发送最新资源即可；如果摘要与 Etag 相同，那么仅返回不含有包体的 304 Not Modified 响应，告知客户端缓存仍然有效即可，这就省去传递可能高达千百兆的文件资源。</p>
+<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175614482.png" srcset="/img/loading.gif" lazyload alt="image-20250630175614482"></p>
+<p>Etag 摘要的生成与服务器的实现有关~</p>
+<p>浏览器这样的缓存只能为当前用户使用，是私有缓存，如果能缓存在代理服务器上，就能作为共享缓存被多用户使用</p>
+<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175840983.png" srcset="/img/loading.gif" lazyload alt="image-20250630175840983"></p>
+<h2 id="请求合并"><a href="#请求合并" class="headerlink" title="请求合并"></a>请求合并</h2><p>例如，当请求返回 302 重定向时，如果由客户端来再次请求，请求又要经过不稳定的外部网络，但如果是代理服务器来转发，就可以减少请求的路径，并且如果这个重定向被代理服务器所记忆，就能进一步减少网络消耗。</p>
+<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250701085303286.png" srcset="/img/loading.gif" lazyload alt="image-20250701085303286"></p>
+<p>降低 HTTP 请求次数还可以通过合并请求的方式实现，例如一个页面的多个小图片利用 css image sprites 技术合成一张大图片，浏览器收到后根据 css 数据进行切割还原，类似地，在服务器端用 webpack 等打包工具将 Javascript、CSS 等资源合并为大文件，也能起到同样的效果。<code>优点是能减少 tcp 的连接次数，同时减少请求次数也意为着 header 的传递次数也会减少</code>，当然，这种合并请求的方式也会带来一个新问题，即，<code>当其中一个资源发生变化后，客户端必须重新下载完整的大文件</code>，这显然会带来额外的网络消耗。HTTP&#x2F;2 就不需要这个技术了。</p>
+<h2 id="响应压缩"><a href="#响应压缩" class="headerlink" title="响应压缩"></a>响应压缩</h2><p>减少响应体积其实就是对资源进行压缩，用 cpu 换取网络带宽，这又分为无损压缩和有损压缩</p>
+<p>支持无损压缩算法的客户端会在请求中通过 Accept-Encoding 头部明确地告诉服务器：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">Accept-Encoding: gzip, deflate, br<br></code></pre></td></tr></table></figure>
 
-<p>对于动态类型语言，无论是否使用 new 关键字，内存都是从堆中分配的。</p>
-<p>栈内存分配更快的原因是：<code>每个线程都有独立的栈，所以分配内存时不需要加锁保护，而且栈上对象的尺寸在编译阶段就已经写入可执行文件了，执行效率更高</code>！性能至上的 Golang 语言就是按照这个逻辑设计的，即使你用 new 关键字分配了堆内存，但编译器如果认为在栈中分配不影响功能语义时，会自动改为在栈中分配。JVM 在内存分配时也有相应的考量。</p>
-<p>但是栈内存上创建对象有以下缺点：</p>
+<p>服务器也会在响应中告诉客户端使用的哪种压缩算法：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">content-encoding: gzip<br></code></pre></td></tr></table></figure>
+
+<p>虽然目前 gzip 使用最为广泛，但它的压缩效率以及执行速度其实都很一般，Google 于 2015 年推出的 Brotli 算法在这两方面表现都更优秀（也就是上文中的 br）</p>
+<p>有损压缩通过牺牲质量来提高压缩比，主要针对的是图片和音视频。HTTP 请求可以通过 Accept 头部中的 q 质量因子，告诉服务器期望的资源质量</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">Accept: audio/*; q=0.2, audio/basic<br></code></pre></td></tr></table></figure>
+
+<p>例如图片的 wbep 格式就比 png 要更小</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>如果一定要使用 HTTP 1.1，可以从三方面入手性能优化：</p>
 <ul>
-<li>生命周期有限：函数&#x2F;方法调用完毕生命周期结束，而堆中创建的对象存活时间较长</li>
-<li>栈容量有限：如 CentOS 7 中是 8MB 字节，递归、对象大容易导致栈溢出错误</li>
+<li>缓存<ul>
+<li>把响应缓存在本机磁盘或代理服务器，在代理服务器的缓存称为共享缓存，可以为多个用户使用。缓存离客户端越近返回越快，过期缓存也可以通过摘要值发挥作用</li>
 </ul>
-<p><strong>栈内存分配的速度一般是要比堆快的，我们分配内存时，如果在满足功能的情况下，可以在栈中分配的话，就选择栈。</strong></p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
-<li><p>如果程序通常多线程分配小块内存，可以选择 TCMalloc 替换 Linux 的 Ptmalloc2 内存分配器，TCMalloc 擅长多线程下小内存分配，Ptmalloc2 比较通用。<a target="_blank" rel="noopener" href="https://www.bytezonex.com/archives/O-p9zY2c.html">JVM堆外内存泄漏：从 64M 内存块问题到 JEMalloc 解决方案</a></p>
 </li>
-<li><p>如果有可能的话，尽量在栈中分配内存，它比内存池中的堆内存分配速度快很多</p>
+<li>减少请求次数<ul>
+<li>代理服务器代替客户端进行重定向等</li>
+<li>对小资源进行合并返回</li>
+</ul>
+</li>
+<li>对资源进行压缩返回<ul>
+<li>例如 js 文件就有源文件，min.js，min.zip，压缩算法 gzip、br 等</li>
+<li>对图片,音视频进行压缩，某些资源可以使用 Base64 编码后嵌入 HTML 文件（HTML 文档本身就包含了多媒体资源的完整数据，浏览器可以直接解析并展示这些内容，而无需通过额外的 HTTP 请求获取这些资源）</li>
+</ul>
 </li>
 </ul>
-<p>注意：Java 语言特指堆外内存使用C库内存池，如果不使用堆外内存，则几乎不涉及。</p>
 
                 
               </div>
@@ -478,9 +488,11 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E5%86%85%E5%AD%98/" class="print-no-link">#内存</a>
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
       
         <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+        <a href="/tags/HTTP/" class="print-no-link">#HTTP</a>
       
     </div>
   
@@ -492,8 +504,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>系统性能优化之内存篇</div>
-      <div>https://zhuwenjie0716.github.io/2026/04/24/系统性能优化之内存篇/</div>
+      <div>系统性能优化之HTTP1.1篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/25/系统性能优化之HTTP1-1篇/</div>
     </div>
     <div class="license-meta">
       
@@ -505,7 +517,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年4月24日</div>
+          <div>2026年4月25日</div>
         </div>
       
       
@@ -537,9 +549,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/" title="系统性能优化之HTTP1.1篇">
+                      <a href="/2026/04/27/Netty%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98/" title="Netty如何高效使用内存">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">系统性能优化之HTTP1.1篇</span>
+                        <span class="hidden-mobile">Netty如何高效使用内存</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -547,8 +559,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/04/23/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BCPU%E7%AF%87/" title="系统性能优化之CPU篇">
-                        <span class="hidden-mobile">系统性能优化之CPU篇</span>
+                      <a href="/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/" title="系统性能优化之内存篇">
+                        <span class="hidden-mobile">系统性能优化之内存篇</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
