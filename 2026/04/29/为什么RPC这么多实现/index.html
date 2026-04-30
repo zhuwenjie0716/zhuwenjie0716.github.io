@@ -19,29 +19,29 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="为什么RPC这么多实现RPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来">
+    <meta name="description" content="选择合适的RPCRPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来获取用">
 <meta property="og:type" content="article">
-<meta property="og:title" content="为什么RPC这么多实现">
+<meta property="og:title" content="选择合适的RPC">
 <meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="为什么RPC这么多实现RPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来">
+<meta property="og:description" content="选择合适的RPCRPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来获取用">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408134939549.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408140948466.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408141637213.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408141829179.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408152726493.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/image-20250408134939549.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/image-20250408140948466.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/image-20250408141637213.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/image-20250408141829179.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/image-20250408152726493.png">
 <meta property="article:published_time" content="2026-04-29T00:12:01.000Z">
-<meta property="article:modified_time" content="2026-04-29T00:21:34.663Z">
+<meta property="article:modified_time" content="2026-04-30T03:28:24.544Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="计算机网络">
 <meta property="article:tag" content="RPC">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408134939549.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/image-20250408134939549.png">
   
   
   
-  <title>为什么RPC这么多实现 - Hexo</title>
+  <title>选择合适的RPC - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -316,7 +316,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="为什么RPC这么多实现"></span>
+            <span id="subtitle" data-typed-text="选择合适的RPC"></span>
           
         </div>
 
@@ -402,12 +402,12 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">为什么RPC这么多实现</h1>
+            <h1 id="seo-header">选择合适的RPC</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="为什么RPC这么多实现"><a href="#为什么RPC这么多实现" class="headerlink" title="为什么RPC这么多实现"></a>为什么RPC这么多实现</h1><p>RPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来获取用户信息，调用其他服务获取信息就是一次远程过程调用。</p>
+                <h1 id="选择合适的RPC"><a href="#选择合适的RPC" class="headerlink" title="选择合适的RPC"></a>选择合适的RPC</h1><p>RPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来获取用户信息，调用其他服务获取信息就是一次远程过程调用。</p>
 <p>说个题外话，也不是完全都要这么实现。我见的对实时性要求不高的服务，可能会在服务中建一个叫 UserCache 的表，定时从真正的用户表同步数据，虽然这也需要服务调用，但针对本服务获取用户信息来讲，就可以查询 Cache 表而不用进行服务间调用。另外，也可以直连对方的数据库，使用 jdbcTemplate 等进行数据库直接查询等，不过这里只讨论 RPC 就是了。</p>
 <h2 id="RPC-中的三个问题"><a href="#RPC-中的三个问题" class="headerlink" title="RPC 中的三个问题"></a>RPC 中的三个问题</h2><p>我们知道 Socket 网络通信，实际上就可以在不同的服务间进行请求，但是如果调用一下对方的服务，都需要手动来创建 socket，也太复杂难懂了，而且还会有以下的问题。</p>
 <p>RPC 既然叫远程过程调用，那肯定跟本地调用是不一样的，不一样在什么地方呢？思考一个减法的场景：</p>
@@ -429,7 +429,7 @@
 <li>传输</li>
 </ul>
 <h2 id="RPC-规范"><a href="#RPC-规范" class="headerlink" title="RPC 规范"></a>RPC 规范</h2><p>RPC 有一篇很经典的论文：<a target="_blank" rel="noopener" href="http://www.cs.cmu.edu/~dga/15-712/F07/papers/birrell842.pdf">Implementing Remote Procedure Calls</a>，定义了 RPC 的调用标准。后面所有 RPC 框架，都是按照这个标准模式来的。</p>
-<h3 id="协议约定"><a href="#协议约定" class="headerlink" title="协议约定"></a>协议约定</h3><p><img src="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408134939549.png" srcset="/img/loading.gif" lazyload alt="image-20250408134939549"></p>
+<h3 id="协议约定"><a href="#协议约定" class="headerlink" title="协议约定"></a>协议约定</h3><p><img src="/image-20250408134939549.png" srcset="/img/loading.gif" lazyload alt="image-20250408134939549"></p>
 <p>当客户端的应用想发起一个远程调用时，它实际是通过本地调用本地调用方的 Stub。它负责将调用的接口、方法和参数，通过约定的协议规范进行编码，并通过本地的 RPCRuntime 进行传输，将调用网络包发送到服务器。</p>
 <p>服务器端的 RPCRuntime 收到请求后，交给提供方 Stub 进行解码，然后调用服务端的方法，服务端执行方法，返回结果，提供方 Stub 将返回结果编码后，发送给客户端，客户端的 RPCRuntime 收到结果，发给调用方 Stub 解码得到结果，返回给客户端。</p>
 <p>也就是双方都有 stub 的存在，用来进行编码解码，类似于序列化和反序列化</p>
@@ -438,14 +438,14 @@
 <p>如 Dubbo 集成 Zookeeper</p>
 <h3 id="传输"><a href="#传输" class="headerlink" title="传输"></a>传输</h3><p>早期有的实现是由公司网络人员封装出一套类库，供大家开发使用，现在一般集成市面上比较优秀的网络框架实现，如 netty。</p>
 <h2 id="Sun-RPC（ONC-RPC）"><a href="#Sun-RPC（ONC-RPC）" class="headerlink" title="Sun RPC（ONC RPC）"></a>Sun RPC（ONC RPC）</h2><p>最早的 RPC 的一种实现方式称为 Sun RPC 或 ONC RPC。Sun 公司是第一个提供商业化 RPC 库和 RPC 编译器的公司。这个 RPC 框架是在 NFS 协议中使用的。</p>
-<h3 id="协议约定-1"><a href="#协议约定-1" class="headerlink" title="协议约定"></a>协议约定</h3><p><img src="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408140948466.png" srcset="/img/loading.gif" lazyload alt="image-20250408140948466"></p>
+<h3 id="协议约定-1"><a href="#协议约定-1" class="headerlink" title="协议约定"></a>协议约定</h3><p><img src="/image-20250408140948466.png" srcset="/img/loading.gif" lazyload alt="image-20250408140948466"></p>
 <p>NFS（Network File System）就是网络文件系统。要使 NFS 成功运行，要启动两个服务端，一个是 mountd，用来挂载文件路径；一个是 nfsd，用来读写文件。NFS 可以在本地 mount 一个远程的目录到本地的一个目录，从而本地的用户在这个目录里面写入、读出任何文件的时候，其实操作的是远程另一台机器上的文件。</p>
 <p>倒数第二部分的 XDR（External Data Representation，外部数据表示法）是一个标准的数据压缩格式，可以表示基本的数据类型，也可以表示结构体，主要用于编码和解码参数，客户端和服务端共享。</p>
 <p>在客户端和服务端实现 RPC 的时候，首先要定义一个双方都认可的程序、版本、方法、参数等，双方约定为一个协议定义文件，接着通过 ONC 提供的工具生成双方的 Stub 程序。</p>
 <h3 id="传输-1"><a href="#传输-1" class="headerlink" title="传输"></a>传输</h3><p>同时，大牛们写了 ONC RPC 的类库来解决传输中可能出现的错误、丢包等问题，通过状态机实现 Socket 的异步模型，流程非常复杂，参考下图：</p>
-<p><img src="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408141637213.png" srcset="/img/loading.gif" lazyload alt="image-20250408141637213"></p>
+<p><img src="/image-20250408141637213.png" srcset="/img/loading.gif" lazyload alt="image-20250408141637213"></p>
 <h3 id="服务发现-1"><a href="#服务发现-1" class="headerlink" title="服务发现"></a>服务发现</h3><p>在 ONC RPC 中，服务发现是通过 portmapper 实现的。</p>
-<p><img src="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408141829179.png" srcset="/img/loading.gif" lazyload alt="image-20250408141829179"></p>
+<p><img src="/image-20250408141829179.png" srcset="/img/loading.gif" lazyload alt="image-20250408141829179"></p>
 <p>portmapper 会启动在一个众所周知的端口上，RPC 程序由于是用户自己写的，会监听在一个随机端口上，但是 RPC 程序启动的时候，会向 portmapper 注册。客户端要访问 RPC 服务端这个程序的时候，首先查询 portmapper，获取 RPC 服务端程序的随机端口，然后向这个随机端口建立连接，开始 RPC 调用。从图中可以看出，mount 命令的 RPC 调用，就是这样实现的。</p>
 <p>早期 ONC RPC 框架，以及 NFS 的实现，给出了解决 RPC 三大问题的示范性实现，也即<code>协议约定要公用协议描述文件，并通过这个文件生成 Stub 程序</code>；<code>RPC 的传输一般需要一个状态机</code>；需要另外<code>一个进程专门做服务发现</code>。</p>
 <p>【1】协议修改不灵活，尤其是版本变更（部分用户希望新增字段）</p>
@@ -480,7 +480,7 @@
 <p>通过这样的封装，调用起来已经很方便了。顺便一提：也可以使用 Feign 通过声明式的接口进行更加简单的调用。</p>
 <p>不过，虽然这样的方式更加的通俗易懂，也有缺点，文本类的序列化相比二进制来讲，一般情况下都是要占用更多的空间，也即需要传输更大的数据量。</p>
 <h2 id="二进制类-RPC-协议"><a href="#二进制类-RPC-协议" class="headerlink" title="二进制类 RPC 协议"></a>二进制类 RPC 协议</h2><p>出于对远程调用性能的考虑，很多公司选型的时候，还是希望采用更加省空间和带宽的二进制的方案。一个著名的例子就是 Dubbo 服务化框架二进制的 RPC 方式。</p>
-<p><img src="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/image-20250408152726493.png" srcset="/img/loading.gif" lazyload alt="image-20250408152726493"></p>
+<p><img src="/image-20250408152726493.png" srcset="/img/loading.gif" lazyload alt="image-20250408152726493"></p>
 <h3 id="协议约定-2"><a href="#协议约定-2" class="headerlink" title="协议约定"></a>协议约定</h3><p>Dubbo 中默认的 RPC 协议是 Hessian2。为了保证传输的效率，Hessian2 将远程调用序列化为二进制进行传输，并且可以进行一定的压缩。</p>
 <p>相比于之前的二进制，Hessian2 有很大提升：</p>
 <ul>
@@ -547,7 +547,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>为什么RPC这么多实现</div>
+      <div>选择合适的RPC</div>
       <div>https://zhuwenjie0716.github.io/2026/04/29/为什么RPC这么多实现/</div>
     </div>
     <div class="license-meta">
