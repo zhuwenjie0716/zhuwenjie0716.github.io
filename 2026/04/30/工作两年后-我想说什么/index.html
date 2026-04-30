@@ -19,29 +19,22 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="系统性能优化之HTTP1.1篇由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。 在不升级协议的情况下，有 3 种优化思路：首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求">
+    <meta name="description" content="工作两年后,我想说什么从24年7月正式工作到现在（26年4月底），其实距工作两年还差一些，不过我毕业前还有十个月的实习生涯，姑且算是工作两年了吧。那么正式工作两年后，我想说什么？ 过去大学期间，我主要是按照 遇见狂神说 的 Java 路线学习，一路跟了数十个视频，以为 Java 开发就是注入 Mapper，写写 sql，说出来不怕人笑话，我当时真的连 Bean 是什么，以及默认扫描 Bean 只扫">
 <meta property="og:type" content="article">
-<meta property="og:title" content="系统性能优化之HTTP1.1篇">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/index.html">
+<meta property="og:title" content="工作两年后,我想说什么">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/04/30/%E5%B7%A5%E4%BD%9C%E4%B8%A4%E5%B9%B4%E5%90%8E-%E6%88%91%E6%83%B3%E8%AF%B4%E4%BB%80%E4%B9%88/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="系统性能优化之HTTP1.1篇由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。 在不升级协议的情况下，有 3 种优化思路：首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求">
+<meta property="og:description" content="工作两年后,我想说什么从24年7月正式工作到现在（26年4月底），其实距工作两年还差一些，不过我毕业前还有十个月的实习生涯，姑且算是工作两年了吧。那么正式工作两年后，我想说什么？ 过去大学期间，我主要是按照 遇见狂神说 的 Java 路线学习，一路跟了数十个视频，以为 Java 开发就是注入 Mapper，写写 sql，说出来不怕人笑话，我当时真的连 Bean 是什么，以及默认扫描 Bean 只扫">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175614482.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175840983.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250701085303286.png">
-<meta property="article:published_time" content="2026-04-25T05:19:28.000Z">
-<meta property="article:modified_time" content="2026-04-29T05:27:08.478Z">
+<meta property="article:published_time" content="2026-04-30T02:15:24.000Z">
+<meta property="article:modified_time" content="2026-04-30T02:22:32.248Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="性能优化">
-<meta property="article:tag" content="计算机网络">
-<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="思考">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png">
   
   
   
-  <title>系统性能优化之HTTP1.1篇 - Hexo</title>
+  <title>工作两年后,我想说什么 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -316,7 +309,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="系统性能优化之HTTP1.1篇"></span>
+            <span id="subtitle" data-typed-text="工作两年后,我想说什么"></span>
           
         </div>
 
@@ -327,8 +320,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-04-25 13:19" pubdate>
-          2026年4月25日 下午
+        <time datetime="2026-04-30 10:15" pubdate>
+          2026年4月30日 上午
         </time>
       </span>
     
@@ -339,7 +332,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.6k 字
+          3k 字
         
       </span>
     
@@ -350,7 +343,7 @@
         
         
         
-          14 分钟
+          25 分钟
         
       </span>
     
@@ -402,52 +395,36 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">系统性能优化之HTTP1.1篇</h1>
+            <h1 id="seo-header">工作两年后,我想说什么</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="系统性能优化之HTTP1-1篇"><a href="#系统性能优化之HTTP1-1篇" class="headerlink" title="系统性能优化之HTTP1.1篇"></a>系统性能优化之HTTP1.1篇</h1><p>由于 HTTP 头部使用 ASCII 编码方式，这造成它往往达到几 KB，而且滥用的 Cookie 头部进一步增大了体积。与此同时，REST 架构的无状态特性还要求每个请求都得重传 HTTP 头部，这就使消息的有效信息比重难以提高。</p>
-<p>在不升级协议的情况下，有 3 种优化思路：<code>首先是通过缓存避免发送 HTTP 请求；其次，如果不得不发起请求，那么就得思考如何才能减少请求的个数；最后则是减少服务器响应的体积</code>。</p>
-<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>客户端缓存：浏览器把收到的请求和响应保存在磁盘上，关键字为 （url + 部分请求头部），这样后续发生请求时，就可以先从本地磁盘上找，查询磁盘的几十毫秒相对于慢了上百倍且不稳定的网络请求要好的多。不过当服务器的资源更新后，如何让客户端感知呢？服务端在首次响应时返回一个<code>预计过期时间</code>和<code>消息摘要</code>，当客户端发现已经过期了就会重新发送请求。</p>
-<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175141930.png" srcset="/img/loading.gif" lazyload alt="image-20250630175141930"></p>
-<p>此外，过期缓存也是可以提升性能的，客户端发现缓存过期后，取出首次响应返回的摘要，放在 Etag 头部中，服务器获取到请求后，会将本地资源的摘要与请求中的 Etag 相比较，如果不同，那么缓存没有价值，重新发送最新资源即可；如果摘要与 Etag 相同，那么仅返回不含有包体的 304 Not Modified 响应，告知客户端缓存仍然有效即可，这就省去传递可能高达千百兆的文件资源。</p>
-<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175614482.png" srcset="/img/loading.gif" lazyload alt="image-20250630175614482"></p>
-<p>Etag 摘要的生成与服务器的实现有关~</p>
-<p>浏览器这样的缓存只能为当前用户使用，是私有缓存，如果能缓存在代理服务器上，就能作为共享缓存被多用户使用</p>
-<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250630175840983.png" srcset="/img/loading.gif" lazyload alt="image-20250630175840983"></p>
-<h2 id="请求合并"><a href="#请求合并" class="headerlink" title="请求合并"></a>请求合并</h2><p>例如，当请求返回 302 重定向时，如果由客户端来再次请求，请求又要经过不稳定的外部网络，但如果是代理服务器来转发，就可以减少请求的路径，并且如果这个重定向被代理服务器所记忆，就能进一步减少网络消耗。</p>
-<p><img src="/2026/04/25/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BHTTP1-1%E7%AF%87/image-20250701085303286.png" srcset="/img/loading.gif" lazyload alt="image-20250701085303286"></p>
-<p>降低 HTTP 请求次数还可以通过合并请求的方式实现，例如一个页面的多个小图片利用 css image sprites 技术合成一张大图片，浏览器收到后根据 css 数据进行切割还原，类似地，在服务器端用 webpack 等打包工具将 Javascript、CSS 等资源合并为大文件，也能起到同样的效果。<code>优点是能减少 tcp 的连接次数，同时减少请求次数也意为着 header 的传递次数也会减少</code>，当然，这种合并请求的方式也会带来一个新问题，即，<code>当其中一个资源发生变化后，客户端必须重新下载完整的大文件</code>，这显然会带来额外的网络消耗。HTTP&#x2F;2 就不需要这个技术了。</p>
-<h2 id="响应压缩"><a href="#响应压缩" class="headerlink" title="响应压缩"></a>响应压缩</h2><p>减少响应体积其实就是对资源进行压缩，用 cpu 换取网络带宽，这又分为无损压缩和有损压缩</p>
-<p>支持无损压缩算法的客户端会在请求中通过 Accept-Encoding 头部明确地告诉服务器：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">Accept-Encoding: gzip, deflate, br<br></code></pre></td></tr></table></figure>
-
-<p>服务器也会在响应中告诉客户端使用的哪种压缩算法：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">content-encoding: gzip<br></code></pre></td></tr></table></figure>
-
-<p>虽然目前 gzip 使用最为广泛，但它的压缩效率以及执行速度其实都很一般，Google 于 2015 年推出的 Brotli 算法在这两方面表现都更优秀（也就是上文中的 br）</p>
-<p>有损压缩通过牺牲质量来提高压缩比，主要针对的是图片和音视频。HTTP 请求可以通过 Accept 头部中的 q 质量因子，告诉服务器期望的资源质量</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">Accept: audio/*; q=0.2, audio/basic<br></code></pre></td></tr></table></figure>
-
-<p>例如图片的 wbep 格式就比 png 要更小</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>如果一定要使用 HTTP 1.1，可以从三方面入手性能优化：</p>
-<ul>
-<li>缓存<ul>
-<li>把响应缓存在本机磁盘或代理服务器，在代理服务器的缓存称为共享缓存，可以为多个用户使用。缓存离客户端越近返回越快，过期缓存也可以通过摘要值发挥作用</li>
-</ul>
-</li>
-<li>减少请求次数<ul>
-<li>代理服务器代替客户端进行重定向等</li>
-<li>对小资源进行合并返回</li>
-</ul>
-</li>
-<li>对资源进行压缩返回<ul>
-<li>例如 js 文件就有源文件，min.js，min.zip，压缩算法 gzip、br 等</li>
-<li>对图片,音视频进行压缩，某些资源可以使用 Base64 编码后嵌入 HTML 文件（HTML 文档本身就包含了多媒体资源的完整数据，浏览器可以直接解析并展示这些内容，而无需通过额外的 HTTP 请求获取这些资源）</li>
-</ul>
-</li>
-</ul>
+                <h1 id="工作两年后-我想说什么"><a href="#工作两年后-我想说什么" class="headerlink" title="工作两年后,我想说什么"></a>工作两年后,我想说什么</h1><p>从24年7月正式工作到现在（26年4月底），其实距工作两年还差一些，不过我毕业前还有十个月的实习生涯，姑且算是工作两年了吧。那么正式工作两年后，我想说什么？</p>
+<h2 id="过去"><a href="#过去" class="headerlink" title="过去"></a>过去</h2><p>大学期间，我主要是按照 <a target="_blank" rel="noopener" href="https://space.bilibili.com/95256449?spm_id_from=333.337.search-card.all.click">遇见狂神说</a> 的 Java 路线学习，一路跟了数十个视频，以为 Java 开发就是注入 Mapper，写写 sql，说出来不怕人笑话，我当时真的连 Bean 是什么，以及默认扫描 Bean 只扫描启动类下的文件都不知道。</p>
+<p>好在看了那么多视频，“照葫芦画瓢”的能力倒是学了一些，还是很轻松的完成了数据库、Java Web、 Django 这样的课程设计，也导致被大家认为技术好，代码强。有点印象的是最开始写网络编程，对着视频写完还是一脸蒙圈，怎么这样写个 Socket 就通信上了，什么叫阻塞，为什么这样的一行代码就能卡住进程呢？对于中间件的了解也很空洞，知道在项目中怎么用，对背后的实现一无所知，面试也是临时找了点八股文。</p>
+<p>机缘巧合之下，大四进入超聚变（至少我了解到的是算力领域全国第二）实习，遇到了一批优秀的人（导师制，我导师是上海大学的本硕，PL 是西交的硕），加上超聚变本身是华为子公司拆分出来，有比较完善的规章制度和开发流程。优点提完了，缺点我就不提了（我PL原话：从这里出去，90%的公司你都能很快适应），总之最后虽然给我发了 offer 我还是交违约金离开了，这里提高了我对云原生知识的掌握，代码质量的要求，但项目进度比较紧张，没有学很多新的知识。</p>
+<p>顺便一提，因为实习和饮食、作息习惯的原因，实习期间还动了个小手术，也是我决定要离开的原因之一。</p>
+<h2 id="成长"><a href="#成长" class="headerlink" title="成长"></a>成长</h2><p>校招还是拿了几个 Offer 的，最后选择来了这里。刚来的时候由于实习一直在用 go 语言，Java 有点不会写了，给我分第一个小需求的时候我还写成 Feign 调用的了，领导就给我时间学习，抽空重新学了 Spring 系列（<a target="_blank" rel="noopener" href="https://cloud.tencent.com/tvp/member/251">丁雪丰</a> 老师的 <a target="_blank" rel="noopener" href="https://time.geekbang.org/course/intro/100023501">Spring 全家桶</a>），看丁雪丰老师课的时候，我觉得他好厉害，对 Spring 的各项知识点侃侃而谈，还补充了很多小的知识诸如 EventListener，Docker 轻松运行各种服务（Mysql、Redis、Kafka、Consul 等）。当时只觉得老师技术很厉害，后续去搜才知道还是美团研究员，<a target="_blank" rel="noopener" href="https://cloud.tencent.com/tvp">腾讯云TVP</a>。</p>
+<p>慢慢的我已经可以做一些简单的业务了，公司发公告说软考可以开始报名了。我问了下同事，了解了公司的职称补贴，觉得报名费也不贵就报名了，详情可以看：<a href="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/">谈谈我的软考经历</a>，总之就是连着考过了中、高级。当时高级本来觉得过不了，在办公室查成绩前我给办公室其他人说：这次要是能过，在座的各位一人一份 KFC，最后虽然花了钱还是很开心的。</p>
+<p>软考的过程中免不了遇到不会的知识，于是我就各种补充知识点，同时通过考试的良好反馈也让我更有兴趣去学习了。</p>
+<p>因为好奇一个 Web 请求从浏览器发出到 SpringBoot 中是如何处理的，于是我去学习了 Tomcat。后来证明这不是一个很好的选择：一上来直接给我整懵了。第一个遇到的问题就是 IO 模型，几种模型给我绕进去了，又扯上 Reactor，费了一段时间才懂。后来看代码结构只觉得写的很好，经常是一个抽象类，然后多种实现，充分的利用多态走不同的逻辑，后来才知道原来这是模板设计模式，就开始补 <a target="_blank" rel="noopener" href="https://space.bilibili.com/7968519/lists/4686906?type=season">设计模式</a>。</p>
+<p>补了一些设计模式后，我意识到能写功能是一回事，能优雅的写好功能是另一回事。所谓的优雅一方面是指代码风格（诸如单行尽量不超过 120 那个IDE分界线，函数功能不要超过 100 行，参数不要超过 5 个），另一方面则是业务规范（诸如异常如何处理（无论如何不能生吞异常，有遗留代码 catch 完直接丢出自定义异常了，日志都没打印），线程池该如何选择，null 和空的处理，数字的运算使用 BigDecimal）。这些主要来自对 Java 业务开发常见错误 的学习。</p>
+<p>当然这段时间也学习了一些其他的知识模块：Stream、Optional 的使用，Oauth2 的四种授权模式，guava 高性能工具包等。</p>
+<p>看到项目中也在经常使用 Redis，我就想着去深入学习一下，找到了 <a target="_blank" rel="noopener" href="https://zhangtielei.com/">张铁蕾</a> 老师的博客，张老师当时主要有 Redis 源码解读系列和分布式系列，学了 String、Hash、Set 等结构的实现，才觉得 Redis 这么流行不是没有原因的，高效的数据结构一点也不夸张，对于 cache line 的考虑，渐进式哈希等都很精妙。除此之外，也通过一些资源学习了 cluster 集群，缓存区的异步复制。学完这些，其实软考里关于 Redis 的部分几乎没有问题了。</p>
+<p>看了 Redis 这样的设计，我对性能优化感兴趣了起来（想必做开发的都知道被评价代码写的性能又好又易读的成就感吧）。首先去学习了通用的一些性能优化，包括但不限于 计算机硬件（cpu、内存、磁盘）、网络通信（RPC、序列化、Tcp）、数据库（索引、锁、事务）和分布式（一致性哈希、NWR、CAP）。在学习性能优化的期间，也免不了要去补四大件（数据结构、计算机网络、操作系统和计算机组成原理）。</p>
+<p>但是在看了性能优化后，摆在我面前的问题是，你都找不到性能问题在哪怎么优化？我又去看了些网络相关的知识和监控工具。网络相关的主要是指 tcpdump 语法，通信协议演进，监控工具诸如 arthas，火焰图。</p>
+<p>业务开发中有次遇到性能瓶颈是通过 Nginx 解决的，我就又去学习了 Nginx。大概知道了处理请求的 11 个阶段，常见的参数，编译和升级流程，负载均衡配置等。</p>
+<p>做 Java 开发的自然免不了要去啃 JVM 这个山，也拜读了周志明老师的深入剖析Java虚拟机，这本书确实很经典，但类的字节码格式那部分还有编译优化的部分我没有很理解。字节码格式我不认为现在的我需要掌握，编译优化则是诸如标量替换，方法内联，锁优化锁消除更像是告知读者 JVM 做了什么优化，让读者在开发时可以主动关注，而非让读者如何优化 JVM。</p>
+<p>近期正在学习高性能网络编程框架 Netty，一方面业务开始涉及一些 IOT 领域，可能需要报文解析，另一方面对 Netty 的大名也早有耳闻，它在内存使用，锁，网络编程部分代码也非常出色，借这个机会深入学习一下。</p>
+<p>除上述内容外：我对大名鼎鼎的 “削峰填谷” 一词自然也有所耳闻，也去学习了下 Kafka，但业务中用的主要是 RabbitMQ，所以没有太多的实践机会，只是自己测试了下基本功能，了解了核心概念。ES 也是，项目中确实在用，只是了解了下倒排索引，写过几个接口，未进入深入研究。</p>
+<p>学习哪有不走弯路的，有硬去啃发现确实啃不动的（例如操作系统代码），有啃完不实战依旧云里雾里的（例如Kafka），但总体来说收获还是蛮多的。</p>
+<h2 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h2><p>我这个人是有点懒的，又对很多东西都感兴趣，导致列了很多计划又完不成（electron、神经网络等）。</p>
+<p>有些东西只求看完，至于有没有真正理解透彻，那就是另一回事了。</p>
+<p>还有的时候属实觉得自己天赋一般，别人很轻松讲出来的我要仔细思考后才能领会，有的还没办法领会。</p>
+<h2 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h2><p>首先感谢下我的领导，看我在需求少的时候吭哧吭哧看笔记，刷网站也不责怪我，还允许我在项目中实践自己的一些方案。</p>
+<p>其次感谢下互联网上的诸位老师吧，学习过程中的很多内容都来自与老师的奉献，印象比较深刻的是：丁雪丰老师、陶辉老师、张铁蕾老师和朱晔老师，他们严谨的态度和专业的知识给了我很多帮助。当然也还有很多老师未曾提及，感谢。</p>
+<p>最后感谢下我自己。</p>
 
                 
               </div>
@@ -456,43 +433,11 @@
             <div>
               <div class="post-metas my-3">
   
-    <div class="post-meta mr-3 d-flex align-items-center">
-      <i class="iconfont icon-category"></i>
-      
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E9%80%9A%E7%94%A8/" class="category-chain-item">通用</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-    </div>
-  
   
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
-      
-        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
-      
-        <a href="/tags/HTTP/" class="print-no-link">#HTTP</a>
+        <a href="/tags/%E6%80%9D%E8%80%83/" class="print-no-link">#思考</a>
       
     </div>
   
@@ -504,8 +449,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>系统性能优化之HTTP1.1篇</div>
-      <div>https://zhuwenjie0716.github.io/2026/04/25/系统性能优化之HTTP1-1篇/</div>
+      <div>工作两年后,我想说什么</div>
+      <div>https://zhuwenjie0716.github.io/2026/04/30/工作两年后-我想说什么/</div>
     </div>
     <div class="license-meta">
       
@@ -517,7 +462,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年4月25日</div>
+          <div>2026年4月30日</div>
         </div>
       
       
@@ -549,18 +494,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/04/26/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E4%B8%8EHTTPS/" title="数字证书与HTTPS">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">数字证书与HTTPS</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/04/24/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/" title="系统性能优化之内存篇">
-                        <span class="hidden-mobile">系统性能优化之内存篇</span>
+                      <a href="/2026/04/29/%E4%B8%BA%E4%BB%80%E4%B9%88RPC%E8%BF%99%E4%B9%88%E5%A4%9A%E5%AE%9E%E7%8E%B0/" title="为什么RPC这么多实现">
+                        <span class="hidden-mobile">为什么RPC这么多实现</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
