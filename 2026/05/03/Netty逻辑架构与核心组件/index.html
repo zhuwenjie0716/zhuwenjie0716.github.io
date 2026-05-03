@@ -1,0 +1,863 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Netty逻辑架构与核心组件Netty官网 里有一张 Netty 的整体功能模块结构图，如下：  Netty 被分为三大模块，分别是 Core、Protocol Support 和 Transport Services。  Core 即核心层，提供了底层网络通信的通用抽象和实现，包括可扩展的事件模型、通用的通信 API、支持零拷贝的 ByteBuffer 等。 Protocol Support 即">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty逻辑架构与核心组件">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Netty逻辑架构与核心组件Netty官网 里有一张 Netty 的整体功能模块结构图，如下：  Netty 被分为三大模块，分别是 Core、Protocol Support 和 Transport Services。  Core 即核心层，提供了底层网络通信的通用抽象和实现，包括可扩展的事件模型、通用的通信 API、支持零拷贝的 ByteBuffer 等。 Protocol Support 即">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503090643582.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503091549781.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503092703476.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503094239342.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503100458313.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503101515403.png">
+<meta property="article:published_time" content="2026-05-03T01:01:25.000Z">
+<meta property="article:modified_time" content="2026-05-03T02:36:42.109Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Netty">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503090643582.png">
+  
+  
+  
+  <title>Netty逻辑架构与核心组件 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Netty逻辑架构与核心组件"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-03 09:01" pubdate>
+          2026年5月3日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          47 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Netty逻辑架构与核心组件</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Netty逻辑架构与核心组件"><a href="#Netty逻辑架构与核心组件" class="headerlink" title="Netty逻辑架构与核心组件"></a>Netty逻辑架构与核心组件</h1><p><a target="_blank" rel="noopener" href="https://netty.io/">Netty官网</a> 里有一张 Netty 的整体功能模块结构图，如下：</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503090643582.png" srcset="/img/loading.gif" lazyload alt="image-20260503090643582"></p>
+<p>Netty 被分为三大模块，分别是 Core、Protocol Support 和 Transport Services。</p>
+<ul>
+<li>Core 即核心层，提供了底层网络通信的通用抽象和实现，包括可扩展的事件模型、通用的通信 API、支持零拷贝的 ByteBuffer 等。</li>
+<li>Protocol Support 即协议支持层，基本上覆盖了主流协议的编解码实现，如 HTTP、 SSL、 Protobuf、压缩、大文件传输、 WebSocket、文本、二进制等主流协议，此外 Netty 还支持自定义应用层协议。</li>
+<li>Transport Services 即传输服务层，提供了网络传输能力的定义和实现方法。支持 Socket、 HTTP 隧道、虚拟机管道等传输方式。 Netty 对 TCP、 UDP 等数据传输做了抽象和封装，用户可以更聚焦在业务逻辑实现上，而不必关系底层数据传输的细节。</li>
+</ul>
+<p>这是官网对 Netty 主要模块的总结，接下来介绍 Netty 的逻辑架构。</p>
+<h2 id="逻辑架构"><a href="#逻辑架构" class="headerlink" title="逻辑架构"></a>逻辑架构</h2><p>以 <a href="https://zhuwenjie0716.github.io/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/">自定义通信协议实践</a> 的服务端启动代码为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Server</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException, ExecutionException &#123;<br><br>        <span class="hljs-type">NioEventLoopGroup</span> <span class="hljs-variable">bossGroup</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NioEventLoopGroup</span>(<span class="hljs-number">1</span>);<br>        <span class="hljs-type">NioEventLoopGroup</span> <span class="hljs-variable">workGroup</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NioEventLoopGroup</span>();<br>        <span class="hljs-type">ServerBootstrap</span> <span class="hljs-variable">serverBootstrap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServerBootstrap</span>();<br>        serverBootstrap.channel(NioServerSocketChannel.class);<br>        serverBootstrap.handler(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggingHandler</span>(LogLevel.INFO));<br>        serverBootstrap.group(bossGroup, workGroup);<br><br>        serverBootstrap.childHandler(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ChannelInitializer</span>&lt;NioSocketChannel&gt;() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">initChannel</span><span class="hljs-params">(NioSocketChannel ch)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>                <span class="hljs-type">ChannelPipeline</span> <span class="hljs-variable">pipeline</span> <span class="hljs-operator">=</span> ch.pipeline();<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FrameDecoder</span>());<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FrameEncoder</span>());<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProtocolEncoder</span>());<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProtocolDecoder</span>());<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggingHandler</span>(LogLevel.INFO));<br>                pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ServerProcessHandler</span>());<br>            &#125;<br>        &#125;);<br><br>        <span class="hljs-type">ChannelFuture</span> <span class="hljs-variable">channelFuture</span> <span class="hljs-operator">=</span> serverBootstrap.bind(<span class="hljs-number">8090</span>).sync();<br>        channelFuture.channel().closeFuture().get();<br><br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其中涉及到的组件几乎都在下面这张图里有体现：</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503091549781.png" srcset="/img/loading.gif" lazyload alt="image-20260503091549781"></p>
+<p>Netty 逻辑架构可以分为网络通信层、事件调度层和服务编排层。</p>
+<h3 id="网络通信层"><a href="#网络通信层" class="headerlink" title="网络通信层"></a>网络通信层</h3><p>网络通信层的职责是执行网络 I&#x2F;O 的操作。它支持多种网络协议和 I&#x2F;O 模型的连接操作。当网络数据读取到内核缓冲区后，会触发各种网络事件，这些网络事件会分发给事件调度层进行处理。</p>
+<p>网络通信层的 <strong>核心组件</strong> 包含 <strong>BootStrap、ServerBootStrap、Channel</strong> 三个组件。</p>
+<p>BootStrap 译为引导器，作为整个 Netty 客户端和服务端的程序入口（客户端使用 BootStrap，服务端使用 ServerBootStrap），可以把 Netty 的核心组件像搭积木一样组装在一起。</p>
+<p>ServerBootstrap 需要 <a href="https://zhuwenjie0716.github.io/2026/04/30/Netty%E5%A6%82%E4%BD%95%E6%94%AF%E6%8C%813%E7%A7%8DReactor/">配置Reactor模型</a> 使用，也就是图中的 EventLoopGroup，其中 MainReactor 处理连接事件，通常叫 BossGroup，SubReactor 处理其它 IO 事件，通常叫 WorkGroup。</p>
+<p>Channel 的字面意思是“通道”，它是网络通信的载体，提供了与底层 Socket 交互的能力。Channel 会有多种状态，如 <strong>连接建立、连接注册、数据读写、连接销毁</strong> 等，每一种状态都会绑定相应的事件回调。</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503092703476.png" srcset="/img/loading.gif" lazyload alt="image-20260503092703476"></p>
+<h3 id="事件调度层"><a href="#事件调度层" class="headerlink" title="事件调度层"></a>事件调度层</h3><p>事件调度层的职责是通过 Reactor 线程模型对各类事件进行聚合处理，通过 Selector 主循环线程集成多种事件（ I&#x2F;O 事件、信号事件、定时事件等），实际的业务处理逻辑是交由服务编排层中相关的 Handler 完成。</p>
+<p>事件调度层的 <strong>核心组件</strong> 包括 <strong>EventLoopGroup、EventLoop</strong>。</p>
+<p>EventLoopGroup 本质是一个 EventLoop 的线程池，主要负责接收 I&#x2F;O 请求，并分配线程执行处理请求。</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503094239342.png" srcset="/img/loading.gif" lazyload alt="image-20260503094239342"></p>
+<p>在 MainReactor（bossGroup） 与客户端建立连接成功后，会存在一个与客户端进行通信的 Channel，接着这个 Channel 会被注册给 SubReactor（workGroup）中的一个（EventLoop），这个 EventLoop 就负责该客户端的后续事件处理，也就是说一个 EventLoop 会负责多个 Channel 的处理。</p>
+<p>从 Netty4 开始 Netty 采用了 <strong>无锁串行化</strong> 设计，其实就是每个 EventLoop 被设计成单线程的，维护一个 Selector 选择器和任务队列 taskQueue，负责处理所管理的 Socket 的 I&#x2F;O 事件、普通任务和定时任务。这样的设计避免了线程切换，但是它的缺陷就是不能执行时间过长的 I&#x2F;O 操作，一旦某个 I&#x2F;O 事件发生阻塞，那么后续的所有 I&#x2F;O 事件都无法执行，甚至造成事件积压，因此在 Handler 中如果有耗时的业务操作，需要单独分配业务线程池使用。</p>
+<p>EventLoop 不仅负责处理 I&#x2F;O 事件，还要兼顾执行任务队列中的任务。任务队列遵循 FIFO 规则，可以保证任务执行的公平性。NioEventLoop 处理的任务类型基本可以分为三类。</p>
+<ul>
+<li><strong>普通任务</strong>：通过 NioEventLoop 的 execute() 方法向任务队列 taskQueue 中添加任务。例如 Netty 在写数据时会封装 WriteAndFlushTask 提交给 taskQueue。taskQueue 的实现类是多生产者单消费者队列 MpscChunkedArrayQueue，在多线程并发添加任务时，可以保证线程安全。</li>
+<li><strong>定时任务</strong>：通过调用 NioEventLoop 的 schedule() 方法向定时任务队列 scheduledTaskQueue 添加一个定时任务，用于周期性执行该任务。例如，心跳消息发送等。定时任务队列 scheduledTaskQueue 采用优先队列 PriorityQueue 实现。</li>
+<li><strong>尾部队列</strong>：tailTasks 相比于普通任务队列优先级较低，在每次执行完 taskQueue 中任务后会去获取尾部队列中任务执行。尾部任务并不常用，主要用于做一些收尾工作，例如统计事件循环的执行时间、监控信息上报等。</li>
+</ul>
+<h3 id="服务编排层"><a href="#服务编排层" class="headerlink" title="服务编排层"></a>服务编排层</h3><p>服务编排层的职责是负责组装各类服务，它是 Netty 的核心处理链，用以实现网络事件的动态编排和有序传播。</p>
+<p>服务编排层的 <strong>核心组件</strong> 包括 <strong>ChannelPipeline</strong> 、 <strong>ChannelHandler、ChannelHandlerContext</strong>。</p>
+<p>ChannelPipeline 是 Netty 的核心编排组件，<strong>负责组装各种 ChannelHandler</strong>，实际数据的编解码以及加工处理操作都是由 ChannelHandler 完成的。 ChannelPipeline 可以理解为 <strong>ChannelHandler 的实例列表</strong> ——内部通过双向链表将不同的 ChannelHandler 链接在一起。当 I&#x2F;O 读写事件触发时， ChannelPipeline 会依次调用 ChannelHandler 列表对 Channel 的数据进行拦截和处理。</p>
+<p>ChannelPipeline 是线程安全的，因为每一个新的 Channel 都会对应绑定一个新的 ChannelPipeline。一个 ChannelPipeline 关联一个 EventLoop，一个 EventLoop 仅会绑定一个线程（单线程处理单 Channel，且该 Channel 有独立的 ChannelPipeline，自然没有线程安全问题）。</p>
+<p>ChannelPipeline 中包含入站 ChannelInboundHandler 和出站 ChannelOutboundHandler 两种处理器，我们结合客户端和服务端的数据收发流程来理解 Netty 的这两个概念。</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503100458313.png" srcset="/img/loading.gif" lazyload alt="image-20260503100458313"></p>
+<p>客户端和服务端都有各自的 ChannelPipeline。以客户端为例，数据从客户端发向服务端，该过程称为 <strong>出站</strong>，反之则称为 <strong>入站</strong>。数据入站会由一系列 InBoundHandler 处理，然后再以相反方向的 OutBoundHandler 处理后完成出站。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">initChannel</span><span class="hljs-params">(NioSocketChannel ch)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    <span class="hljs-type">ChannelPipeline</span> <span class="hljs-variable">pipeline</span> <span class="hljs-operator">=</span> ch.pipeline();<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FrameDecoder</span>());<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FrameEncoder</span>());<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProtocolEncoder</span>());<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProtocolDecoder</span>());<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggingHandler</span>(LogLevel.INFO));<br>    pipeline.addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ServerProcessHandler</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们经常使用的编码 Encoder 是出站操作，解码 Decoder 是入站操作。服务端接收到客户端数据后，需要先经过 Decoder 入站处理后，再通过 Encoder 出站通知客户端。所以客户端和服务端一次完整的请求应答过程可以分为三个步骤：客户端出站（请求数据）、服务端入站（解析数据并执行业务逻辑）、服务端出站（响应结果）。</p>
+<p>不过实际上，ChannelPipeline 中并不是多个的 ChannelHandler，而是多个 ChannelHandlerContext，所有 ChannelHandlerContext 之间组成了双向链表。ChannelHandlerContext 用于保存 ChannelHandler 上下文并包含了 ChannelHandler 生命周期的所有事件，复用前置后置的通用逻辑。</p>
+<p>ChannelPipeline 的双向链表分别维护了 HeadContext 和 TailContext 的头尾节点，这两个节点在 Netty 中已经默认实现了，自定义的 ChannelHandler 会插入到 Head 和 Tail 之间。</p>
+<p><img src="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/image-20260503101515403.png" srcset="/img/loading.gif" lazyload alt="image-20260503101515403"></p>
+<p>HeadContext 既是 Inbound 处理器，也是 Outbound 处理器。它分别实现了 ChannelInboundHandler 和 ChannelOutboundHandler。网络数据写入操作的入口就是由 HeadContext 节点完成的。 HeadContext 作为 Pipeline 的头结点负责读取数据并开始传递 InBound 事件，当数据处理完成后，数据会反方向经过 Outbound 处理器，最终传递到 HeadContext，所以 HeadContext 又是处理 Outbound 事件的最后一站。此外 HeadContext 在传递事件之前，还会执行一些前置操作。</p>
+<p>TailContext 只实现了 ChannelInboundHandler 接口。它会在 ChannelInboundHandler 调用链路的最后一步执行，主要用于终止 Inbound 事件传播，例如释放 Message 数据资源等。 TailContext 节点作为 OutBound 事件传播的第一站，仅仅是将 OutBound 事件传递给上一个节点。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本篇介绍了 Netty 的逻辑架构和核心组件，并简要讲解了 Netty 处理请求的流程（多 Reactor 模型）。</p>
+<ol>
+<li>bossGroup 中有一个 EventLoop，绑定某个特定端口进行监听。一旦有新的连接进来触发 accept 类型事件，就会在当前 EventLoop 的 I&#x2F;O 事件处理阶段，将这个连接注册到 workGroup 中的某一个 EventLoop，进行后续事件的监听。</li>
+<li>workGroup （如果不指定线程数，默认cpu核数*2）中的每一个 EventLoop，会通过 selcetor 对绑定到自身的 channel 进行轮询，获取 I&#x2F;O 事件。</li>
+<li>workGroup 中的每一个 EventLoop 获取到 I&#x2F;O 事件后，会在事件处理阶段通过对应的 ChannelPipeline 进行处理。</li>
+<li>workGroup 中的每一个 EventLoop 每次 select() 循环处理完 I&#x2F;O 事件后，还会处理其任务队列（taskQueue）的任务（不一定执行完，有超时时间，避免影响下一轮的 I&#x2F;O 事件的处理）。</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Netty逻辑架构与核心组件</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/03/Netty逻辑架构与核心组件/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&amp;%E7%B2%98%E5%8C%85/" title="Netty如何处理半包和粘包（附自定义通信协议实践）">
+                        <span class="hidden-mobile">Netty如何处理半包和粘包（附自定义通信协议实践）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

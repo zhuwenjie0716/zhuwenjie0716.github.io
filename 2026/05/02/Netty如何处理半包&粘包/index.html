@@ -26,16 +26,16 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Netty如何处理半包&amp;粘包TCP 传输协议是面向流的，没有数据包界限。当程序要发送一个较大的包时，由于滑动窗口以及 MTU 的影响，有可能会拆分为多个包传输；当程序要发送较小的包时，为了提高通信效率，Linux 的 Nagle 算法可能会将多个报文合并成一个大的报文进行发送。 MTU（Maxitum Transmission Unit） 是链路层一次最大传输数据的大小。 MTU 一般来说">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260503000529419.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502231913235.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260503000529419.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502231913235.png">
 <meta property="article:published_time" content="2026-05-02T14:46:18.000Z">
 <meta property="article:modified_time" content="2026-05-02T17:00:32.638Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="Netty">
 <meta property="article:tag" content="计算机网络">
+<meta property="article:tag" content="Netty">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png">
   
   
   
@@ -407,7 +407,7 @@
                 
                 <h1 id="Netty如何处理半包-粘包"><a href="#Netty如何处理半包-粘包" class="headerlink" title="Netty如何处理半包&amp;粘包"></a>Netty如何处理半包&amp;粘包</h1><p>TCP 传输协议是面向流的，没有数据包界限。当程序要发送一个较大的包时，由于滑动窗口以及 MTU 的影响，有可能会拆分为多个包传输；当程序要发送较小的包时，为了提高通信效率，Linux 的 Nagle 算法可能会将多个报文合并成一个大的报文进行发送。</p>
 <p><strong>MTU（Maxitum Transmission Unit）</strong> 是链路层一次最大传输数据的大小。 MTU 一般来说大小为 1500 Byte。<strong>MSS（Maximum Segement Size）</strong> 是指 TCP 最大报文段长度，一般是 1460 Byte。滑动窗口则是用于流量控制，用于接收方反馈接受窗口大小，进而控制发送方发送速度。</p>
-<p><img src="/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png" srcset="/img/loading.gif" lazyload alt="image-20260502224426365"></p>
+<p><img src="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502224426365.png" srcset="/img/loading.gif" lazyload alt="image-20260502224426365"></p>
 <p>受这些因素，应用程序收到的字节流可能是不完整的（半包）也可能是粘在一起的（粘包），需要进行一定的操作才能得到想要的数据。也就是说，这个问题依赖<code>自定义应用层通信协议</code>解决。</p>
 <h2 id="一次解码"><a href="#一次解码" class="headerlink" title="一次解码"></a>一次解码</h2><p>通常把找出消息的边界的过程称为“一次解码”。</p>
 <h3 id="固定长度法"><a href="#固定长度法" class="headerlink" title="固定长度法"></a>固定长度法</h3><p>双方约定，每次数据长度为 N 个 Byte，如果收到的数据长度不足则继续等待读取符，发送方的数据如果不足该长度则使用空位进行补齐，会造成一定的空间浪费。</p>
@@ -471,11 +471,11 @@
 
 <h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>上述过程中，客户端发送来的请求会先经过一次解码器变为 Bytebuf，再经过二次解码器变为 RequestMessage，在业务处理中得到对应的响应并写回客户端，经二次编码器转为 Bytebuf，最后由一次编码器在最前方2字节增加消息体长度字段。</p>
 <p>类图定义如下：</p>
-<p><img src="/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260503000529419.png" srcset="/img/loading.gif" lazyload alt="image-20260503000529419"></p>
+<p><img src="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260503000529419.png" srcset="/img/loading.gif" lazyload alt="image-20260503000529419"></p>
 <p>注：上述实践中仅包含了服务端代码，未包含客户端代码。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>为了处理 TCP 编程中粘包半包以及反序列化的问题，Netty 内置了一些常见的解码器，解码就是找到数据流边界并转为系统中对象的流程。</p>
 <p>Netty 中提供了 ByteToMessageDecoder 和 MessageToMessageDecoder 类来进行解码操作。</p>
-<p><img src="/2026/04/16/AI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%97%A0%E5%8A%9B%E6%84%9F/%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502231913235.png" srcset="/img/loading.gif" lazyload alt="image-20260502231913235"></p>
+<p><img src="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&%E7%B2%98%E5%8C%85/image-20260502231913235.png" srcset="/img/loading.gif" lazyload alt="image-20260502231913235"></p>
 <p>相应的，选择了对应的解码器后也要编写对应的编码器代码。</p>
 <p>同时，本文展示了一种关于自定义通信协议的实践。</p>
 
@@ -490,9 +490,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
-      
         <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
+      
+        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
       
     </div>
   
@@ -548,6 +548,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/" title="Netty逻辑架构与核心组件">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Netty逻辑架构与核心组件</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
