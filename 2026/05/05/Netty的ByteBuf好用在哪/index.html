@@ -1,0 +1,859 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Netty的ByteBuf好用在哪ByteBuf 是 Netty 的数据容器，所有网络通信中字节流的传输都是通过 ByteBuf 完成的。很多开发者已经使用 ByteBuf 代替 ByteBuffer，即便并不是在写一个网络应用，也会单独使用 ByteBuf。 相比 JDK 的 ByteBuffer，Netty 的 ByteBuf 好在哪？ ByteBufferJDK 的 ByteBuffer 结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty的ByteBuf好用在哪">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Netty的ByteBuf好用在哪ByteBuf 是 Netty 的数据容器，所有网络通信中字节流的传输都是通过 ByteBuf 完成的。很多开发者已经使用 ByteBuf 代替 ByteBuffer，即便并不是在写一个网络应用，也会单独使用 ByteBuf。 相比 JDK 的 ByteBuffer，Netty 的 ByteBuf 好在哪？ ByteBufferJDK 的 ByteBuffer 结">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505101713649.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505104303542.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505105641761.png">
+<meta property="article:published_time" content="2026-05-05T02:13:12.000Z">
+<meta property="article:modified_time" content="2026-05-05T03:17:35.109Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Netty">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505101713649.png">
+  
+  
+  
+  <title>Netty的ByteBuf好用在哪 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Netty的ByteBuf好用在哪"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-05 10:13" pubdate>
+          2026年5月5日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Netty的ByteBuf好用在哪</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Netty的ByteBuf好用在哪"><a href="#Netty的ByteBuf好用在哪" class="headerlink" title="Netty的ByteBuf好用在哪"></a>Netty的ByteBuf好用在哪</h1><p>ByteBuf 是 Netty 的数据容器，所有网络通信中字节流的传输都是通过 ByteBuf 完成的。很多开发者已经使用 ByteBuf 代替 ByteBuffer，即便并不是在写一个网络应用，也会单独使用 ByteBuf。</p>
+<p>相比 JDK 的 ByteBuffer，Netty 的 ByteBuf 好在哪？</p>
+<h2 id="ByteBuffer"><a href="#ByteBuffer" class="headerlink" title="ByteBuffer"></a>ByteBuffer</h2><p>JDK 的 ByteBuffer 结构如下：</p>
+<p><img src="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505101713649.png" srcset="/img/loading.gif" lazyload alt="image-20260505101713649"></p>
+<p>从图中可知， ByteBuffer 包含以下四个基本属性：</p>
+<ul>
+<li>mark：为某个读取过的关键位置做标记，方便回退到该位置；</li>
+<li>position：当前读取的位置；</li>
+<li>limit： buffer 中有效的数据长度大小；</li>
+<li>capacity：初始化时的空间容量。</li>
+</ul>
+<p>从属性中也可以看出 ByteBuffer 的一些缺点：</p>
+<ul>
+<li>容量在创建时指定，无法进行动态扩容，很难控制需要分配多大的容量；</li>
+<li>读写操作都用 position 指针，需要频繁调用 flip、 rewind 方法切换读写状态。</li>
+</ul>
+<p>接下来以 ByteBuffer 处理粘包写一段示例代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ByteBufferDemo</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br><br>        <span class="hljs-type">ByteBuffer</span> <span class="hljs-variable">buffer</span> <span class="hljs-operator">=</span> ByteBuffer.allocate(<span class="hljs-number">1024</span>);<br><br>        <span class="hljs-comment">// 第一次只发长度和部分数据</span><br>        <span class="hljs-type">ByteBuffer</span> <span class="hljs-variable">part1</span> <span class="hljs-operator">=</span> ByteBuffer.allocate(<span class="hljs-number">1024</span>);<br>        part1.putInt(<span class="hljs-number">10</span>);      <span class="hljs-comment">// 长度=10</span><br>        part1.put(<span class="hljs-string">&quot;Hello&quot;</span>.getBytes()); <span class="hljs-comment">// 只发了5字节</span><br>        part1.flip();<br>        buffer.put(part1);<br><br>        List&lt;<span class="hljs-type">byte</span>[]&gt; bytes = parsePackets(buffer);<br>        System.out.println(<span class="hljs-string">&quot;第一次解析: &quot;</span> + bytes.size() + <span class="hljs-string">&quot;个包&quot;</span>);<br><br>        <span class="hljs-comment">// 第二次收到：剩余5字节</span><br>        <span class="hljs-type">ByteBuffer</span> <span class="hljs-variable">part2</span> <span class="hljs-operator">=</span> ByteBuffer.wrap(<span class="hljs-string">&quot;World&quot;</span>.getBytes()); <span class="hljs-comment">// 补齐10字节</span><br>        buffer.put(part2);<br><br>        bytes = parsePackets(buffer);<br>        System.out.println(<span class="hljs-string">&quot;第二次解析: &quot;</span> + bytes.size() + <span class="hljs-string">&quot;个包&quot;</span>);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">byte</span>[] p : bytes) &#123;<br>            System.out.println(<span class="hljs-string">&quot;完整包: &quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(p));<br>        &#125;<br><br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;<span class="hljs-type">byte</span>[]&gt; parsePackets(ByteBuffer buffer) &#123;<br>        List&lt;<span class="hljs-type">byte</span>[]&gt; packets = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        buffer.flip(); <span class="hljs-comment">// 切换到读模式</span><br><br>        <span class="hljs-keyword">while</span> (buffer.remaining() &gt;= <span class="hljs-number">4</span>) &#123;<br>            buffer.mark(); <span class="hljs-comment">// 标记位置，用于回滚</span><br>            <span class="hljs-type">int</span> <span class="hljs-variable">dataLen</span> <span class="hljs-operator">=</span> buffer.getInt();<br>            <span class="hljs-keyword">if</span> (dataLen &lt; <span class="hljs-number">0</span> || dataLen &gt; <span class="hljs-number">1024</span> * <span class="hljs-number">1024</span>) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Invalid length&quot;</span>);<br>            &#125;<br>            <span class="hljs-keyword">if</span> (buffer.remaining() &gt;= dataLen) &#123;<br>                <span class="hljs-type">byte</span>[] data = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[dataLen];<br>                buffer.get(data);<br>                packets.add(data);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                buffer.reset(); <span class="hljs-comment">// 数据不够，回滚到长度字段前</span><br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br>        buffer.compact(); <span class="hljs-comment">// 将未读数据移到头部，为下次写入准备</span><br>        <span class="hljs-keyword">return</span> packets;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>代码中读之前需要先 ByteBuffer.flip() 切换读模式，ByteBuffer.mark() 标记，如果解析失败，需要 ByteBuffer.reset() 回滚位置，ByteBuffer.compact() 移动未读数据到头部，position 位置到未读数据之后，</p>
+<h2 id="ByteBuf"><a href="#ByteBuf" class="headerlink" title="ByteBuf"></a>ByteBuf</h2><p>Netty 实现了一个性能更高、易用性更强的 ByteBuf，其结构如下：</p>
+<p><img src="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505104303542.png" srcset="/img/loading.gif" lazyload alt="image-20260505104303542"></p>
+<p>从图中可以看出， ByteBuf 包含三个指针： <strong>读指针 readerIndex</strong> 、 <strong>写指针 writeIndex</strong> 、 <strong>最大容量 maxCapacity</strong>，根据指针的位置又可以将 ByteBuf 内部结构可以分为四个部分：</p>
+<p>第一部分是 <strong>废弃字节</strong>，表示已经丢弃的无效字节数据。</p>
+<p>第二部分是 <strong>可读字节</strong>，表示 ByteBuf 中可以被读取的字节内容，可以通过 writeIndex - readerIndex 计算得出。从 ByteBuf 读取 N 个字节， readerIndex 就会自增 N， readerIndex 不会大于 writeIndex，当 readerIndex &#x3D;&#x3D; writeIndex 时，表示 ByteBuf 已经不可读。</p>
+<p>第三部分是 <strong>可写字节</strong>，向 ByteBuf 中写入数据都会存储到可写字节区域。向 ByteBuf 写入 N 字节数据， writeIndex 就会自增 N，当 writeIndex 超过 capacity，表示 ByteBuf 容量不足，需要扩容。</p>
+<p>第四部分是 <strong>可扩容字节</strong>，表示 ByteBuf 最多还可以扩容多少字节，当 writeIndex 超过 capacity 时，会触发 ByteBuf 扩容，最多扩容到 maxCapacity 为止，超过 maxCapacity 再写入就会出错。</p>
+<p>Netty 重新设计的 ByteBuf 有效地区分了可读、可写以及可扩容数据，解决了 ByteBuffer 无法扩容以及读写模式切换烦琐的缺陷。</p>
+<p>接下来以 ByteBuf 处理粘包写一段示例代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ByteBufMain</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br><br>        <span class="hljs-type">ByteBuf</span> <span class="hljs-variable">buffer</span> <span class="hljs-operator">=</span> Unpooled.buffer(<span class="hljs-number">1024</span>);<br><br>        <span class="hljs-comment">// 第一次只发长度和部分数据</span><br>        buffer.writeInt(<span class="hljs-number">10</span>);<br>        buffer.writeBytes(<span class="hljs-string">&quot;Hello&quot;</span>.getBytes());<br><br>        List&lt;<span class="hljs-type">byte</span>[]&gt; bytes = parsePackets(buffer);<br>        System.out.println(<span class="hljs-string">&quot;第一次解析: &quot;</span> + bytes.size() + <span class="hljs-string">&quot;个包&quot;</span>);<br><br>        <span class="hljs-comment">// 第二次收到：剩余5字节</span><br>        buffer.writeBytes(<span class="hljs-string">&quot;World&quot;</span>.getBytes()); <span class="hljs-comment">// 补齐10字节</span><br><br>        bytes = parsePackets(buffer);<br>        System.out.println(<span class="hljs-string">&quot;第二次解析: &quot;</span> + bytes.size() + <span class="hljs-string">&quot;个包&quot;</span>);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">byte</span>[] p : bytes) &#123;<br>            System.out.println(<span class="hljs-string">&quot;完整包: &quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(p));<br>        &#125;<br><br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;<span class="hljs-type">byte</span>[]&gt; parsePackets(ByteBuf buffer) &#123;<br>        List&lt;<span class="hljs-type">byte</span>[]&gt; packets = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">while</span> (buffer.readableBytes() &gt;= <span class="hljs-number">4</span>) &#123;<br>            <span class="hljs-type">int</span> <span class="hljs-variable">readerIndex</span> <span class="hljs-operator">=</span> buffer.readerIndex();<br>            <span class="hljs-type">int</span> <span class="hljs-variable">dataLen</span> <span class="hljs-operator">=</span> buffer.getInt(readerIndex);   <span class="hljs-comment">// 这里的 getInt 不会移动读指针, readInt 会移动</span><br>            <span class="hljs-keyword">if</span> (dataLen &lt; <span class="hljs-number">0</span> || dataLen &gt; <span class="hljs-number">1024</span> * <span class="hljs-number">1024</span>) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Invalid length&quot;</span>);<br>            &#125;<br>            <span class="hljs-keyword">if</span> (buffer.readableBytes() &gt;= dataLen + <span class="hljs-number">4</span>) &#123;<br>                <span class="hljs-comment">// 跳过4字节的长度字段</span><br>                buffer.skipBytes(<span class="hljs-number">4</span>);<br>                <span class="hljs-type">byte</span>[] data = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[dataLen];<br>                buffer.readBytes(data);<br>                packets.add(data);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> packets;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>相比 ByteBuffer，ByteBuf 不再需要繁琐的 flip、compact 操作，而且提供了 read&#x2F;get, write&#x2F;set 的数据读写 API，区别就是 get&#x2F;set 不会移动 readIndex 和 writeIndex。</p>
+<h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><p>ByteBuf 有多种实现类，每种都有不同的特性，下图是 ByteBuf 的家族图谱，可以划分为三个不同的维度： <strong>Heap&#x2F;Direct</strong> 、 <strong>Pooled&#x2F;Unpooled</strong> 和 <strong>Unsafe&#x2F;非 Unsafe</strong>，我逐一介绍这三个维度的不同特性。</p>
+<p><img src="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/image-20260505105641761.png" srcset="/img/loading.gif" lazyload alt="image-20260505105641761"></p>
+<ul>
+<li><strong>Heap&#x2F;Direct 就是堆内和堆外内存</strong>。 Heap 指的是在 JVM 堆内分配，底层依赖的是字节数据； Direct 则是堆外内存，不受 JVM 限制，分配方式依赖 JDK 底层的 ByteBuffer。</li>
+<li><strong>Pooled&#x2F;Unpooled 表示池化还是非池化内存</strong>。 Pooled 是从预先分配好的内存中取出，使用完可以放回 ByteBuf 内存池，等待下一次分配。而 Unpooled 是直接调用系统 API 去申请内存，确保能够被 JVM GC 管理回收。</li>
+<li><strong>Unsafe&#x2F;非 Unsafe 的区别在于操作方式是否安全。</strong> Unsafe 表示每次调用 JDK 的 Unsafe 对象操作物理内存，依赖 offset + index 的方式操作数据。非 Unsafe 则不需要依赖 JDK 的 Unsafe 对象，直接通过数组下标的方式操作数据。</li>
+</ul>
+<p>这些涉及到 Netty 如何高效的使用内存，未来有时间会单独介绍。</p>
+<h3 id="引用计数"><a href="#引用计数" class="headerlink" title="引用计数"></a>引用计数</h3><p>ByteBuf 中还有一个重要的概念：引用计数，用来管理 ByteBuf 的生命周期，特别是池化内存的自动回收，防止内存泄漏。</p>
+<p>当新创建一个 ByteBuf 对象时，它的初始引用计数为 1 ，当 ByteBuf 调用 release() 后，引用计数减 1。</p>
+<p>引用计数对于 Netty 设计缓存池化有非常大的帮助，当引用计数为 0 ，该 ByteBuf 可以被放入到对象池中，避免每次使用 ByteBuf 都重复创建，对于实现高性能的内存管理有着很大的意义。</p>
+<p>所以在写 InboundHandler 时，推荐直接继承 <code>SimpleChannelInboundHandler</code>，它在 channelRead0 方法执行后会自动帮我们处理释放</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    <span class="hljs-type">boolean</span> <span class="hljs-variable">release</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">if</span> (acceptInboundMessage(msg)) &#123;<br>            <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>            <span class="hljs-type">I</span> <span class="hljs-variable">imsg</span> <span class="hljs-operator">=</span> (I) msg;<br>            <span class="hljs-comment">// 执行我们重写的 channelRead0 方法</span><br>            channelRead0(ctx, imsg);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            release = <span class="hljs-literal">false</span>;<br>            ctx.fireChannelRead(msg);<br>        &#125;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        <span class="hljs-keyword">if</span> (autoRelease &amp;&amp; release) &#123;<br>            ReferenceCountUtil.release(msg);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Netty 提供的数据容器 ByteBuf，不仅解决了 JDK NIO 中 ByteBuffer 的缺陷，而且提供了易用性更强的接口，相比于 ByteBuffer 它提供了很多非常酷的特性：</p>
+<ul>
+<li>容量可以按需动态扩展，类似于 StringBuffer；</li>
+<li>读写采用了不同的指针，读写模式可以随意切换，不需要调用 flip 方法；</li>
+<li>通过内置的复合缓冲类型可以实现零拷贝（CompositeByteBuf）；</li>
+<li>支持引用计数；</li>
+<li>支持缓存池。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Netty的ByteBuf好用在哪</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/05/Netty的ByteBuf好用在哪/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/" title="Netty的FastThreadLocal快在哪">
+                        <span class="hidden-mobile">Netty的FastThreadLocal快在哪</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
