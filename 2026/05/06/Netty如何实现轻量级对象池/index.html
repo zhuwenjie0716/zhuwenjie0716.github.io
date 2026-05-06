@@ -1,0 +1,883 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Netty如何实现轻量级对象池对于 Netty 这种高吞吐、低延迟的网络框架中，对象（尤其是 ByteBuf）的创建和释放极为频繁。如果每次都通过 new 来创建对象，容易产生以下问题：  GC 频繁：大量短生命周期对象会频繁触发 Young GC，影响系统稳定。 延迟抖动：GC 的 Stop-The-World 事件会导致请求延迟不稳定。 内存碎片：频繁的分配和释放会导致堆内存碎片化。  Net">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty如何实现轻量级对象池">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Netty如何实现轻量级对象池对于 Netty 这种高吞吐、低延迟的网络框架中，对象（尤其是 ByteBuf）的创建和释放极为频繁。如果每次都通过 new 来创建对象，容易产生以下问题：  GC 频繁：大量短生命周期对象会频繁触发 Young GC，影响系统稳定。 延迟抖动：GC 的 Stop-The-World 事件会导致请求延迟不稳定。 内存碎片：频繁的分配和释放会导致堆内存碎片化。  Net">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png">
+<meta property="article:published_time" content="2026-05-06T00:11:02.000Z">
+<meta property="article:modified_time" content="2026-05-06T00:16:48.765Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Netty">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png">
+  
+  
+  
+  <title>Netty如何实现轻量级对象池 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Netty如何实现轻量级对象池"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-06 08:11" pubdate>
+          2026年5月6日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          54 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Netty如何实现轻量级对象池</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Netty如何实现轻量级对象池"><a href="#Netty如何实现轻量级对象池" class="headerlink" title="Netty如何实现轻量级对象池"></a>Netty如何实现轻量级对象池</h1><p>对于 Netty 这种高吞吐、低延迟的网络框架中，对象（尤其是 ByteBuf）的创建和释放极为频繁。如果每次都通过 new 来创建对象，容易产生以下问题：</p>
+<ul>
+<li><strong>GC 频繁</strong>：大量短生命周期对象会频繁触发 Young GC，影响系统稳定。</li>
+<li><strong>延迟抖动</strong>：GC 的 Stop-The-World 事件会导致请求延迟不稳定。</li>
+<li><strong>内存碎片</strong>：频繁的分配和释放会导致堆内存碎片化。</li>
+</ul>
+<p>Netty 实现了轻量级的对象池 Recycler，专门用来重用那些创建开销大、使用频繁的对象，从而显著降低 GC 压力，提升系统性能。它被广泛应用于 Netty 的核心组件中，例如 PooledDirectByteBuf。</p>
+<h2 id="Recycler-结构"><a href="#Recycler-结构" class="headerlink" title="Recycler 结构"></a>Recycler 结构</h2><p>Recycler 还是比较复杂的，核心结构如图：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java">【线程 A (比如 Netty 的 EventLoop)】<br>    │<br>    └─── Stack (线程A的私有栈，LIFO)<br>            │<br>            ├─── [<span class="hljs-number">0</span>] → Handle (对象X，空闲)  <span class="hljs-comment">// A自己用完放回的</span><br>            ├─── [<span class="hljs-number">1</span>] → Handle (对象Y，空闲)<br>            ├─── [<span class="hljs-number">2</span>] → Handle (对象Z，使用中) <span class="hljs-comment">// A正在用的</span><br>            ├─── ...<br>            │<br>            └─── head (指针) ----------------------┐<br>                                                     │<br>        【WeakOrderQueue 链表 (接收其他线程的归还)】   │<br>                    │                               │<br>                    ▼                               │<br>             WeakOrderQueue (<span class="hljs-keyword">for</span> 线程B) ◄────────────┘<br>                    │<br>                    └─── Link1 → [Handle(对象M), Handle(对象N), ...]<br>                    └─── Link2 → [Handle(对象P), ...]<br>                    │<br>                    ▼<br>             WeakOrderQueue (<span class="hljs-keyword">for</span> 线程C)<br>                    │<br>                    └─── Link1 → [Handle(对象Q), ...]<br>                    │<br>                    ▼<br>             WeakOrderQueue (<span class="hljs-keyword">for</span> 线程D) ...<br></code></pre></td></tr></table></figure>
+
+<p>上图的核心组件包括：Stack 和 WeakOrderQueue。</p>
+<p>当程序在调用 Recycler.get() 方法时，代码会首先尝试获取当前线程的 Stack，如果不存在就会创建，Stack 中存的是当前线程创建的已经空闲的对象。</p>
+<p>Stack 中会有 head 指针指向一个 WeakOrderQueue 的链表，这里存其它线程归还给该线程的对象。例如线程A创建了一个对象，使用完后传递给了线程B处理，线程B使用完后进行归还，最终就会放到线程A 的某个 WeakOrderQueue 中（其中都是线程B归还的属于线程A创建的对象）。</p>
+<p>注意对象会被封装为 DefaultHandle。</p>
+<h2 id="Recycler-获取对象"><a href="#Recycler-获取对象" class="headerlink" title="Recycler 获取对象"></a>Recycler 获取对象</h2><p>Stack 的核心定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Stack</span>&lt;T&gt; &#123;<br>    <span class="hljs-keyword">final</span> Recycler&lt;T&gt; parent; <span class="hljs-comment">// 所属的 Recycler</span><br>    <span class="hljs-keyword">final</span> WeakReference&lt;Thread&gt; threadRef; <span class="hljs-comment">// 所属线程的弱引用</span><br>    <span class="hljs-keyword">final</span> AtomicInteger availableSharedCapacity; <span class="hljs-comment">// 异线程回收对象时，其他线程能保存的被回收对象的最大个数</span><br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> maxDelayedQueues; <span class="hljs-comment">// WeakOrderQueue最大个数</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> maxCapacity; <span class="hljs-comment">// 对象池的最大大小，默认最大为 4k</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> ratioMask; <span class="hljs-comment">// 控制对象的回收比率，默认只回收 1/8 的对象</span><br>    <span class="hljs-keyword">private</span> DefaultHandle&lt;?&gt;[] elements; <span class="hljs-comment">// 存储缓存数据的数组</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> size; <span class="hljs-comment">// 缓存的 DefaultHandle 对象个数</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">handleRecycleCount</span> <span class="hljs-operator">=</span> -<span class="hljs-number">1</span>; <br>    <span class="hljs-comment">// WeakOrderQueue 链表的三个重要节点</span><br>    <span class="hljs-keyword">private</span> WeakOrderQueue cursor, prev;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> WeakOrderQueue head;<br>    <span class="hljs-comment">// 省略其他代码</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>获取对象的大致逻辑是：优先寻找线程私有的 Stack，再找其他线程归还给该线程的 WeakOrderQuene，如果都没有这样的对象，就新建一个。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> T <span class="hljs-title function_">get</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (maxCapacityPerThread == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> newObject((Handle&lt;T&gt;) NOOP_HANDLE);<br>    &#125;<br>    Stack&lt;T&gt; stack = threadLocal.get(); 	<span class="hljs-comment">// 获取当前线程缓存的 Stack</span><br>    DefaultHandle&lt;T&gt; handle = stack.pop(); 	<span class="hljs-comment">// 从 Stack 中弹出一个 DefaultHandle 对象</span><br>    <span class="hljs-keyword">if</span> (handle == <span class="hljs-literal">null</span>) &#123;<br>        handle = stack.newHandle();<br>        handle.value = newObject(handle); 	<span class="hljs-comment">// 创建的对象并保存到 DefaultHandle</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> (T) handle.value;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到对象是通过 <code>stack.pop()</code> 找到的，但该对象并不一定是本来就在 stack 中的，看下 pop 的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java">DefaultHandle&lt;T&gt; <span class="hljs-title function_">pop</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.size;<br>    <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 就尝试从其他线程回收的对象中转移一些到 elements 数组当中</span><br>        <span class="hljs-keyword">if</span> (!scavenge()) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>        size = <span class="hljs-built_in">this</span>.size;<br>    &#125;<br>    size --;<br>    <span class="hljs-type">DefaultHandle</span> <span class="hljs-variable">ret</span> <span class="hljs-operator">=</span> elements[size]; <span class="hljs-comment">// 将实例从栈顶弹出</span><br>    elements[size] = <span class="hljs-literal">null</span>;<br>    <span class="hljs-keyword">if</span> (ret.lastRecycledId != ret.recycleId) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;recycled multiple times&quot;</span>);<br>    &#125;<br>    ret.recycleId = <span class="hljs-number">0</span>;<br>    ret.lastRecycledId = <span class="hljs-number">0</span>;<br>    <span class="hljs-built_in">this</span>.size = size;<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果 Stack 的 elements 数组中有可用的对象实例，直接将对象实例弹出；如果 elements 数组中没有可用的对象实例，会调用 scavenge 方法。scavenge 翻译为拾荒，作用是从其他线程回收的对象实例中转移一些到 elements 数组中。</p>
+<p>scavenge 方法会从 stack 对象 cursor 指针指向的 WeakOrderQueue 开始遍历，cursor 会保留上次遍历的位置，这样的好处是不会每次都优先遍历前面位置的 WeakOrderQueue，分摊跨线程回收对象的压力。</p>
+<p><img src="/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png" srcset="/img/loading.gif" lazyload alt="image-20260506081504533"></p>
+<p>此外，每次移动 cursor 时，都会检查 WeakOrderQueue 对应的线程是否已经退出了，如果线程已经退出，那么线程中的对象实例都会被回收，然后将 WeakOrderQueue 节点从链表中移除。</p>
+<p>每个 WeakOrderQueue 中都包含一个 Link 链表，Netty 每次会回收其中的一个 Link 节点所存储的对象。从图中可以看出，Link 内部会包含一个读指针 readIndex，每个 Link 节点默认存储 16 个对象，读指针到链表尾部就是可以用于回收的对象实例，每次回收对象时，readIndex 都会从上一次记录的位置开始回收。</p>
+<h2 id="Recycler-对象回收"><a href="#Recycler-对象回收" class="headerlink" title="Recycler 对象回收"></a>Recycler 对象回收</h2><p>Recycler 对象回收比获取对象要简单一些。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// DefaultHandle#recycle</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">recycle</span><span class="hljs-params">(Object object)</span> &#123;<br>    <span class="hljs-keyword">if</span> (object != value) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;object does not belong to handle&quot;</span>);<br>    &#125;<br>    Stack&lt;?&gt; stack = <span class="hljs-built_in">this</span>.stack;<br>    <span class="hljs-keyword">if</span> (lastRecycledId != recycleId || stack == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;recycled already&quot;</span>);<br>    &#125;<br>    stack.push(<span class="hljs-built_in">this</span>);<br>&#125;<br><br><span class="hljs-comment">// Stack#push</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(DefaultHandle&lt;?&gt; item)</span> &#123;<br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">currentThread</span> <span class="hljs-operator">=</span> Thread.currentThread();<br>    <span class="hljs-keyword">if</span> (threadRef.get() == currentThread) &#123;<br>        pushNow(item);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        pushLater(item, currentThread);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到会根据当前线程是否是该创建该对象的线程，走 pushNow 和 pushLater 的逻辑。</p>
+<h3 id="同线程回收"><a href="#同线程回收" class="headerlink" title="同线程回收"></a>同线程回收</h3><p>同线程回收对象的逻辑非常简单，就是直接向 Stack 的 elements 数组中添加数据，对象会被存放在栈顶指针指向的位置。如果超过了 Stack 的最大容量，那么对象会被直接丢弃，同样这里使用了 dropHandle 方法控制对象的回收速率，每 8 个对象会有一个被回收到 Stack 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pushNow</span><span class="hljs-params">(DefaultHandle&lt;?&gt; item)</span> &#123;<br>    <span class="hljs-keyword">if</span> ((item.recycleId | item.lastRecycledId) != <span class="hljs-number">0</span>) &#123; <span class="hljs-comment">// 防止被多次回收</span><br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;recycled already&quot;</span>);<br>    &#125;<br>    item.recycleId = item.lastRecycledId = OWN_THREAD_ID;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.size;<br>    <span class="hljs-comment">// 1. 超出最大容量 2. 控制回收速率</span><br>    <span class="hljs-keyword">if</span> (size &gt;= maxCapacity || dropHandle(item)) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (size == elements.length) &#123;<br>        elements = Arrays.copyOf(elements, min(size &lt;&lt; <span class="hljs-number">1</span>, maxCapacity));<br>    &#125;<br>    elements[size] = item;<br>    <span class="hljs-built_in">this</span>.size = size + <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="异线程回收"><a href="#异线程回收" class="headerlink" title="异线程回收"></a>异线程回收</h3><p>异线程回收对象时，异线程会在自己的本地看是否有归还给原线程的 WeakOrderQueue，如果没有则新建，然后把要归还的对象添加到这个 WeakOrderQueue 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pushLater</span><span class="hljs-params">(DefaultHandle&lt;?&gt; item, Thread thread)</span> &#123;<br>    Map&lt;Stack&lt;?&gt;, WeakOrderQueue&gt; delayedRecycled = DELAYED_RECYCLED.get(); <span class="hljs-comment">// 当前线程帮助其他线程回收对象的缓存</span><br>    <span class="hljs-type">WeakOrderQueue</span> <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> delayedRecycled.get(<span class="hljs-built_in">this</span>); <span class="hljs-comment">// 取出对象绑定的 Stack 对应的 WeakOrderQueue</span><br>    <span class="hljs-keyword">if</span> (queue == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-comment">// 最多帮助 2*CPU 核数的线程回收线程</span><br>        <span class="hljs-keyword">if</span> (delayedRecycled.size() &gt;= maxDelayedQueues) &#123;<br>            delayedRecycled.put(<span class="hljs-built_in">this</span>, WeakOrderQueue.DUMMY); <span class="hljs-comment">// WeakOrderQueue.DUMMY 表示当前线程无法再帮助该 Stack 回收对象</span><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-comment">// 新建 WeakOrderQueue</span><br>        <span class="hljs-keyword">if</span> ((queue = WeakOrderQueue.allocate(<span class="hljs-built_in">this</span>, thread)) == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-comment">// drop object</span><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        delayedRecycled.put(<span class="hljs-built_in">this</span>, queue);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (queue == WeakOrderQueue.DUMMY) &#123;<br>        <span class="hljs-comment">// drop object</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    queue.add(item); <span class="hljs-comment">// 添加对象到 WeakOrderQueue 的 Link 链表中</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>添加到 quene 的源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">void</span> <span class="hljs-title function_">add</span><span class="hljs-params">(DefaultHandle&lt;?&gt; handle)</span> &#123;<br>    handle.lastRecycledId = id;<br>    <span class="hljs-type">Link</span> <span class="hljs-variable">tail</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.tail;<br>    <span class="hljs-type">int</span> writeIndex;<br>    <span class="hljs-comment">// 如果链表尾部的 Link 已经写满，那么再新建一个 Link 追加到链表尾部</span><br>    <span class="hljs-keyword">if</span> ((writeIndex = tail.get()) == LINK_CAPACITY) &#123;<br>        <span class="hljs-comment">// 检查是否超过对应 Stack 可以存放的其他线程帮助回收的最大对象数</span><br>        <span class="hljs-keyword">if</span> (!head.reserveSpace(LINK_CAPACITY)) &#123;<br>            <span class="hljs-comment">// Drop it.</span><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-built_in">this</span>.tail = tail = tail.next = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Link</span>();<br>        writeIndex = tail.get();<br>    &#125;<br>    tail.elements[writeIndex] = handle; <span class="hljs-comment">// 添加对象到 Link 尾部</span><br>    handle.stack = <span class="hljs-literal">null</span>; <span class="hljs-comment">// handle 的 stack 属性赋值为 null</span><br>    tail.lazySet(writeIndex + <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在向 WeakOrderQueue 写入对象之前，会先判断 Link 链表的 tail 节点是否还有空间存放对象。如果还有空间，直接向 tail Link 尾部写入数据，否则直接丢弃对象。如果 tail Link 已经没有空间，会新建一个 Link 之后再存放对象，新建 Link 之前会检查异线程帮助回收的对象总数超过了 Stack 设置的阈值，如果超过了阈值，那么对象也会被丢弃掉。</p>
+<p>所以异线程B在归还对象给线程A时，经过以下的步骤：</p>
+<ol>
+<li>获取自己的归还对象的容器 Map&lt;Stack&lt;?&gt;, WeakOrderQueue&gt;；</li>
+<li>通过要归还对象关联的 Stack&lt;?&gt; （对象是线程A创建的那么就是线程A的 Stack）获取对应的 WeakOrderQueue，如果不存在则新建（注意新建时会关联到线程A的 WeakOrderQueue 链表上）；</li>
+<li>将要归还的对象添加到 WeakOrderQueue 中。</li>
+</ol>
+<p>注意：是从线程B获取要归还给线程A的 WeakOrderQueue，而不是从线程A获取线程B要归还的 WeakOrderQueue。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Netty 的轻量级对象池 Recycler 在 Netty 里面使用是非常频繁的，比较常用的像 PooledHeapByteBuf 和 PooledDirectByteBuf，分别对应的堆内存和堆外内存的池化实现。</p>
+<p>我们在使用 PooledDirectByteBuf 的时候，并不是每次都去创建新的对象实例，而是从对象池中获取预先分配好的对象实例，不再使用 PooledDirectByteBuf 时，被回收归还到对象池中。</p>
+<p>对象池和连接池有些相似之处，例如都复用对象减少创建销毁对象时的开销。不过连接池一般都是 Thread 的容器，向其中提交任务，选择一个 Thread 执行任务；而对象池是获取对象，由取对象的这个线程进行后续操作。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Netty如何实现轻量级对象池</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/06/Netty如何实现轻量级对象池/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" title="Netty的ByteBuf好用在哪">
+                        <span class="hidden-mobile">Netty的ByteBuf好用在哪</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
