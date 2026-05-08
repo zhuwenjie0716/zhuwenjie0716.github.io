@@ -4,6 +4,35 @@
   
   
   <entry>
+    <title>Redis长什么样</title>
+    <link href="/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/"/>
+    <url>/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/</url>
+    
+    <content type="html"><![CDATA[<h1 id="Redis长什么样"><a href="#Redis长什么样" class="headerlink" title="Redis长什么样"></a>Redis长什么样</h1><p>我们都知道 Redis 是一个 &lt;key,value&gt; 的键值数据库，也就是一个 Map。我们平时是怎么实现这样一个 Map 的呢？</p><p>用数组，当一个 key 来的时候，首先进行 hash 运算，接着对数据的 length 取余，把这个键值对放在对应位置，这样能以 O(1) 的时间复杂度进行某个 key 的定位。</p><p>Redis 对外暴露了五种常见的数据结构，string、list、hash、set、sorted set；从内部实现的角度，则是 dict、sds、ziplist、quicklist、skiplist，Redis 通过这几种内部实现，组成了对外暴露的数据结构，充分的考虑了内存占用和操作速度。</p><p>本篇暂且介绍 Redis 的整体样貌，与数据结构相关的后续有机会再补。</p><h2 id="设计与分析"><a href="#设计与分析" class="headerlink" title="设计与分析"></a>设计与分析</h2><p>我们来看一下 Redis 的设计：</p><p><code>redisDb</code>就是我们说的数据库，redis 有16个这样的数据库，其中的 <code>dict *dict</code> 是我们数据存放的字段</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span><br>    dict *dict;                 <span class="hljs-comment">/* The keyspace for this DB */</span><br>    dict *expires;              <span class="hljs-comment">/* Timeout of keys with a timeout set */</span><br>    dict *blocking_keys;        <span class="hljs-comment">/* Keys with clients waiting for data (BLPOP)*/</span><br>    dict *ready_keys;           <span class="hljs-comment">/* Blocked keys that received a PUSH */</span><br>    dict *watched_keys;         <span class="hljs-comment">/* WATCHED keys for MULTI/EXEC CAS */</span><br>    <span class="hljs-type">int</span> id;                     <span class="hljs-comment">/* Database ID */</span><br>    <span class="hljs-type">long</span> <span class="hljs-type">long</span> avg_ttl;          <span class="hljs-comment">/* Average TTL, just for stats */</span><br>    <span class="hljs-built_in">list</span> *defrag_later;         <span class="hljs-comment">/* List of key names to attempt to defrag one by one, gradually. */</span><br>&#125; redisDb;<br></code></pre></td></tr></table></figure><ul><li>前几个字段的类型都是 dict，分别是正常的键值对，设置了过期时间的键值对，客户端正在阻塞等待的键值对，已经有数据、可以唤醒阻塞客户端的键值对和被 redis 事务监控的键值对；</li><li>id 字段取值为 0~15，也就是 redis 的数据库编号；</li><li>记录这个数据库中所有带过期时间键值对的平均剩余存活时间；</li><li>等待主动碎片整理的键列表，当开启主动碎片整理时，把需要整理的 key 放进这个链，逐个整理避免卡顿。</li></ul><p>再看一下 <code>dict</code> 结构体的设计：</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dict</span> &#123;</span><br>    dictType *type;<br>    <span class="hljs-type">void</span> *privdata;<br>    dictht ht[<span class="hljs-number">2</span>];<br>    <span class="hljs-type">long</span> rehashidx; <span class="hljs-comment">/* rehashing not in progress if rehashidx == -1 */</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> iterators; <span class="hljs-comment">/* number of iterators currently running */</span><br>&#125; dict;<br></code></pre></td></tr></table></figure><ul><li><code>dictType *type</code>里有一堆函数指针，当有 key 来时，需要通过函数指针里的 hash 函数求 hash 值，对数组长度取余后还要调用比较函数判断对应位置的 key 与当前 key 是否相等（原因是会有 hash 冲突，redis 首先使用链表法解决冲突，头插法）；</li><li><code>void *privdata</code>是私有数据指针，由调用者在创建dict的时候传进来；</li><li><code> dictht ht[2]</code>，一般情况下 ht[1] 都是指向 NULL，只有在 rehash 的时候才有值。Redis 使用两个数组，当需要扩容时，读请求首先从 ht[0] 读，没有的话再去 ht[1]，写请求直接写 ht[1]，更新请求会略微复杂些。</li><li><code>rehashidx</code>，rehash 的索引，如果是-1，代表此时没有进行 rehash，否则代表需要进行迁移的数组下标。</li></ul><p>再看一下<code>dictht</code>结构体的设计，ht，即 hashtable，学 java 的应该很熟悉</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictht</span> &#123;</span><br>    dictEntry **table;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> sizemask;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> used;<br>&#125; dictht;<br></code></pre></td></tr></table></figure><ul><li><code>dictEntry **table</code>：一个dictEntry指针数组。key的哈希值最终映射到这个数组的某个位置上（对应一个bucket）。如果多个key映射到同一个位置，就发生了冲突，那么就拉出一个 dictEntry 链表。</li><li><code>size</code>：标识dictEntry指针数组的长度。它总是2的指数。</li><li><code>sizemask</code>：key 的 hash 值对 size 取模的结果其实等于 hash 值 &amp; (size - 1)，而且%运算会一直除，而&amp;运算一次到位。</li><li><code>used</code>：记录dict中现有的数据个数。它与size的比值就是装载因子（load factor）。这个比值越大，哈希值冲突概率越高。</li></ul><p>最终的数据是在 dictEntry 中，一起来看下：</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictEntry</span> &#123;</span><br>    <span class="hljs-type">void</span> *key;<br>    <span class="hljs-class"><span class="hljs-keyword">union</span> &#123;</span><br>        <span class="hljs-type">void</span> *val;<br>        <span class="hljs-type">uint64_t</span> u64;<br>        <span class="hljs-type">int64_t</span> s64;<br>        <span class="hljs-type">double</span> d;<br>    &#125; v;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictEntry</span> *<span class="hljs-title">next</span>;</span><br>&#125; dictEntry;<br></code></pre></td></tr></table></figure><p>一个 key 的指针，一个联合类型，由于 hash 函数可能会冲突，所以还有 next 指针用来解决冲突（链表头插法）。</p><ul><li>key 总是指向一个 sds 结构，也就是键值对的键；</li><li>value 是一个联合类型，当值可以直接存储时（int、long、double）就直接存值，否则使用指针指向一个 robj 结构。</li></ul><h2 id="图示"><a href="#图示" class="headerlink" title="图示"></a>图示</h2><p>Redis 整体结构的分析还是比较简单的，经过上述分析，我们可以得到这样的一个 Redis 结构图：</p><p><img src="/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/image-20250106162507568.png" alt="image-20250106162507568">  </p><p>关于 Redis 的 dict、sds、ziplist、quicklist、skiplist 核心结构，以及涉及到的渐进式哈希在后续的数据结构篇介绍~</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>源码分析</category>
+      
+      <category>Redis</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>源码分析</tag>
+      
+      <tag>Redis</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>系统性能优化之TCP篇</title>
     <link href="/2026/05/07/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BTCP%E7%AF%87/"/>
     <url>/2026/05/07/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BTCP%E7%AF%87/</url>
@@ -51,6 +80,8 @@
     
     <tags>
       
+      <tag>源码分析</tag>
+      
       <tag>Netty</tag>
       
     </tags>
@@ -77,6 +108,8 @@
     
     
     <tags>
+      
+      <tag>源码分析</tag>
       
       <tag>Netty</tag>
       
@@ -124,6 +157,8 @@
     
     <tags>
       
+      <tag>源码分析</tag>
+      
       <tag>Netty</tag>
       
     </tags>
@@ -162,9 +197,9 @@
     
     <tags>
       
-      <tag>计算机网络</tag>
-      
       <tag>Netty</tag>
+      
+      <tag>计算机网络</tag>
       
     </tags>
     
@@ -183,9 +218,9 @@
     
     <tags>
       
-      <tag>Netty</tag>
-      
       <tag>IO模型</tag>
+      
+      <tag>Netty</tag>
       
     </tags>
     
@@ -198,7 +233,7 @@
     <link href="/2026/04/30/%E5%B7%A5%E4%BD%9C%E4%B8%A4%E5%B9%B4%E5%90%8E-%E6%88%91%E6%9C%89%E4%BB%80%E4%B9%88%E6%84%9F%E5%8F%97/"/>
     <url>/2026/04/30/%E5%B7%A5%E4%BD%9C%E4%B8%A4%E5%B9%B4%E5%90%8E-%E6%88%91%E6%9C%89%E4%BB%80%E4%B9%88%E6%84%9F%E5%8F%97/</url>
     
-    <content type="html"><![CDATA[<h1 id="工作两年后-我有什么感受"><a href="#工作两年后-我有什么感受" class="headerlink" title="工作两年后,我有什么感受"></a>工作两年后,我有什么感受</h1><p>从24年7月正式工作到现在（26年4月底），其实距工作两年还差一些，不过我毕业前还有十个月的实习生涯，姑且算是工作两年了吧。那么正式工作两年后，我有什么感受？</p><h2 id="过去"><a href="#过去" class="headerlink" title="过去"></a>过去</h2><p>大学期间，我主要是按照 <a href="https://space.bilibili.com/95256449?spm_id_from=333.337.search-card.all.click">遇见狂神说</a> 的 Java 路线学习，一路跟了数十个视频，以为 Java 开发就是注入 Mapper，写写 sql，说出来不怕人笑话，我当时真的连 Bean 是什么，以及默认扫描 Bean 只扫描启动类下的文件都不知道。</p><p>好在看了那么多视频，“照葫芦画瓢”的能力倒是学了一些，还是很轻松的完成了数据库、Java Web、 Django 这样的课程设计，也导致一段时间被大家认为技术好，代码强。有点印象的是最开始写网络编程，对着视频写完还是一脸蒙圈，怎么这样写个 Socket 就通信上了，什么叫阻塞，为什么这样的一行代码就能卡住进程呢？对于中间件的了解也很空洞，知道在项目中怎么用，对背后的实现一无所知，面试也是临时找了点八股文。</p><p>机缘巧合之下，大四进入超聚变（至少我了解到的是算力领域全国第二）实习，遇到了一批优秀的人（导师制，我导师是上海大学的本硕，PL 是西交的硕），加上超聚变本身是华为子公司拆分出来，有比较完善的规章制度和开发流程。优点提完了，缺点我就不提了（我PL原话：从这里出去，90%的公司你都能很快适应），总之最后虽然给我发了 offer 我还是交违约金离开了，这里提高了我对云原生知识的掌握，代码质量的要求，但项目进度比较紧张，没有学很多新的知识。</p><p>顺便一提，因为实习和饮食、作息习惯的原因，实习期间还动了个小手术，也是我决定要离开的原因之一。</p><h2 id="成长"><a href="#成长" class="headerlink" title="成长"></a>成长</h2><p>校招还是拿了几个 Offer 的，最后选择来了这里。刚来的时候由于实习一直在用 go 语言，Java 有点不会写了，给我分第一个小需求的时候我还写成 Feign 调用的了，领导就给我时间学习，抽空重新学了 Spring 系列（<a href="https://cloud.tencent.com/tvp/member/251">丁雪丰</a> 老师的 Spring 全家桶），看丁雪丰老师课的时候，我觉得他好厉害，对 Spring 的各项知识点侃侃而谈，还补充了很多小的知识诸如 EventListener，Docker 轻松运行各种服务（Mysql、Redis、Kafka、Consul 等）。当时只觉得老师技术很厉害，后续去搜才知道还是美团研究员，<a href="https://cloud.tencent.com/tvp">腾讯云TVP</a>。</p><p>慢慢的我已经可以做一些简单的业务了，公司发公告说软考可以开始报名了。我问了下同事，了解了公司的职称补贴，觉得报名费也不贵就报名了，详情可以看：<a href="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/">谈谈我的软考经历</a>，总之就是连着考过了中、高级。当时高级本来觉得过不了，在办公室查成绩前我给办公室其他人说：这次要是能过，在座的各位一人一份 KFC，最后虽然花了钱还是很开心的。</p><p>软考的过程中免不了遇到不会的知识，于是我就各种补充知识点，同时通过考试的良好反馈也让我更有兴趣去学习了。</p><p>因为好奇一个 Web 请求从浏览器发出到 SpringBoot 中是如何处理的，于是我去学习了 Tomcat。后来证明这不是一个很好的选择：一上来直接给我整懵了。第一个遇到的问题就是 IO 模型，几种模型给我绕进去了，又扯上 Reactor，费了一段时间才懂。后来看代码结构只觉得写的很好，经常是一个抽象类，然后多种实现，充分的利用多态走不同的逻辑，后来才知道原来这是模板设计模式，就开始补 <a href="https://space.bilibili.com/7968519/lists/4686906?type=season">设计模式</a>。</p><p>补了一些设计模式后，我意识到能写功能是一回事，能优雅的写好功能是另一回事。所谓的优雅一方面是指代码风格（诸如单行尽量不超过 120 那个IDE分界线，函数功能不要超过 100 行，参数不要超过 5 个），另一方面则是业务规范（诸如异常如何处理（无论如何不能生吞异常，有遗留代码 catch 完直接丢出自定义异常了，日志都没打印），线程池该如何选择，null 和空的处理，数字的运算使用 BigDecimal）。这些主要来自对 Java 业务开发常见错误的学习。</p><p>当然这段时间也学习了一些其他的知识模块：Stream、Optional 的使用，Oauth2 的四种授权模式，guava 高性能工具包等。</p><p>看到项目中也在经常使用 Redis，我就想着去深入学习一下，找到了 <a href="https://zhangtielei.com/">张铁蕾</a> 老师的博客，张老师当时主要有 Redis 源码解读系列和分布式系列，学了 String、Hash、Set 等结构的实现，才觉得 Redis 这么流行不是没有原因的，高效的数据结构一点也不夸张，对于 cache line 的考虑，渐进式哈希等都很精妙。除此之外，也通过一些资源学习了 cluster 集群，缓存区的异步复制。学完这些，其实软考里关于 Redis 的部分几乎没有问题了。</p><p>看了 Redis 这样的设计，我对性能优化感兴趣了起来（想必做开发的都知道被评价代码写的性能又好又易读的成就感吧）。首先去学习了通用的一些性能优化，包括但不限于 计算机硬件（cpu、内存、磁盘）、网络通信（RPC、序列化、Tcp）、数据库（索引、锁、事务）和分布式（一致性哈希、NWR、CAP）。在学习性能优化的期间，也免不了要去补四大件（数据结构、计算机网络、操作系统和计算机组成原理）。</p><p>但是在看了性能优化后，摆在我面前的问题是，你都找不到性能问题在哪怎么优化？我又去看了些网络相关的知识和监控工具。网络相关的主要是指 tcpdump 语法，通信协议演进，监控工具诸如 arthas，火焰图。</p><p>业务开发中有次遇到性能瓶颈是通过 Nginx 解决的，我就又去学习了 Nginx。大概知道了处理请求的 11 个阶段，常见的参数，编译和升级流程，负载均衡配置等。</p><p>做 Java 开发的自然免不了要去啃 JVM 这个山，也拜读了周志明老师的深入剖析Java虚拟机，这本书确实很经典，但类的字节码格式那部分还有编译优化的部分我没有很理解。字节码格式我不认为现在的我需要掌握，编译优化则是诸如标量替换，方法内联，锁优化锁消除更像是告知读者 JVM 做了什么优化，让读者在开发时可以主动关注，而非让读者如何优化 JVM。</p><p>近期正在学习高性能网络编程框架 Netty，一方面业务开始涉及一些 IOT 领域，可能需要报文解析，另一方面对 Netty 的大名也早有耳闻，它在内存使用，锁，网络编程部分代码也非常出色，借这个机会深入学习一下。</p><p>除上述内容外：我对大名鼎鼎的 “削峰填谷” 一词自然也有所耳闻，也去学习了下 Kafka，但业务中用的主要是 RabbitMQ，所以没有太多的实践机会，只是自己测试了下基本功能，了解了核心概念。ES 也是，项目中确实在用，只是了解了下倒排索引，写过几个接口，未进入深入研究。</p><p>学习哪有不走弯路的，有硬去啃发现确实啃不动的（例如操作系统代码），有啃完不实战依旧云里雾里的（例如Kafka），但总体来说收获还是蛮多的。</p><h2 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h2><p>我这个人是有点懒的，又对很多东西都感兴趣，导致列了很多计划又完不成（electron、神经网络等）。</p><p>有些东西只求看完，至于有没有真正理解透彻，那就是另一回事了。</p><p>还有的时候属实觉得自己天赋一般，别人很轻松讲出来的我要仔细思考后才能领会，有的还没办法领会。</p><h2 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h2><p>首先感谢下我的领导，看我在需求少的时候吭哧吭哧看笔记，刷网站也不责怪我，还允许我在项目中实践自己的一些方案。</p><p>其次感谢下互联网上的诸位老师吧，学习过程中的很多内容都来自于老师的奉献，印象比较深刻的是：丁雪丰老师、陶辉老师、张铁蕾老师和朱晔老师，他们严谨的态度和专业的知识给了我很多帮助。当然也还有很多老师未曾提及，感谢。</p><p>最后感谢下我自己。</p>]]></content>
+    <content type="html"><![CDATA[<h1 id="工作两年后-我有什么感受"><a href="#工作两年后-我有什么感受" class="headerlink" title="工作两年后,我有什么感受"></a>工作两年后,我有什么感受</h1><p>从24年7月正式工作到现在（26年4月底），其实距工作两年还差一些，不过我毕业前还有十个月的实习生涯，姑且算是工作两年了吧。那么正式工作两年后，我有什么感受？</p><h2 id="过去"><a href="#过去" class="headerlink" title="过去"></a>过去</h2><p>大学期间，我主要是按照 <a href="https://space.bilibili.com/95256449?spm_id_from=333.337.search-card.all.click">遇见狂神说</a> 的 Java 路线学习，一路跟了数十个视频，以为 Java 开发就是注入 Mapper，写写 sql，说出来不怕人笑话，我当时真的连 Bean 是什么，以及默认扫描 Bean 只扫描启动类下的文件都不知道。</p><p>好在看了那么多视频，“照葫芦画瓢”的能力倒是学了一些，还是很轻松的完成了数据库、Java Web、 Django 这样的课程设计，也导致一段时间被大家认为技术好，代码强。有点印象的是最开始写网络编程，对着视频写完还是一脸蒙圈，怎么这样写个 Socket 就通信上了，什么叫阻塞，为什么这样的一行代码就能卡住进程呢？对于中间件的了解也很空洞，知道在项目中怎么用，对背后的实现一无所知，面试也是临时找了点八股文。</p><p>机缘巧合之下，大四进入超聚变（至少我了解到的是算力领域全国第二）实习，遇到了一批优秀的人（导师制，我导师是上海大学的本硕，PL 是西交的硕），加上超聚变本身是华为子公司拆分出来，有比较完善的规章制度和开发流程。优点提完了，缺点我就不提了（我PL原话：从这里出去，90%的公司你都能很快适应），总之最后虽然给我发了 offer 我还是交违约金离开了，这里提高了我对云原生知识的掌握，代码质量的要求，但项目进度比较紧张，没有学很多新的知识。</p><p>顺便一提，因为实习和饮食、作息习惯的原因，实习期间还动了个小手术，也是我决定要离开的原因之一。</p><h2 id="成长"><a href="#成长" class="headerlink" title="成长"></a>成长</h2><p>校招还是拿了几个 Offer 的，最后选择来了这里。刚来的时候由于实习一直在用 go 语言，Java 有点不会写了，给我分第一个小需求的时候我还写成 Feign 调用的了，领导就给我时间学习，抽空重新学了 Spring 系列（<a href="https://cloud.tencent.com/tvp/member/251">丁雪丰</a> 老师的 Spring 全家桶），看丁雪丰老师课的时候，我觉得他好厉害，对 Spring 的各项知识点侃侃而谈，还补充了很多小的知识诸如 EventListener，Docker 轻松运行各种服务（Mysql、Redis、Kafka、Consul 等）。当时只觉得老师技术很厉害，后续去搜才知道还是美团研究员，<a href="https://cloud.tencent.com/tvp">腾讯云TVP</a>。</p><p>慢慢的我已经可以做一些简单的业务了，公司发公告说软考可以开始报名了。我问了下同事，了解了公司的职称补贴，觉得报名费也不贵就报名了，详情可以看：<a href="https://zhuwenjie0716.github.io/2026/04/17/%E8%B0%88%E8%B0%88%E6%88%91%E7%9A%84%E8%BD%AF%E8%80%83%E7%BB%8F%E5%8E%86/">谈谈我的软考经历</a>，总之就是连着考过了中、高级。当时高级本来觉得过不了，在办公室查成绩前我给办公室其他人说：这次要是能过，在座的各位一人一份 KFC，最后虽然花了钱还是很开心的。</p><p>软考的过程中免不了遇到不会的知识，于是我就各种补充知识点，同时通过考试的良好反馈也让我更有兴趣去学习了。</p><p>因为好奇一个 Web 请求从浏览器发出到 SpringBoot 中是如何处理的，于是我去学习了 Tomcat。后来证明这不是一个很好的选择：一上来直接给我整懵了。第一个遇到的问题就是 IO 模型，几种模型给我绕进去了，又扯上 Reactor，费了一段时间才懂。后来看代码结构只觉得写的很好，经常是一个抽象类，然后多种实现，充分的利用多态走不同的逻辑，后来才知道原来这是模板设计模式，就开始补 <a href="https://space.bilibili.com/7968519/lists/4686906?type=season">设计模式</a>。</p><p>补了一些设计模式后，我意识到能写功能是一回事，能优雅的写好功能是另一回事。所谓的优雅一方面是指代码风格（诸如单行尽量不超过 120 那个IDE分界线，函数功能不要超过 100 行，参数不要超过 5 个），另一方面则是业务规范（诸如异常如何处理（无论如何不能生吞异常，有遗留代码 catch 完直接丢出自定义异常了，日志都没打印），线程池该如何选择，null 和空的处理，数字的运算使用 BigDecimal）。这些主要来自对 Java 业务开发常见错误的学习。</p><p>当然这段时间也学习了一些其他的知识模块：Stream、Optional 的使用，Oauth2 的四种授权模式，guava 高性能工具包等。</p><p>看到项目中也在经常使用 Redis，我就想着去深入学习一下，找到了 <a href="https://zhangtielei.com/">张铁蕾</a> 老师的博客，张老师当时主要有 Redis 源码解读系列和分布式系列，学了 String、Hash、Set 等结构的实现，才觉得 Redis 这么流行不是没有原因的，高效的数据结构一点也不夸张，对于 cache line 的考虑，渐进式哈希等都很精妙。除此之外，也通过一些资源学习了 cluster 集群，缓存区的异步复制。学完这些，其实软考里关于 Redis 的部分几乎没有问题了。</p><p>看了 Redis 这样的设计，我对性能优化感兴趣了起来（想必做开发的都知道被评价代码写的性能又好又易读的成就感吧）。首先去学习了通用的一些性能优化，包括但不限于 计算机硬件（cpu、内存、磁盘）、网络通信（RPC、序列化、Tcp）、数据库（索引、锁、事务）和分布式（一致性哈希、NWR、CAP）。在学习性能优化的期间，也免不了要去补四大件（数据结构、计算机网络、操作系统和计算机组成原理）。</p><p>但是在看了性能优化后，摆在我面前的问题是，你都找不到性能问题在哪怎么优化？我又去看了些网络相关的知识和监控工具。网络相关的主要是指 tcpdump 语法，通信协议演进，监控工具诸如 arthas，火焰图。</p><p>业务开发中有次遇到性能瓶颈是通过 Nginx 解决的，我就又去学习了 Nginx。大概知道了处理请求的 11 个阶段，常见的参数，编译和升级流程，负载均衡配置等。</p><p>做 Java 开发的自然免不了要去啃 JVM 这个山，也拜读了周志明老师的深入剖析Java虚拟机，这本书确实很经典，但类的字节码格式那部分还有编译优化的部分我没有很理解。字节码格式我不认为现在的我需要掌握，编译优化则是诸如标量替换，方法内联，锁优化锁消除更像是告知读者 JVM 做了什么优化，让读者在开发时可以主动关注，而非让读者如何优化 JVM。</p><p>近期正在学习高性能网络编程框架 Netty，一方面业务开始涉及一些 IOT 领域，可能需要报文解析，另一方面对 Netty 的大名也早有耳闻，它在内存使用，锁，网络编程部分代码也非常出色，借这个机会深入学习一下。</p><p>除上述内容外：我对大名鼎鼎的 “削峰填谷” 一词自然也有所耳闻，也去学习了下 Kafka，但业务中用的主要是 RabbitMQ，所以没有太多的实践机会，只是自己测试了下基本功能，了解了核心概念。ES 也是，项目中确实在用，只是了解了下倒排索引，写过几个接口，未进入深入研究。</p><p>学习哪有不走弯路的，有硬去啃发现确实啃不动的（例如操作系统代码），有啃完不实战依旧云里雾里的（例如Kafka），但总体来说收获还是蛮多的。</p><h2 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h2><p>我这个人是有点懒的，又对很多东西都感兴趣，导致列了很多计划又完不成（electron、神经网络等）。</p><p>有些东西只求看完，至于有没有真正理解透彻，那就是另一回事了。</p><p>还有的时候属实觉得自己天赋一般，别人很轻松讲出来的我要仔细思考后才能领会，有的还没办法领会。</p><p>疑问为什么网上刷到那么多人，校招的时候就能对各个中间件对答如流，在我看了 Redis 和 Netty 的一些源码后，真的觉得能熟练掌握一个中间件是很费时间的事。</p><h2 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h2><p>首先感谢下我的领导，看我在需求少的时候吭哧吭哧看笔记，刷网站也不责怪我，还允许我在项目中实践自己的一些方案。</p><p>其次感谢下互联网上的诸位老师吧，学习过程中的很多内容都来自于老师的奉献，印象比较深刻的是：丁雪丰老师、陶辉老师、张铁蕾老师和朱晔老师，他们严谨的态度和专业的知识给了我很多帮助。当然也还有很多老师未曾提及，感谢。</p><p>最后感谢下我自己。</p>]]></content>
     
     
     
@@ -348,9 +383,9 @@
     
     <tags>
       
-      <tag>Netty</tag>
-      
       <tag>源码分析</tag>
+      
+      <tag>Netty</tag>
       
       <tag>内存</tag>
       
@@ -556,9 +591,9 @@
       
       <tag>Kubernetes</tag>
       
-      <tag>Docker</tag>
-      
       <tag>Redis</tag>
+      
+      <tag>Docker</tag>
       
     </tags>
     

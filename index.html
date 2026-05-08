@@ -381,6 +381,76 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/" target="_self">
+          Redis长什么样
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/" target="_self">
+        <div>
+          Redis长什么样我们都知道 Redis 是一个 &lt;key,value&gt; 的键值数据库，也就是一个 Map。我们平时是怎么实现这样一个 Map 的呢？ 用数组，当一个 key 来的时候，首先进行 hash 运算，接着对数据的 length 取余，把这个键值对放在对应位置，这样能以 O(1) 的时间复杂度进行某个 key 的定位。 Redis 对外暴露了五种常见的数据结构，string、
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-08 16:56" pubdate>
+              2026-05-08
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/05/07/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BTCP%E7%AF%87/" target="_self">
           系统性能优化之TCP篇
         </a>
@@ -505,6 +575,8 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
               <a href="/tags/Netty/">#Netty</a>
             
           </div>
@@ -572,6 +644,8 @@
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
             
               <a href="/tags/Netty/">#Netty</a>
             
@@ -681,6 +755,8 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
               <a href="/tags/Netty/">#Netty</a>
             
           </div>
@@ -761,9 +837,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#计算机网络</a>
-            
               <a href="/tags/Netty/">#Netty</a>
+            
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#计算机网络</a>
             
           </div>
         
@@ -803,51 +879,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Netty/">#Netty</a>
-            
               <a href="/tags/IO%E6%A8%A1%E5%9E%8B/">#IO模型</a>
             
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/29/%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84RPC/" target="_self">
-          选择合适的RPC
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/29/%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84RPC/" target="_self">
-        <div>
-          选择合适的RPCRPC（Remote Procedure Call）即远程过程调用，随着微服务的兴起，每个服务都拥有自己的数据库，负责各自的模块，例如 keystone（认证服务）负责用户信息、权限认证的内容，workOrder（工单服务）负责工单的流程流转。在 workOrder 中，可能也需要查询一些用户的信息，但用户信息表并不在该服务的数据库中，因此就需要调用 keystone 服务来获取用
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-29 08:12" pubdate>
-              2026-04-29
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#计算机网络</a>
-            
-              <a href="/tags/RPC/">#RPC</a>
+              <a href="/tags/Netty/">#Netty</a>
             
           </div>
         
