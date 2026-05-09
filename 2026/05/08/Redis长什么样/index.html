@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/image-20250106162507568.png">
 <meta property="article:published_time" content="2026-05-08T08:56:59.000Z">
-<meta property="article:modified_time" content="2026-05-08T09:51:30.589Z">
+<meta property="article:modified_time" content="2026-05-09T00:18:52.251Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="Redis">
@@ -406,7 +406,7 @@
                 <h1 id="Redis长什么样"><a href="#Redis长什么样" class="headerlink" title="Redis长什么样"></a>Redis长什么样</h1><p>我们都知道 Redis 是一个 &lt;key,value&gt; 的键值数据库，也就是一个 Map。我们平时是怎么实现这样一个 Map 的呢？</p>
 <p>用数组，当一个 key 来的时候，首先进行 hash 运算，接着对数据的 length 取余，把这个键值对放在对应位置，这样能以 O(1) 的时间复杂度进行某个 key 的定位。</p>
 <p>Redis 对外暴露了五种常见的数据结构，string、list、hash、set、sorted set；从内部实现的角度，则是 dict、sds、ziplist、quicklist、skiplist，Redis 通过这几种内部实现，组成了对外暴露的数据结构，充分的考虑了内存占用和操作速度。</p>
-<p>本篇暂且介绍 Redis 的整体样貌，与数据结构相关的后续有机会再补。</p>
+<p>本篇暂且介绍 Redis 的整体样貌，与数据结构相关的后续再补。</p>
 <h2 id="设计与分析"><a href="#设计与分析" class="headerlink" title="设计与分析"></a>设计与分析</h2><p>我们来看一下 Redis 的设计：</p>
 <p><code>redisDb</code>就是我们说的数据库，redis 有16个这样的数据库，其中的 <code>dict *dict</code> 是我们数据存放的字段</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span><br>    dict *dict;                 <span class="hljs-comment">/* The keyspace for this DB */</span><br>    dict *expires;              <span class="hljs-comment">/* Timeout of keys with a timeout set */</span><br>    dict *blocking_keys;        <span class="hljs-comment">/* Keys with clients waiting for data (BLPOP)*/</span><br>    dict *ready_keys;           <span class="hljs-comment">/* Blocked keys that received a PUSH */</span><br>    dict *watched_keys;         <span class="hljs-comment">/* WATCHED keys for MULTI/EXEC CAS */</span><br>    <span class="hljs-type">int</span> id;                     <span class="hljs-comment">/* Database ID */</span><br>    <span class="hljs-type">long</span> <span class="hljs-type">long</span> avg_ttl;          <span class="hljs-comment">/* Average TTL, just for stats */</span><br>    <span class="hljs-built_in">list</span> *defrag_later;         <span class="hljs-comment">/* List of key names to attempt to defrag one by one, gradually. */</span><br>&#125; redisDb;<br></code></pre></td></tr></table></figure>
@@ -423,16 +423,16 @@
 <ul>
 <li><code>dictType *type</code>里有一堆函数指针，当有 key 来时，需要通过函数指针里的 hash 函数求 hash 值，对数组长度取余后还要调用比较函数判断对应位置的 key 与当前 key 是否相等（原因是会有 hash 冲突，redis 首先使用链表法解决冲突，头插法）；</li>
 <li><code>void *privdata</code>是私有数据指针，由调用者在创建dict的时候传进来；</li>
-<li><code> dictht ht[2]</code>，一般情况下 ht[1] 都是指向 NULL，只有在 rehash 的时候才有值。Redis 使用两个数组，当需要扩容时，读请求首先从 ht[0] 读，没有的话再去 ht[1]，写请求直接写 ht[1]，更新请求会略微复杂些。</li>
+<li><code> dictht ht[2]</code>，一般情况下 ht[1] 都是指向 NULL，只有在 rehash 的时候才有值。Redis 使用两个数组，当需要扩容时，读请求首先从 ht[0] 读，没有的话再去 ht[1]，写请求直接写 ht[1]，更新请求会略微复杂些；</li>
 <li><code>rehashidx</code>，rehash 的索引，如果是-1，代表此时没有进行 rehash，否则代表需要进行迁移的数组下标。</li>
 </ul>
 <p>再看一下<code>dictht</code>结构体的设计，ht，即 hashtable，学 java 的应该很熟悉</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictht</span> &#123;</span><br>    dictEntry **table;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> sizemask;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> used;<br>&#125; dictht;<br></code></pre></td></tr></table></figure>
 
 <ul>
-<li><code>dictEntry **table</code>：一个dictEntry指针数组。key的哈希值最终映射到这个数组的某个位置上（对应一个bucket）。如果多个key映射到同一个位置，就发生了冲突，那么就拉出一个 dictEntry 链表。</li>
-<li><code>size</code>：标识dictEntry指针数组的长度。它总是2的指数。</li>
-<li><code>sizemask</code>：key 的 hash 值对 size 取模的结果其实等于 hash 值 &amp; (size - 1)，而且%运算会一直除，而&amp;运算一次到位。</li>
+<li><code>dictEntry **table</code>：一个dictEntry指针数组。key的哈希值最终映射到这个数组的某个位置上（对应一个bucket）。如果多个key映射到同一个位置，就发生了冲突，那么就拉出一个 dictEntry 链表；</li>
+<li><code>size</code>：标识dictEntry指针数组的长度。它总是2的指数；</li>
+<li><code>sizemask</code>：key 的 hash 值对 size 取模的结果其实等于 hash 值 &amp; (size - 1)，而且%运算会一直除，而&amp;运算一次到位；</li>
 <li><code>used</code>：记录dict中现有的数据个数。它与size的比值就是装载因子（load factor）。这个比值越大，哈希值冲突概率越高。</li>
 </ul>
 <p>最终的数据是在 dictEntry 中，一起来看下：</p>
@@ -445,7 +445,7 @@
 </ul>
 <h2 id="图示"><a href="#图示" class="headerlink" title="图示"></a>图示</h2><p>Redis 整体结构的分析还是比较简单的，经过上述分析，我们可以得到这样的一个 Redis 结构图：</p>
 <p><img src="/2026/05/08/Redis%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7/image-20250106162507568.png" srcset="/img/loading.gif" lazyload alt="image-20250106162507568">  </p>
-<p>关于 Redis 的 dict、sds、ziplist、quicklist、skiplist 核心结构，以及涉及到的渐进式哈希在后续的数据结构篇介绍~</p>
+<p>关于 Redis 的 dict、sds、ziplist、quicklist、skiplist 核心结构，以及涉及到的渐进式哈希在后续介绍~</p>
 
                 
               </div>
@@ -544,6 +544,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/" title="Redis源码分析之dict篇">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Redis源码分析之dict篇</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
