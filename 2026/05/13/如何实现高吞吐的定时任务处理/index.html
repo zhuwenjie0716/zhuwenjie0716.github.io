@@ -1,0 +1,892 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="如何实现高吞吐的定时任务处理实现一个定时任务的调度不算太难，一个简单的思路如下：一个存放定时任务的队列，一个按照固定时间间隔扫描的线程，这个线程每隔一段时间扫描队列里的所有任务，如果需要执行就进行调度。 首先，这个任务一定要暴露一些属性，使得线程可以判断某个时刻是否需要执行： 123456789101112131415161718192021222324252627282930public cla">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何实现高吞吐的定时任务处理">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="如何实现高吞吐的定时任务处理实现一个定时任务的调度不算太难，一个简单的思路如下：一个存放定时任务的队列，一个按照固定时间间隔扫描的线程，这个线程每隔一段时间扫描队列里的所有任务，如果需要执行就进行调度。 首先，这个任务一定要暴露一些属性，使得线程可以判断某个时刻是否需要执行： 123456789101112131415161718192021222324252627282930public cla">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513140812939.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513141029686.png">
+<meta property="article:published_time" content="2026-05-13T02:10:29.000Z">
+<meta property="article:modified_time" content="2026-05-13T06:31:06.399Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="TimeWheel">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png">
+  
+  
+  
+  <title>如何实现高吞吐的定时任务处理 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="如何实现高吞吐的定时任务处理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-13 10:10" pubdate>
+          2026年5月13日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          69 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">如何实现高吞吐的定时任务处理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="如何实现高吞吐的定时任务处理"><a href="#如何实现高吞吐的定时任务处理" class="headerlink" title="如何实现高吞吐的定时任务处理"></a>如何实现高吞吐的定时任务处理</h1><p>实现一个定时任务的调度不算太难，一个简单的思路如下：一个存放定时任务的队列，一个按照固定时间间隔扫描的线程，这个线程每隔一段时间扫描队列里的所有任务，如果需要执行就进行调度。</p>
+<p>首先，这个任务一定要暴露一些属性，使得线程可以判断某个时刻是否需要执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CusTask</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Runnable runnable;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> period;<br><br>    <span class="hljs-meta">@Getter</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">long</span> deadline;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">CusTask</span><span class="hljs-params">(<span class="hljs-type">long</span> delayMs, <span class="hljs-type">int</span> period, Runnable runnable)</span> &#123;<br>        <span class="hljs-built_in">this</span>.deadline = System.currentTimeMillis() + delayMs;<br>        <span class="hljs-built_in">this</span>.period = period;<br>        <span class="hljs-built_in">this</span>.runnable = runnable;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">updateDeadline</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (period &gt; <span class="hljs-number">0</span>) &#123;<br>            deadline += period;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            deadline = Long.MAX_VALUE;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        runnable.run();<br>        updateDeadline();<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其次，这个线程里需要存储所有添加进来的任务，并每隔一段时间扫描任务是否需要执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CusThread</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Thread</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;CusTask&gt; taskList;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> durationMs;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">CusThread</span><span class="hljs-params">(<span class="hljs-type">long</span> durationMs)</span> &#123;<br>        <span class="hljs-built_in">this</span>.taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-built_in">this</span>.durationMs = durationMs;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>            <span class="hljs-type">long</span> <span class="hljs-variable">nextExecuteTime</span> <span class="hljs-operator">=</span> System.currentTimeMillis() + durationMs;<br>            <span class="hljs-keyword">for</span> (CusTask task : taskList) &#123;<br>                <span class="hljs-keyword">if</span> (task.getDeadline() &lt;= System.currentTimeMillis()) &#123;<br>                    task.run();<br>                &#125;<br>            &#125;<br>            <span class="hljs-keyword">if</span> (System.currentTimeMillis() &lt; nextExecuteTime) &#123;<br>                LockSupport.parkUntil(nextExecuteTime);<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>分析一下上述代码都有什么问题：</p>
+<ol>
+<li>任务队列 taskList 是一个简单的 ArrayList，多线程并发添加任务时可能出现线程安全问题；</li>
+<li>在取出 task 后，直接在当前的线程里执行了 task 的 run 方法，如果耗时很长，会延迟后续任务的执行甚至影响到下次循环；</li>
+<li>每个 durationMs 间隔周期，都需要遍历 taskList 中的所有任务，当任务很多时会耗时很长。</li>
+</ol>
+<p>为了解决这些问题可以将 ArrayList 修改为线程安全的队列，这个队列最好还能按照某个顺序排列（例如按照预计执行时间，这样取出的第一个元素如果都不能满足执行条件，就无需向后遍历了）。</p>
+<p>那么这个队列有什么选项呢？</p>
+<h2 id="ScheduledThreadPoolExecutor"><a href="#ScheduledThreadPoolExecutor" class="headerlink" title="ScheduledThreadPoolExecutor"></a>ScheduledThreadPoolExecutor</h2><p>JDK 的定时任务执行器 ScheduledThreadPoolExecutor 供了周期执行任务和延迟执行任务的特性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScheduledExecutorServiceTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">ScheduledExecutorService</span> <span class="hljs-variable">executor</span> <span class="hljs-operator">=</span> Executors.newScheduledThreadPool(<span class="hljs-number">5</span>);<br>        executor.scheduleAtFixedRate(() -&gt; System.out.println(<span class="hljs-string">&quot;Hello World&quot;</span>), <span class="hljs-number">1000</span>, <span class="hljs-number">2000</span>, TimeUnit.MILLISECONDS); <span class="hljs-comment">// 1s 延迟后开始执行任务，每 2s 重复执行一次</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>查看 ScheduledThreadPoolExecutor 的构造方法，其使用了 DelayedWorkQueue 作为任务队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">ScheduledThreadPoolExecutor</span><span class="hljs-params">(<span class="hljs-type">int</span> corePoolSize)</span> &#123;<br>    <span class="hljs-built_in">super</span>(corePoolSize, Integer.MAX_VALUE,<br>          DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS,<br>          <span class="hljs-keyword">new</span> <span class="hljs-title class_">DelayedWorkQueue</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>DelayedQueue 是 JDK 中一种可以延迟获取对象的阻塞队列，其内部是采用优先级队列 PriorityQueue 存储对象。DelayQueue 中的每个对象都必须实现 Delayed 接口，并重写 compareTo 和 getDelay 方法，在 <a href="https://zhuwenjie0716.github.io/2026/05/12/Netty%E7%9A%84EventLoopGroup%E6%98%AF%E4%BB%80%E4%B9%88/#%E6%89%8B%E5%86%99-EventLoopGroup">自定义EventLoopGroup</a> 中有过使用 。DelayQueue 提供了 put() 和 take() 的阻塞方法，可以向队列中添加对象和取出对象。对象被添加到 DelayQueue 后，会根据 compareTo() 方法进行优先级排序。getDelay() 方法用于计算消息延迟的剩余时间，只有 getDelay &lt;&#x3D;0 时，该对象才能从 DelayQueue 中取出。</p>
+<p>DelayedQueue 依赖 PriorityQueue（优先级队列实现），是线程安全的，PriorityQueue 是一个小顶堆的结构，任务会根据 compareTo() 方法进行排序，所以队列的第一个元素一定是最先需要执行的（但是 PriorityQueue 只保证第一个元素是最先执行的，不保证整体有序）。</p>
+<p>由于 DelayedQueue 每次插入任务时都需要重新排序，平均的时间复杂度 O(logN)，在面对很多任务时会有明显的性能瓶颈。</p>
+<p>那么一个支持大量延迟任务的数据结构该如何实现？</p>
+<h2 id="时间轮"><a href="#时间轮" class="headerlink" title="时间轮"></a>时间轮</h2><p><strong>如果想要在大量数据里迅速找到某个元素，哈希表是唯一的选择。</strong></p>
+<p>想象一下时钟的秒针，把 1 分钟分为 60 秒，时间轮也是类似的结构，举个例子：一个对象里有一个长度为 60 的数组，每个数组代表 1s，当我们拿到了一个定时任务，知道了它下次执行的时间 deadline（毫秒），那么 (deadline &#x2F; 1000) % 60 就是这个任务需要放置的数组位置，数组使用链表法解决哈希冲突。</p>
+<p>注意：上述只是为了举例，在计算机系统里，1s 可以做很多事情了，所以一个元素代表的时间一般要很小，而且数组长度通常设置为 2 的幂，方便位运算取模。</p>
+<p><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/epdf/10.1145/37499.37504">Hashed and Hierarchical Timing Wheels</a> 这篇文章比较了实现定时器的各种数据结构，并提出了层次化的 timing wheel 和 hash timing wheel 等结构。</p>
+<p>时间轮可以理解为一种环形结构，像钟表一样被分为多个 slot 槽位。每个 slot 代表一个时间段，每个 slot 中可以存放多个任务，使用的是链表结构保存该时间段到期的所有任务。时间轮通过一个时针随着时间一个个 slot 转动，并执行 slot 中的所有到期任务。</p>
+<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png" srcset="/img/loading.gif" lazyload alt="image-20260513131808772"></p>
+<p>以上图为例，这个时间轮中有一个长度为 8 的数组，假设每个代表 1s，现在指针指向 2 的位置，如果需要添加一个 12s 后执行的任务，那么就需要放置到 ((2 + 12) &#x2F; 1 % 8) 也就是 slot6 的位置。</p>
+<p>当指针走到 slot6 时，怎么判断每个任务是现在就执行还是在后续的轮次中执行呢？第一种方式是遍历所有的任务，取任务的 deadline &lt;&#x3D; 对应时间（时间轮启动时间 + 转动次数 * 每次转动代表的周期）的任务，第二种方式在添加任务到 slot 时就计算会在第几轮执行，像现在添加一个 12s 后执行的任务对应的轮次就是 (2 + 12) &#x2F; 8，也就是下一轮次执行，这样每一个 slot 只取轮次为 0 的任务执行即可，其他任务的轮次减去1。</p>
+<p>时间轮有点类似 HashMap，如果多个任务如果对应同一个 slot，处理冲突的方法采用的是拉链法。在任务数量比较多的场景下，适当增加时间轮的 slot 数量，可以减少时针转动时遍历的任务个数。</p>
+<p>时间轮通过<strong>牺牲任务精度的方式换来大量定时任务插入时 O(1) 的时间复杂度以及大量任务的尽可能及时执行</strong>。这句话该怎么理解呢？</p>
+<ul>
+<li>插入时 O(1) 的时间复杂度：指的是通过取余的方式可以直接计算出新任务需要放置的位置；</li>
+<li>大量任务的尽可能及时执行：指的是在由于任务被分配在不同的 slot，所以每次只需要遍历该 slot 的任务，对比需要遍历所有任务判断是否需要执行的数据结构来说，减少了由于遍历任务容器耗时导致在容器靠后位置的任务进一步推迟执行的可能（遍历的任务数少了，为之前的 1 &#x2F; slot）；</li>
+<li>牺牲任务精度：这就是时间轮缺点了<ul>
+<li>假如两个任务分别在 1.2 和 1.3 秒后执行，二者落到了同一个 slot，甚至由于插入顺序的不同，1.3 秒的任务早于 1.2 秒的任务先被执行；</li>
+<li>假如插入任务是头插法，此时时间轮线程已经遍历到了链表中间的位置，所以新插入的任务会延迟到下一轮执行，如果是图示中的结构，会延迟到 8 秒后执行，可以通过控制一个元素代表的时间来缩小这个周期。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Netty-的时间轮实现"><a href="#Netty-的时间轮实现" class="headerlink" title="Netty 的时间轮实现"></a>Netty 的时间轮实现</h2><p>HashedWheelTimer 是 Netty 中时间轮算法的实现类，有几个核心成员：</p>
+<ul>
+<li><strong>HashedWheelTimeout</strong>，任务的封装类，包含任务的到期时间 deadline、需要经历的圈数 remainingRounds 等属性。</li>
+<li><strong>HashedWheelBucket</strong>，相当于时间轮的每个 slot，内部采用双向链表保存了当前需要执行的 HashedWheelTimeout 列表。</li>
+<li><strong>Worker</strong>，HashedWheelTimer 的核心工作引擎，负责处理定时任务。</li>
+</ul>
+<p>来看一个 demo：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>    <br>    <span class="hljs-type">Timer</span> <span class="hljs-variable">timer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashedWheelTimer</span>();<br>    <span class="hljs-type">Timeout</span> <span class="hljs-variable">timeout1</span> <span class="hljs-operator">=</span> timer.newTimeout(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TimerTask</span>() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">(Timeout timeout)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;timeout1: &quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>());<br>        &#125;<br>    &#125;, <span class="hljs-number">10</span>, TimeUnit.SECONDS);<br>    <span class="hljs-keyword">if</span> (!timeout1.isExpired()) &#123;<br>        timeout1.cancel();<br>    &#125;<br>    <br>    timer.newTimeout(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TimerTask</span>() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">(Timeout timeout)</span> <span class="hljs-keyword">throws</span> InterruptedException &#123;<br>            System.out.println(<span class="hljs-string">&quot;timeout2: &quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>());<br>            Thread.sleep(<span class="hljs-number">5000</span>);<br>        &#125;<br>    &#125;, <span class="hljs-number">1</span>, TimeUnit.SECONDS);<br>    <br>    timer.newTimeout(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TimerTask</span>() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">(Timeout timeout)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;timeout3: &quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>());<br>        &#125;<br>    &#125;, <span class="hljs-number">3</span>, TimeUnit.SECONDS);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">timeout2: Wed May 13 07:44:30 CST 2026<br>timeout3: Wed May 13 07:44:35 CST 2026<br></code></pre></td></tr></table></figure>
+
+<p>timeout2 和 timeout3 相差 5s，这其实是因为 timeout2 中 <code>Thread.sleep(5000)</code> 导致的，但是这反映出一个问题：HashedWheelTimer 默认是使用一个线程来执行时间轮的任务，当一个任务执行的时间过长，会影响后续任务的调度和执行，很可能产生任务堆积的情况。</p>
+<p>Netty 自然也考虑到了这样的情况，提供了相应的构造方法来使用线程池处理 slot 中的任务，这样时间轮线程只负责指针的转动，即使业务逻辑执行缓慢，也不会拖慢时间轮的整体进度。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment">    * Creates a new timer.</span><br><span class="hljs-comment">    *</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> threadFactory        a &#123;<span class="hljs-doctag">@link</span> ThreadFactory&#125; that creates a</span><br><span class="hljs-comment">    *                             background &#123;<span class="hljs-doctag">@link</span> Thread&#125; which is dedicated to</span><br><span class="hljs-comment">    *                             &#123;<span class="hljs-doctag">@link</span> TimerTask&#125; execution.</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> tickDuration         the duration between tick</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> unit                 the time unit of the &#123;<span class="hljs-doctag">@code</span> tickDuration&#125;</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> ticksPerWheel        the size of the wheel</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> leakDetection        &#123;<span class="hljs-doctag">@code</span> true&#125; if leak detection should be enabled always,</span><br><span class="hljs-comment">    *                             if false it will only be enabled if the worker thread is not</span><br><span class="hljs-comment">    *                             a daemon thread.</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> maxPendingTimeouts   The maximum number of pending timeouts after which call to</span><br><span class="hljs-comment">    *                             &#123;<span class="hljs-doctag">@code</span> newTimeout&#125; will result in</span><br><span class="hljs-comment">    *                             &#123;<span class="hljs-doctag">@link</span> java.util.concurrent.RejectedExecutionException&#125;</span><br><span class="hljs-comment">    *                             being thrown. No maximum pending timeouts limit is assumed if</span><br><span class="hljs-comment">    *                             this value is 0 or negative.</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@param</span> taskExecutor         The &#123;<span class="hljs-doctag">@link</span> Executor&#125; that is used to execute the submitted &#123;<span class="hljs-doctag">@link</span> TimerTask&#125;s.</span><br><span class="hljs-comment">    *                             The caller is responsible to shutdown the &#123;<span class="hljs-doctag">@link</span> Executor&#125; once it is not needed</span><br><span class="hljs-comment">    *                             anymore.</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@throws</span> NullPointerException     if either of &#123;<span class="hljs-doctag">@code</span> threadFactory&#125; and &#123;<span class="hljs-doctag">@code</span> unit&#125; is &#123;<span class="hljs-doctag">@code</span> null&#125;</span><br><span class="hljs-comment">    * <span class="hljs-doctag">@throws</span> IllegalArgumentException if either of &#123;<span class="hljs-doctag">@code</span> tickDuration&#125; and &#123;<span class="hljs-doctag">@code</span> ticksPerWheel&#125; is &amp;lt;= 0</span><br><span class="hljs-comment">    */</span><br>   <span class="hljs-keyword">public</span> <span class="hljs-title function_">HashedWheelTimer</span><span class="hljs-params">(</span><br><span class="hljs-params">           ThreadFactory threadFactory,</span><br><span class="hljs-params">           <span class="hljs-type">long</span> tickDuration, TimeUnit unit, <span class="hljs-type">int</span> ticksPerWheel, <span class="hljs-type">boolean</span> leakDetection,</span><br><span class="hljs-params">           <span class="hljs-type">long</span> maxPendingTimeouts, Executor taskExecutor)</span> &#123;<br><br>       &#125;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于时间轮来说，可能有多个线程同时向其中追加任务，同时时间轮线程也在扫描任务并移除放入到线程池中执行，这是一个典型的多生产者单消费者场景。Netty 并不会把任务直接添加到时间轮中，而是先放到一个 <a href="https://zhuwenjie0716.github.io/2026/05/06/Netty%E7%9A%84Mpsc%E9%98%9F%E5%88%97%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0/">Mpsc Queue</a> 队列里，借助 Mpsc Queue 保证多线程向时间轮添加任务的线程安全性。</p>
+<p>另外 Netty 中的时间轮是通过固定的时间间隔 tickDuration 进行推动的，如果长时间没有到期任务，那么会存在时间轮空推进的现象，从而造成一定的性能损耗。</p>
+<h2 id="Kafka-的时间轮实现"><a href="#Kafka-的时间轮实现" class="headerlink" title="Kafka 的时间轮实现"></a>Kafka 的时间轮实现</h2><p>Kafka 也有时间轮的应用，它的实现思路与 Netty 存在区别的，但数据结构部分类似，Kafka 的时间轮也是采用环形数组存储定时任务，数组中的每个 slot 代表一个 Bucket，每个 Bucket 保存了定时任务列表 TimerTaskList，TimerTaskList 同样采用双向链表的结构实现，链表的每个节点代表真正的定时任务 TimerTaskEntry。</p>
+<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513140812939.png" srcset="/img/loading.gif" lazyload alt="image-20260513140812939"></p>
+<p>为了解决空推进的问题，Kafka 借助 JDK 的 DelayQueue 来负责推进时间轮。DelayQueue 保存了时间轮中的每个 Bucket，并且根据 Bucket 的到期时间进行排序，最近的到期时间被放在 DelayQueue 的队头。Kafka 中会有一个线程来读取 DelayQueue 中的任务列表，如果时间没有到，那么 DelayQueue 会一直处于阻塞状态，从而解决空推进的问题。DelayQueue 只存放了 Bucket，Bucket 的数量并不多，相比空推进带来的影响是利大于弊的。</p>
+<p>Kafka 还使用了多级时间轮来处理时间跨度过大的问题：</p>
+<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513141029686.png" srcset="/img/loading.gif" lazyload alt="image-20260513141029686"></p>
+<p>从图中可以看出，第一层时间轮每个时间格为 1ms，整个时间轮的跨度为 20ms；第二层时间轮每个时间格为 20ms，整个时间轮跨度为 400ms；第三层时间轮每个时间格为 400ms，整个时间轮跨度为 8000ms。每一层时间轮都有自己的指针，每层时间轮走完一圈后，上层时间轮也会相应推进一格。</p>
+<p>假设现在有一个任务到期时间是 450ms 之后，应该放在第三层时间轮的第一格。随着时间的流逝，当指针指向该时间格时，发现任务到期时间还有 50ms，这里就涉及时间轮降级的操作，它会将任务重新提交到时间轮中。此时发现第一层时间轮整体跨度不够，需要放在第二层时间轮中第三格。当时间再经历 40ms 之后，该任务又会触发一次降级操作，放入到第一层时间轮，最后等到 10ms 后执行任务。</p>
+<p>层级时间轮对时间粒度进行了更好的控制，可以应对更加复杂的定时任务处理场景，适用的范围更广。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文从基础定时任务实现的缺陷切入，逐步剖析了高吞吐定时任务的演进方案，对比了 JDK、Netty、Kafka 三种经典实现，梳理了定时任务调度的优化思路与核心原理：</p>
+<ol>
+<li><strong>基础定时方案的瓶颈</strong>：简单队列 + 轮询扫描的实现，存在<strong>线程不安全、任务执行阻塞轮询、全量遍历耗时</strong>三大问题，无法支撑大量定时任务场景；JDK 的<code>ScheduledThreadPoolExecutor</code>基于优先级队列解决了排序和线程安全问题，但插入任务复杂度为O(logN)，高并发下性能瓶颈明显。</li>
+<li><strong>时间轮算法核心优势</strong>：借鉴时钟环形结构，通过<strong>哈希取模</strong>的思想定位任务槽位，任务插入复杂度为O(1)，仅需遍历当前槽位任务，大幅提升吞吐；以牺牲任务执行精度为代价，实现了大量定时任务的高效调度，是高吞吐场景的最优解。</li>
+<li><strong>主流框架时间轮实现差异</strong><ul>
+<li><strong>Netty HashedWheelTimer</strong>：单时间轮设计，采用 <strong>MPSC 队列</strong> 保证多线程安全，默认单线程执行任务易阻塞，支持自定义线程池解耦调度与执行，存在空推进损耗；</li>
+<li><strong>Kafka 时间轮</strong>：基于 <strong>DelayQueue</strong> 解决空推进问题，仅在任务到期时唤醒线程，同时采用<strong>多级时间轮</strong>适配超大时间跨度的定时任务，通过层级降级实现精准调度，适用性更广。</li>
+</ul>
+</li>
+</ol>
+<p>整体而言，时间轮是解决<strong>海量、高吞吐定时任务</strong>的核心方案，Netty 与 Kafka 的实现分别适配了轻量调度、大规模分布式调度的不同场景。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+      
+        <a href="/tags/TimeWheel/" class="print-no-link">#TimeWheel</a>
+      
+        <a href="/tags/Kafka/" class="print-no-link">#Kafka</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>如何实现高吞吐的定时任务处理</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/13/如何实现高吞吐的定时任务处理/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/12/Netty%E7%9A%84EventLoopGroup%E6%98%AF%E4%BB%80%E4%B9%88/" title="Netty的EventLoopGroup是什么">
+                        <span class="hidden-mobile">Netty的EventLoopGroup是什么</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
