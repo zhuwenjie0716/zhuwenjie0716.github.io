@@ -19,25 +19,23 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+    <meta name="description" content="Redis源码分析之robj篇在 Redis 中，一个 database 内的这个映射关系是用一个 dict 来维护的（ht[0]）。dict 的 key 固定用一种数据结构来表达就够了，即动态字符串 sds。而 value 则比较复杂，为了在同一个 dict 内能够存储不同类型的 value，需要一个通用的数据结构，这个通用的数据结构就是 robj（全称 RedisObject ）。 12345">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Netty的FastThreadLocal快在哪">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/index.html">
+<meta property="og:title" content="Redis源码分析之robj篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/14/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Brobj%E7%AF%87/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+<meta property="og:description" content="Redis源码分析之robj篇在 Redis 中，一个 database 内的这个映射关系是用一个 dict 来维护的（ht[0]）。dict 的 key 固定用一种数据结构来表达就够了，即动态字符串 sds。而 value 则比较复杂，为了在同一个 dict 内能够存储不同类型的 value，需要一个通用的数据结构，这个通用的数据结构就是 robj（全称 RedisObject ）。 12345">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png">
-<meta property="article:published_time" content="2026-05-04T14:28:05.000Z">
-<meta property="article:modified_time" content="2026-05-07T06:52:14.785Z">
+<meta property="article:published_time" content="2026-05-14T05:19:34.000Z">
+<meta property="article:modified_time" content="2026-05-14T05:44:05.447Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="Netty">
 <meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png">
   
   
   
-  <title>Netty的FastThreadLocal快在哪 - Hexo</title>
+  <title>Redis源码分析之robj篇 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +310,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Netty的FastThreadLocal快在哪"></span>
+            <span id="subtitle" data-typed-text="Redis源码分析之robj篇"></span>
           
         </div>
 
@@ -323,8 +321,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-04 22:28" pubdate>
-          2026年5月4日 晚上
+        <time datetime="2026-05-14 13:19" pubdate>
+          2026年5月14日 下午
         </time>
       </span>
     
@@ -335,7 +333,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          4.5k 字
         
       </span>
     
@@ -346,7 +344,7 @@
         
         
         
-          29 分钟
+          38 分钟
         
       </span>
     
@@ -398,61 +396,57 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Netty的FastThreadLocal快在哪</h1>
+            <h1 id="seo-header">Redis源码分析之robj篇</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Netty的FastThreadLocal快在哪"><a href="#Netty的FastThreadLocal快在哪" class="headerlink" title="Netty的FastThreadLocal快在哪"></a>Netty的FastThreadLocal快在哪</h1><p>Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。</p>
-<p>FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？</p>
-<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>ThreadLocal 可以用来实现线程内单例。</p>
-<p>对于线程内单例，简单的实现可以维护一个 ConcurrentHashMap，其中 Key 是 Thread 对象，Value 是 ThreadLocal 的类型。ThreadLocal 不是这么实现的，因为在高并发的场景并发修改 Map 如果需要加锁，势必会降低性能。</p>
-<p>JDK 为了避免加锁，采用了相反的设计思路。JDK 在每个 Thread 内维护一个 Map，Map 的元素称为 Entry，Map 的 Key 是 ThreadLocal，Value 是这个 ThreadLocal 的类型的值。</p>
-<p><img src="/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png" srcset="/img/loading.gif" lazyload alt="image-20260504224251962"></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;Integer&gt; threadLocal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>threadLocal.set(<span class="hljs-number">1</span>);<br></code></pre></td></tr></table></figure>
+                <h1 id="Redis源码分析之robj篇"><a href="#Redis源码分析之robj篇" class="headerlink" title="Redis源码分析之robj篇"></a>Redis源码分析之robj篇</h1><p>在 Redis 中，一个 database 内的这个映射关系是用一个 dict 来维护的（ht[0]）。dict 的 key 固定用一种数据结构来表达就够了，即动态字符串 sds。而 value 则比较复杂，为了在同一个 dict 内能够存储不同类型的 value，需要一个通用的数据结构，这个通用的数据结构就是 robj（全称 RedisObject ）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> LRU_BITS 24</span><br><br><span class="hljs-comment">// redis 键值对中的 value 结构体，头占 16 字节，ptr 指针指向真正的数据</span><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisObject</span> &#123;</span><br>    <span class="hljs-type">unsigned</span> type: <span class="hljs-number">4</span>;           <span class="hljs-comment">// 4 bit    数据类型 string、list、set</span><br>    <span class="hljs-type">unsigned</span> encoding: <span class="hljs-number">4</span>;       <span class="hljs-comment">// 4 bit    编码方式 embStr、raw、ziplist</span><br>    <span class="hljs-type">unsigned</span> lru: LRU_BITS;     <span class="hljs-comment">// 24 bit   LRU 时间</span><br>                            <span class="hljs-comment">/* LRU time (relative to global lru_clock) or</span><br><span class="hljs-comment">                            * LFU data (least significant 8 bits frequency</span><br><span class="hljs-comment">                            * and most significant 16 bits access time). */</span><br>    <span class="hljs-type">int</span> refcount;               <span class="hljs-comment">// 4 字节     引用次数，主要针对共享对象</span><br>    <span class="hljs-type">void</span> *ptr;                  <span class="hljs-comment">// 8 字节     指向具体实现的指针</span><br>&#125; robj;<br></code></pre></td></tr></table></figure>
 
-<p>即该线程内的 ThreadLocalMap，会有一个 Entry 元素 &lt;threadLocal, 1&gt;。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread对象<br>  └─ ThreadLocalMap (哈希表)<br>       ├─ Entry[<span class="hljs-number">16</span>] (哈希槽位，可能冲突)<br>       ├─ Entry[<span class="hljs-number">17</span>] (哈希槽位)<br>       └─ Entry[<span class="hljs-number">18</span>] (哈希槽位)<br></code></pre></td></tr></table></figure>
-
-<p>ThreadLocalMap 是一种使用线性探测法实现的哈希表，底层采用数组存储数据。当发生哈希冲突时，要向后寻找空闲的位置，当冲突频率很高时，<code>解决哈希冲突的成本很大</code>，而且在查找数据时也需要向后查找（哈希值对应的位置可能被其它节点线性探测占用了）。当容量达到阈值时，需要进行扩容，扩容后需要再哈希确定元素位置。</p>
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>提起 ThreadLocal 也不得不提内存泄漏，系统中为了避免频繁的创建销毁线程，一般都会使用线程池复用线程。想一下下面的场景：</p>
-<ol>
-<li>线程在执行过程中向某个方法内创建的 ThreadLocal 对象中设置了值；</li>
-<li>方法执行结束，线程回收到线程池；</li>
-<li>由于线程内的 ThreadLocalMap 中引用了第一步的 ThreadLocal 对象，所以即使方法执行结束，ThreadLocal 对象也无法被回收。</li>
-</ol>
-<p>JDK 为了避免这样的情况，做了以下措施：</p>
-<ol>
-<li>ThreadLocalMap 的 Key 采用弱引用类型，即当没有强引用时只要发生 gc 就会回收；但只有 Key 时弱引用，Value 依然是强引用；</li>
-<li>在执行 ThreadLocal.set()&#x2F;get() 方法时，ThreadLocal 会清除 ThreadLocalMap 中 key 为 NULL 的 Entry 对象，让它能够被 GC 回收。</li>
-</ol>
-<p>但是为了避免内存泄漏，还是要求某个 ThreadLocal 对象不再使用时，立即调用 remove() 方法删除 Entry 对象。</p>
-<h2 id="FastThreadLocal"><a href="#FastThreadLocal" class="headerlink" title="FastThreadLocal"></a>FastThreadLocal</h2><p>通过对 ThreadLocal 的介绍，它有以下缺点：</p>
+<p>首先解释下这5个字段的含义：</p>
 <ul>
-<li>解决哈希冲突的成本大，可能会存在性能瓶颈；</li>
-<li>如果不及时 remove，可能产生内存泄漏；</li>
+<li><code>type</code> 数据类型：string、list、hash…</li>
 </ul>
-<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>FastThreadLocalThread 是对 Thread 类的一层包装，每个线程对应一个 InternalThreadLocalMap 实例。只有 FastThreadLocal 和 FastThreadLocalThread 组合使用时，才能发挥 FastThreadLocal 的性能优势。</p>
-<p>InternalThreadLocalMap 与 ThreadLocalMap 的实现差别很大，虽然也是采用数组的方式存储元素，但它可以做到 O(1) 的访问速度，而且只存储 Value，原因就藏在源码里：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> index;<br><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FastThreadLocal</span><span class="hljs-params">()</span> &#123;<br>    index = InternalThreadLocalMap.nextVariableIndex();<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* The actual Redis Object */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_STRING 0    <span class="hljs-comment">/* String object. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_LIST 1      <span class="hljs-comment">/* List object. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_SET 2       <span class="hljs-comment">/* Set object. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ZSET 3      <span class="hljs-comment">/* Sorted set object. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_HASH 4      <span class="hljs-comment">/* Hash object. */</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_MODULE 5    <span class="hljs-comment">/* Module object. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_STREAM 6    <span class="hljs-comment">/* Stream object. */</span></span><br></code></pre></td></tr></table></figure>
 
-<p>在创建 FastThreadLocal 时，会为其中的 index 属性赋一个值，赋值的逻辑很简单：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">nextIndex</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();    <br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">nextVariableIndex</span><span class="hljs-params">()</span> &#123;<br>       <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> nextIndex.getAndIncrement();<br>       <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) &#123;<br>           nextIndex.decrementAndGet();<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;too many thread-local indexed variables&quot;</span>);<br>       &#125;<br>       <span class="hljs-keyword">return</span> index;<br>   &#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><code>encoding</code> 编码方式：比如 string 就有 embstr 和 raw 编码方式；</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_RAW 0     <span class="hljs-comment">/* Raw representation */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_INT 1     <span class="hljs-comment">/* Encoded as integer */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_HT 2      <span class="hljs-comment">/* Encoded as hash table */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_ZIPMAP 3  <span class="hljs-comment">/* Encoded as zipmap */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_LINKEDLIST 4 <span class="hljs-comment">/* No longer used: old list encoding. */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_ZIPLIST 5 <span class="hljs-comment">/* Encoded as ziplist */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_INTSET 6  <span class="hljs-comment">/* Encoded as intset */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_SKIPLIST 7  <span class="hljs-comment">/* Encoded as skiplist */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_EMBSTR 8  <span class="hljs-comment">/* Embedded sds string encoding */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_QUICKLIST 9 <span class="hljs-comment">/* Encoded as linked list of ziplists */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_STREAM 10 <span class="hljs-comment">/* Encoded as a radix tree of listpacks */</span></span><br></code></pre></td></tr></table></figure>
 
-<p>也就是每一个 FastThreadLocal 都有唯一的一个 index，那在 Thread 中存储 FastThreadLocal值 的时候，直接存到 index 对应的位置不就直接解决哈希冲突了吗？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br>            ├─ [<span class="hljs-number">1</span>] → FastThreadLocal_1的值<br>            ├─ [<span class="hljs-number">2</span>] → FastThreadLocal_2的值<br>            ├─ [<span class="hljs-number">3</span>] → UNSET（未使用）<br>            └─ [<span class="hljs-number">4</span>] → FastThreadLocal_4的值<br></code></pre></td></tr></table></figure>
+<ul>
+<li><code>lru</code>：  ‌LRU（Least Recently Used）时间，在 redis 淘汰数据时会用；</li>
+<li><code>refcount</code>： 引用计数。它允许 robj 对象在某些情况下被共享，例如 redis 在启动时对于常见的响应指令（ok、error），错误信息，0-9999 的数字对象都进行了创建并复用；</li>
+<li><code>ptr</code>： 指针，指向真正的值。</li>
+</ul>
+<p>接着分析下这个结构体的定义方式</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">unsigned</span> type: <span class="hljs-number">4</span><br></code></pre></td></tr></table></figure>
 
-<p>当数组容量满时，需要根据 index 的值进行扩容（注意这里不能是简单的 2 倍关系，例如当前长度是 32，但是插入了一个 index 是 72 的 FastThreadLocal，那么扩容2倍是不够的），但这并不会浪费很多空间，那些没使用的位置只是存放了同一个缺省对象的引用。</p>
-<h3 id="内存泄漏-1"><a href="#内存泄漏-1" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>FastThreadLocalThread 对于内存泄漏又有什么改进呢？</p>
-<p>Netty 通过 DefaultThreadFactory 创建的所有线程都是 FastThreadLocalThread（Netty 的 EventLoop 就是 FastThreadLocalThread），并且所有提交的 Runnable 任务会被包装成 FastThreadLocalRunnable。</p>
-<p>当一个线程（特别是线程池中的线程）执行完任务后，其实就可以清理当前线程上绑定的所有 FastThreadLocal 变量了。在 FastThreadLocalThread 的设计中，如果一个 index 被设置了值，那么这个 FastThreadLocal 就会放到一个 Set 中，这个 Set 就存在 indexedVariables[0] 的位置。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br></code></pre></td></tr></table></figure>
+<p>这是 C 语言里的位域定义方法，表示该字段所占的比特数（bit）</p>
+<p>最后我们分析可以知道，一个这样的 redisObject 需要占用 4bit + 4bit + 24bit + 4B +8B 即 16 字节空间，这对我们使用 redis 有没有什么启发呢？</p>
+<ul>
+<li>如果我要存一个很短的字符串， 字符串可能不到16字节，但为了描述这个字符串的头结构就占了16字节，内存利用率是不是低了？</li>
+<li>如果我要存一个数字，8字节就能搞定，还有必要让 ptr 指针去指向一个真实存储这个数字的空间吗？</li>
+</ul>
+<p>另外，目前的机器基本都是 64 位架构，通常处理器的缓存行大小是 64 字节（64B），这意味着每次从内存加载数据到缓存时，最小的单位是 64 字节。即使你只需要其中的一部分数据，剩余的部分也会被一并加载到缓存中。</p>
+<p>Redis 中的创建的很多字符串，都会采用 SDS8 的结构（SDS5 无法记录有效容量，对后续拓展不友好），如果 SDS8 的字符串 + redisObject 的头大小，恰好能满足 64B，意味着就不用再去内存中取数据了。</p>
+<p>这就是 Redis String 类型 embStr 编码方式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// &lt;= 44 字节就使用 embStr 的 encoding 类型,否则使用 raw 编码类型</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OBJ_ENCODING_EMBSTR_SIZE_LIMIT 44</span><br><br><span class="hljs-comment">// 创建字符串对象的函数</span><br>robj *<span class="hljs-title function_">createStringObject</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *ptr, <span class="hljs-type">size_t</span> len)</span> &#123;<br>    <span class="hljs-comment">// 字符串少于44字节,就 embStr 类型编码,否则 raw 类型编码</span><br>    <span class="hljs-keyword">if</span> (len &lt;= OBJ_ENCODING_EMBSTR_SIZE_LIMIT)<br>        <span class="hljs-keyword">return</span> createEmbeddedStringObject(ptr, len);<br>    <span class="hljs-keyword">else</span><br>        <span class="hljs-keyword">return</span> createRawStringObject(ptr, len);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>Netty 还封装了 FastThreadLocalRunnable，FastThreadLocalRunnable 最后会执行 FastThreadLocal.removeAll() 将 Set 集合中所有 FastThreadLocal 对象都清理掉。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultRunnableDecorator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Runnable r;<br><br>    DefaultRunnableDecorator(Runnable r) &#123;<br>        <span class="hljs-built_in">this</span>.r = r;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            r.run();<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            FastThreadLocal.removeAll();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> __<span class="hljs-title">attribute__</span> ((__<span class="hljs-title">packed__</span>)) <span class="hljs-title">sdshdr8</span> &#123;</span><br>    <span class="hljs-type">uint8_t</span> len;            <span class="hljs-comment">// 现有长度 1 字节</span><br>    <span class="hljs-type">uint8_t</span> alloc;          <span class="hljs-comment">// 字符数组的空间长度(不包括结构体头和字符数组最后&#x27;\0&#x27;的一字节) 1 字节</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> flags;    <span class="hljs-comment">// 标识位 3 bit 用来标识类型,5 bit 暂时无用 1 字节</span><br>    <span class="hljs-type">char</span> buf[];             <span class="hljs-comment">// 真正存放字符串的数组,以 &#x27;\0&#x27; 结尾,注意其没有指明长度,这是一种特殊写法,柔性数组,初始化分配时不占用内存空间</span><br>&#125;;<br></code></pre></td></tr></table></figure>
 
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>相比 JDK 原生的 ThreadLocal，Netty 的 FastThreadLocal 一方面提高了并发情况下的性能，也优化了内存泄漏。</p>
-<p>但 FastThreadLocal 不一定比 ThreadLocal 快，只有是 FastThreadLocalThread 类型的线程才会更快，如果是普通线程反而会更慢。</p>
+<p>指的一提的是，即使刚开始我们创建的是一个 embStr 编码的字符串，只要对其进行 append 操作，编码方式就会变为 raw，原因是变动会执行下面这个函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">appendCommand</span><span class="hljs-params">(client *c)</span> &#123;<br>    <span class="hljs-type">size_t</span> totlen;<br>    robj *o, *append;<br><br>    o = lookupKeyWrite(c-&gt;db, c-&gt;argv[<span class="hljs-number">1</span>]);<br>    <span class="hljs-keyword">if</span> (o == <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-comment">/* Create the key */</span><br>        c-&gt;argv[<span class="hljs-number">2</span>] = tryObjectEncoding(c-&gt;argv[<span class="hljs-number">2</span>]);<br>        dbAdd(c-&gt;db, c-&gt;argv[<span class="hljs-number">1</span>], c-&gt;argv[<span class="hljs-number">2</span>]);<br>        incrRefCount(c-&gt;argv[<span class="hljs-number">2</span>]);<br>        totlen = stringObjectLen(c-&gt;argv[<span class="hljs-number">2</span>]);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Key exists, check type */</span><br>        <span class="hljs-keyword">if</span> (checkType(c, o, OBJ_STRING))<br>            <span class="hljs-keyword">return</span>;<br><br>        <span class="hljs-comment">/* &quot;append&quot; is an argument, so always an sds */</span><br>        append = c-&gt;argv[<span class="hljs-number">2</span>];<br>        totlen = stringObjectLen(o) + sdslen(append-&gt;ptr);<br>        <span class="hljs-keyword">if</span> (checkStringLength(c, totlen) != C_OK)<br>            <span class="hljs-keyword">return</span>;<br><br>        <span class="hljs-comment">/* Append the value */</span><br>        <span class="hljs-comment">// 这里在追加值的时候 会把新生成的 str 转为 raw 编码</span><br>        o = dbUnshareStringValue(c-&gt;db, c-&gt;argv[<span class="hljs-number">1</span>], o);<br>        o-&gt;ptr = sdscatlen(o-&gt;ptr, append-&gt;ptr, sdslen(append-&gt;ptr));<br>        totlen = sdslen(o-&gt;ptr);<br>    &#125;<br>    signalModifiedKey(c-&gt;db, c-&gt;argv[<span class="hljs-number">1</span>]);<br>    notifyKeyspaceEvent(NOTIFY_STRING, <span class="hljs-string">&quot;append&quot;</span>, c-&gt;argv[<span class="hljs-number">1</span>], c-&gt;db-&gt;id);<br>    server.dirty++;<br>    addReplyLongLong(c, totlen);<br>&#125;<br><br>robj *<span class="hljs-title function_">dbUnshareStringValue</span><span class="hljs-params">(redisDb *db, robj *key, robj *o)</span> &#123;<br>    serverAssert(o-&gt;type == OBJ_STRING);<br>    <span class="hljs-comment">// 引用计数不为1 或 之前不是 raw 编码</span><br>    <span class="hljs-keyword">if</span> (o-&gt;refcount != <span class="hljs-number">1</span> || o-&gt;encoding != OBJ_ENCODING_RAW) &#123;<br>        robj *decoded = getDecodedObject(o);<br>        <span class="hljs-comment">// 创建 raw 编码的对象</span><br>        o = createRawStringObject(decoded-&gt;ptr, sdslen(decoded-&gt;ptr));<br>        decrRefCount(decoded);<br>        dbOverwrite(db, key, o);<br>    &#125;<br>    <span class="hljs-keyword">return</span> o;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>关于 SDS 的 44 字节和 append 操作后会变为 raw 编码其实在上一篇 <a href="https://zhuwenjie0716.github.io/2026/05/11/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bsds%E7%AF%87/">Redis源码分析之sds篇</a> 中已经提过了~</p>
+<p>Robj 在创建字符串对象时，还会尝试把字符串转为 64 位可表示的 long，如果能转成功：</p>
+<ul>
+<li>该值处于 0-9999 且不运行 LRU（如果运行 LRU，会影响对象的共享），会返回一个共享对象（前面提到 Redis 会共享 0-9999 的 Robj 对象）；</li>
+<li>其他情况下 ptr 指针字段直接存成这个 long 型的值。</li>
+</ul>
+<p>只要该值可以被转为 64 位可表示的 long，最终的表示形式就是 <code>type=OBJ_STRING, ecoding=OBJ_ENCODING_INT</code> 的一个 string robj 对象。</p>
+<p>Robj 不只是<strong>为值提供一个统一的表示方式</strong>，还<strong>允许同一类型的数据采用不同的内部表示</strong>，从而在某些情况下尽量节省内存，同时<strong>支持对象共享和引用计数</strong>。当对象被共享的时候，只占用一份内存拷贝，进一步节省内存。</p>
 
                 
               </div>
@@ -476,7 +470,7 @@
   
     <span>></span>
     
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
   
   
 
@@ -493,9 +487,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
-      
         <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="print-no-link">#源码分析</a>
+      
+        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
       
     </div>
   
@@ -507,8 +501,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Netty的FastThreadLocal快在哪</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/04/Netty的FastThreadLocal快在哪/</div>
+      <div>Redis源码分析之robj篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/14/Redis源码分析之robj篇/</div>
     </div>
     <div class="license-meta">
       
@@ -520,7 +514,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月4日</div>
+          <div>2026年5月14日</div>
         </div>
       
       
@@ -552,18 +546,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" title="Netty的ByteBuf好用在哪">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Netty的ByteBuf好用在哪</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/" title="Netty逻辑架构与核心组件">
-                        <span class="hidden-mobile">Netty逻辑架构与核心组件</span>
+                      <a href="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/" title="如何实现高吞吐的定时任务处理">
+                        <span class="hidden-mobile">如何实现高吞吐的定时任务处理</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -381,6 +381,76 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/05/14/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Brobj%E7%AF%87/" target="_self">
+          Redis源码分析之robj篇
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/14/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Brobj%E7%AF%87/" target="_self">
+        <div>
+          Redis源码分析之robj篇在 Redis 中，一个 database 内的这个映射关系是用一个 dict 来维护的（ht[0]）。dict 的 key 固定用一种数据结构来表达就够了，即动态字符串 sds。而 value 则比较复杂，为了在同一个 dict 内能够存储不同类型的 value，需要一个通用的数据结构，这个通用的数据结构就是 robj（全称 RedisObject ）。 12345
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-14 13:19" pubdate>
+              2026-05-14
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/" target="_self">
           如何实现高吞吐的定时任务处理
         </a>
@@ -799,9 +869,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
-            
               <a href="/tags/Netty/">#Netty</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
             
           </div>
         
@@ -869,49 +939,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Netty/">#Netty</a>
+            
               <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
-            
-              <a href="/tags/Netty/">#Netty</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" target="_self">
-          Netty的ByteBuf好用在哪
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" target="_self">
-        <div>
-          Netty的ByteBuf好用在哪ByteBuf 是 Netty 的数据容器，所有网络通信中字节流的传输都是通过 ByteBuf 完成的。很多开发者已经使用 ByteBuf 代替 ByteBuffer，即便并不是在写一个网络应用，也会单独使用 ByteBuf。 相比 JDK 的 ByteBuffer，Netty 的 ByteBuf 好在哪？ ByteBufferJDK 的 ByteBuffer 结
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-05-05 10:13" pubdate>
-              2026-05-05
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Netty/">#Netty</a>
             
           </div>
         
