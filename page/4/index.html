@@ -339,6 +339,176 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/04/21/Linux-JDK-NIO%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_self">
+          Linux-JDK-NIO源码分析
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/21/Linux-JDK-NIO%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_self">
+        <div>
+          Linux JDK NIO 源码分析引言多路复用是一种模型，而实现这种模型有 select、poll 和 epoll，在 linux 下 NIO 的实现默认是 epoll 当一个 Socket 成功建立，客户端向服务端发数据，内核是最先知道这个 Socket 是可读的，但是业务层也想知道这个事情，那么怎么做呢？ 借鉴观察者模式的思想，当这个事情发生了，内核就开始通知这个事情的监听者，也就是 epo
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-21 13:48" pubdate>
+              2026-04-21
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/IO%E6%A8%A1%E5%9E%8B/">#IO模型</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/21/MybatisPlus%E9%85%8D%E7%BD%AE%E8%81%94%E5%90%88%E4%B8%BB%E9%94%AE/" target="_self">
+          MybatisPlus配置联合主键
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/21/MybatisPlus%E9%85%8D%E7%BD%AE%E8%81%94%E5%90%88%E4%B8%BB%E9%94%AE/" target="_self">
+        <div>
+          MybatisPlus配置联合主键背景是这样的，最近着手修改一个老项目，平时其他项目用的都是 JPA、倒不是不会用 Mybatis，只是这个项目是用来解析 xml 为对象并进行存储的，而且有的类字段特别多，觉得写 mapper 和 sql 太麻烦了，于是想到了 mybatis-plus（以下简称mp）。 本来以为很好解决的事情，没想到默认的 mp 不支持联合主键，于是查询了一些资料，有一个 myb
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-21 09:15" pubdate>
+              2026-04-21
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MybatisPlus/">#MybatisPlus</a>
+            
+              <a href="/tags/%E9%85%8D%E7%BD%AE/">#配置</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/20/%E4%BA%91%E5%8E%9F%E7%94%9F%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E6%9C%8D%E5%8A%A1/" target="_self">
+          云原生部署常见服务
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/20/%E4%BA%91%E5%8E%9F%E7%94%9F%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E6%9C%8D%E5%8A%A1/" target="_self">
+        <div>
+          云原生部署常见服务在开发过程中，经常需要自己进行一些小小的测试，亦或是简单的验证一些功能，简单功能使用公司的业务库还好，若是公司的业务库小众，或者测试的功能有危险情况，一般都希望能在隔离环境测试，虚拟机对于此场景太重了，用 Docker 轻量的启动一些服务非常方便。 该博客并非科普向，因此不再赘述 Docker、容器、Kubernetes 基础知识。 镜像拉取内网环境一般公司会自行搭建 Harbo
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-20 16:18" pubdate>
+              2026-04-20
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" class="category-chain-item">云原生</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Kubernetes/">#Kubernetes</a>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+              <a href="/tags/Docker/">#Docker</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/04/19/Kubernetes%E8%BF%90%E7%BB%B4%E6%9F%A5%E6%BC%8F%E8%A1%A5%E7%BC%BA/" target="_self">
           Kubernetes查漏补缺
         </a>
