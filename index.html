@@ -381,6 +381,76 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" target="_self">
+          Redis源码分析之ziplist篇
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" target="_self">
+        <div>
+          Redis源码分析之ziplist篇如果提到双向链表，我们应该很熟悉，每一个对象都有三个字段  指向前驱节点的指针； 指向后向节点的指针； 该节点的数据。  双向链表可以在两端执行 O(1) 级别的操作，缺点是可能产生内存碎片，对空间利用率低（每个节点除了存储数据还要存指向相邻节点的指针） 而 ziplist 就是一个特殊编码的双向链表，它特殊在哪里呢？  ziplist 每个节点没有使用前后指针
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-15 08:07" pubdate>
+              2026-05-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/05/14/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Brobj%E7%AF%87/" target="_self">
           Redis源码分析之robj篇
         </a>
@@ -869,79 +939,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Netty/">#Netty</a>
-            
               <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
             
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/" target="_self">
-          Netty如何实现轻量级对象池
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/" target="_self">
-        <div>
-          Netty如何实现轻量级对象池对于 Netty 这种高吞吐、低延迟的网络框架中，对象（尤其是 ByteBuf）的创建和释放极为频繁。如果每次都通过 new 来创建对象，容易产生以下问题：  GC 频繁：大量短生命周期对象会频繁触发 Young GC，影响系统稳定。 延迟抖动：GC 的 Stop-The-World 事件会导致请求延迟不稳定。 内存碎片：频繁的分配和释放会导致堆内存碎片化。  Net
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-05-06 08:11" pubdate>
-              2026-05-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
               <a href="/tags/Netty/">#Netty</a>
-            
-              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
             
           </div>
         
