@@ -1,0 +1,875 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java对象Java 是一门面向对象的编程语言，Java 程序运行过程中无时无刻都有对象被创建出来。 对象的组成在 HotSpot 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：**对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）**。 对象头中存储的是与对象自身定义的数据无关的信息，包括：对象自身运行时数据和类型指针两部分。 对象运行时数据如哈希">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java Object">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java对象Java 是一门面向对象的编程语言，Java 程序运行过程中无时无刻都有对象被创建出来。 对象的组成在 HotSpot 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：**对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）**。 对象头中存储的是与对象自身定义的数据无关的信息，包括：对象自身运行时数据和类型指针两部分。 对象运行时数据如哈希">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260104165308712.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126112329192.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126112541748.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126131547977.png">
+<meta property="article:published_time" content="2026-05-19T03:17:59.000Z">
+<meta property="article:modified_time" content="2026-05-18T03:22:54.046Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260104165308712.png">
+  
+  
+  
+  <title>Java Object - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java Object"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-19 11:17" pubdate>
+          2026年5月19日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          28 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java Object</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java对象"><a href="#Java对象" class="headerlink" title="Java对象"></a>Java对象</h1><p>Java 是一门面向对象的编程语言，Java 程序运行过程中无时无刻都有对象被创建出来。</p>
+<h2 id="对象的组成"><a href="#对象的组成" class="headerlink" title="对象的组成"></a>对象的组成</h2><p>在 HotSpot 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：**<code>对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）</code>**。</p>
+<p><strong>对象头中存储的是与对象自身定义的数据无关的信息，包括：对象自身运行时数据和类型指针两部分。</strong></p>
+<p>对象运行时数据如哈希码、GC 分代年龄、锁状态标志、线程持有锁、偏向线程ID 等，这部分在 32 位虚拟机和 64 位虚拟机分别占用 32 比特 和 64 比特，官方的称呼为 “Mark Word”。<strong>Mark Word 被设计成一个动态定义的数据结构，根据对象的状态复用自己的空间。</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Bit-format of an object header (most significant first, big endian layout below):</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//  32 bits:</span><br><span class="hljs-comment">//  --------</span><br><span class="hljs-comment">//  hash:25 ------------&gt;| age:4    biased_lock:1 lock:2 (normal object)</span><br><span class="hljs-comment">//  JavaThread*:23 epoch:2 age:4    biased_lock:1 lock:2 (biased object)</span><br><span class="hljs-comment">//  size:32 ------------------------------------------&gt;| (CMS free block)</span><br><span class="hljs-comment">//  PromotedObject*:29 ----------&gt;| promo_bits:3 -----&gt;| (CMS promoted object)</span><br></code></pre></td></tr></table></figure>
+
+<p>例如在 32 位的 HotSpot 虚拟机中，对象未被同步锁锁定的状态下，Mark Word 的 32 个比特存储空间中的 25 个比特用于存储对象哈希码，4 个比特用于存储对象分代年龄，2 个比特用于存储锁标志位，1 个比特固定为 0，在其他状态（轻量级锁定、重量级锁定、GC标 记、可偏向）下对象的存储内容如表所示。</p>
+<p><img src="/2026/05/19/Java-Object/image-20260104165308712.png" srcset="/img/loading.gif" lazyload alt="image-20260104165308712"></p>
+<p><strong>类型指针（Klass Pointer）即对象指向它的类型元数据的指针，Java 虚拟机通过这个指针来确定该对象是哪个类的实例。</strong>不过并不是所有的虚拟机实现都需要在对象数据上保留类型指针，例如通过句柄访问对象。</p>
+<p>除去对象头，接下来的实例数据部分是对象真正存储的有效信息，包括继承以及自定义的字段，这部分的存储顺序会受到虚拟机分配策略参数（-XX：FieldsAllocationStyle 参数）和字段在 Java 源码中定义顺序的影响。默认规则为：longs&#x2F;doubles、ints、shorts&#x2F;chars、bytes&#x2F;booleans、oops（Ordinary Object Pointers，OOPs），在满足这个前提条件的情况下，在父类中定义的变量会出现在子类之前。如果 HotSpot 虚拟机的 +XX：CompactFields 参数值为 true（默认就为true），那子类之中较窄的变量也允许插入父类变量的空隙之中，以节省出一点点空间。</p>
+<p>对象的第三部分是对齐填充，这并不是必然存在的，也没有特别的含义，它仅仅起着占位符的作用。由于 HotSpot 虚拟机的自动内存管理系统要求对象起始地址必须是 8 字节的整数倍，换句话说就是任何对象的大小都必须是 8 字节的整数倍。对象头部分已经被精心设计成正好是8字节的倍数，因此，如果对象实例数据部分没有对齐的话，就需要通过对齐填充来补全。</p>
+<h2 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h2><p>当在程序中执行一个 new 指令创建普通 Java 对象（不包括数组和 Class 对象）时，JVM 首先将去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已被加载、解析和初始化过。如果没有，那必须先执行相应的类加载过程。</p>
+<p>在类加载检查通过后，接下来虚拟机将为新生对象分配内存，内存的大小通过上一部分中提到的方式已经确定下来了，所以分配内存就是从 Java 堆中划分出来一个这样大小的内存块。</p>
+<p>假如堆内存非常规整，一侧全都是使用过的内存，另一侧则是空闲内存，那么只需维护一个指针，在需要分配内存时指针向空闲侧移动即可，这种方法被称为指针碰撞；而如果堆内存并不规整，那么则需要使用“空闲列表”维护当前空闲的内存空间。堆内存非常规整取决于使用的垃圾回收算法是否带有空间整理（Compact），如果只是标记清除例如 CMS，理论上（因为CMS在分配内存时会分配一个比所需内存更大的缓冲区，这样后续依然可以在这块缓冲区内使用指针碰撞）就只能使用空闲列表法，而如果是 ParNew 这类带有整理过程的收集器，则可以使用指针碰撞法。</p>
+<p>分配内存在并发情况下不是线程安全的，可能出现正在给对象 A 分配内存，指针还没来得及修改，对象 B 又同时使用了原来的指针来分配内存的情况。一种解决方案是采用 CAS 重试直到分配成功，另一种方案则是把内存分配的动作按照线程划分在不同的空间之中进 行，即<strong>每个线程在 Java 堆中预先分配一小块内存，称为本地线程分配缓冲（Thread Local Allocation Buffer，TLAB）</strong>，哪个线程要分配内存，就在哪个线程的本地缓冲区中分配，只有本地缓冲区用完了，分配新的缓冲区时才需要锁定。</p>
+<p>内存分配完成后，会首先对这块内存区域赋零值，并设置相应的对象头等信息，此时在虚拟机的角度一个新的对象已经产生了，但是在用户的角度，这个对象还需要执行 class 的 &lt;init&gt; 方法，按照程序员的意愿对对象进行初始化，这样一个真正可用的对象才算完全被构造出来。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">age</span> <span class="hljs-operator">=</span> <span class="hljs-number">3</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在内存分配完成时，user 对象的 age 属性其实是 int 的零值 0，在执行完类的 init 方法后， age 的属性才是我们定义的 3。</p>
+<h2 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h2><p>Java 程序会通过栈上的 reference 数据来操作堆上的具体对象，reference 的理解是如果 reference 类型的数据中存储的数值代表的是另外一块内存的起始地址，就称该 reference 数据是代表某块内存、某个对象的引用。</p>
+<p>但是 reference 只规范了能够找到对象，而没有规定其实现方式，所以主流的实现方式其实有使用句柄和直接访问两种。</p>
+<p>使用句柄的好处是，在垃圾回收的过程中，对象的内存位置是会变化的，这时只需要修改句柄引用的对象位置即可，缺点则是每次访问对象都多一次内存访问。</p>
+<p><img src="/2026/05/19/Java-Object/image-20260126112329192.png" srcset="/img/loading.gif" lazyload alt="image-20260126112329192"></p>
+<p>使用直接访问的好处是可以直接访问到对象实例数据（注意是对象实例数据，访问对象的类型数据时需要考虑如何实现），但在垃圾回收的过程中可能需要更新多处引用对象的值。</p>
+<p><img src="/2026/05/19/Java-Object/image-20260126112541748.png" srcset="/img/loading.gif" lazyload alt="image-20260126112541748"></p>
+<p>对 HotSpot 而言，它主要使用直接访问方式进行对象访问， <strong>现代的 HotSpot JVM 使用了分代 GC，大部分对象都是在年轻代分配并快速回收，</strong> 这些对象基本不会移动。</p>
+<h2 id="对象大小与压缩指针"><a href="#对象大小与压缩指针" class="headerlink" title="对象大小与压缩指针"></a>对象大小与压缩指针</h2><p>在 64 位系统中，普通的对象引用通常需要 64 位（8字节）的空间，因为 4 字节只能表示 32 位的一个地址，也就是最多只能表示 4GB 的空间，但是绝大多数的应用程序都不会占用那么大的空间，即堆内存一般不会超过 32GB。</p>
+<p>Java 的对象通过设计，大小一定是 8 的倍数，那么也就是对象所在位置的值的 2 进制最后 3 位一定是 0，既然我们知道对象的最后 3 位一定是 0，就可以不要这 3 位了，也就是之前的 0001 代表的是第 1 个字节，而现在的 0001 代表的是第 8 个字节（ 0001 &lt;&lt; 3）,那么可以表示的内存范围也是之前的 8 倍，即可以表示 32GB 的空间。</p>
+<p>64 位 Java 虚拟机引入了压缩指针（Compressed Pointer）技术，将 Java 对象指针压缩为 32 位。这样，对象头部中的 Klass Pointer 就被压缩为 32 位，从而将对象头部的大小从 16 字节减小到 12 字节。图示来自：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/poemyang/p/19170159">压缩指针对对象大小的影响</a>：</p>
+<p><img src="/2026/05/19/Java-Object/image-20260126131547977.png" srcset="/img/loading.gif" lazyload alt="image-20260126131547977"></p>
+<p>在存储的时候，由于已经 8 字节对齐，所以我们直接 &gt;&gt; 3 存储，在读取时，我们需要用一个 long 类型接收读取值 &lt;&lt; 3 位后的结果 + heapBase（堆起始地址）。</p>
+<p>目前压缩指针在 64 位 JVM &amp;&amp; 堆内存 ≤ 32GB 时是默认开启的~</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/" class="category-chain-item">经典图书</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="category-chain-item">深入理解Java虚拟机</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java Object</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/19/Java-Object/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/" title="垃圾回收方法论">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">垃圾回收方法论</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/18/JVM-Structure/" title="JVM Structure">
+                        <span class="hidden-mobile">JVM Structure</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

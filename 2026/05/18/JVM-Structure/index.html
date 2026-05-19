@@ -19,25 +19,24 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+    <meta name="description" content="JVM 内存结构Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：  程序计数器在 Java 虚拟机的概念模型里，程序计数器存的是下一条需要执行的字节码指令的地址，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行">
 <meta property="og:type" content="article">
-<meta property="og:title" content="面向对象设计指南">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/17/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:title" content="JVM Structure">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/18/JVM-Structure/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+<meta property="og:description" content="JVM 内存结构Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：  程序计数器在 Java 虚拟机的概念模型里，程序计数器存的是下一条需要执行的字节码指令的地址，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/17/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/image-20250916170508725.png">
-<meta property="article:published_time" content="2026-05-17T00:01:55.000Z">
-<meta property="article:modified_time" content="2026-05-15T07:05:53.096Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/18/JVM-Structure/image-20251230152447993.png">
+<meta property="article:published_time" content="2026-05-18T00:22:26.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:10:57.430Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="设计模式">
-<meta property="article:tag" content="面向对象">
+<meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/17/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/image-20250916170508725.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/18/JVM-Structure/image-20251230152447993.png">
   
   
   
-  <title>面向对象设计指南 - Hexo</title>
+  <title>JVM Structure - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +311,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="面向对象设计指南"></span>
+            <span id="subtitle" data-typed-text="JVM Structure"></span>
           
         </div>
 
@@ -323,8 +322,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-17 08:01" pubdate>
-          2026年5月17日 早上
+        <time datetime="2026-05-18 08:22" pubdate>
+          2026年5月18日 早上
         </time>
       </span>
     
@@ -335,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          3.3k 字
         
       </span>
     
@@ -346,7 +345,7 @@
         
         
         
-          30 分钟
+          28 分钟
         
       </span>
     
@@ -398,68 +397,44 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">面向对象设计指南</h1>
+            <h1 id="seo-header">JVM Structure</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="面向对象设计指南"><a href="#面向对象设计指南" class="headerlink" title="面向对象设计指南"></a>面向对象设计指南</h1><p>一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。</p>
-<p>面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。</p>
+                <h1 id="JVM-内存结构"><a href="#JVM-内存结构" class="headerlink" title="JVM 内存结构"></a>JVM 内存结构</h1><p>Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：</p>
+<p><img src="/2026/05/18/JVM-Structure/image-20251230152447993.png" srcset="/img/loading.gif" lazyload alt="image-20251230152447993"></p>
+<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>在 Java 虚拟机的概念模型里，程序计数器存的是<code>下一条需要执行的字节码指令的地址</code>，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行到了哪个位置等），<code>每个线程都有自己的程序计数器</code>。</p>
+<p>如果线程正在执行的是一个 Java 方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是本地（Native）方法，这个计数器值则应为空（Undefined）。此内存区域是唯 一一个在《Java虚拟机规范》中没有规定任何 OutOfMemoryError 情况的区域。</p>
+<h2 id="Java-虚拟机栈"><a href="#Java-虚拟机栈" class="headerlink" title="Java 虚拟机栈"></a>Java 虚拟机栈</h2><p><code>Java 虚拟机栈也是线程私有的</code>，每个方法被执行的时候，Java 虚拟机都会同步创建一个<code>栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态连接、方法出口等信息</code>。每一个方法被调用直至执行完毕的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。</p>
+<p>局部变量表存放了编译期可知的基本数据类型（boolean、byte、char、short、int、 float、long、double）、对象引用类型和 returnAddress 类型。</p>
 <ul>
-<li><p>封装：通过访问权限控制，只对外暴露必要的操作，保护数据；</p>
-</li>
-<li><p>继承：<strong>代码复用</strong>，结构美感。不过 Java 语言不支持多重继承，原因是如果 BC 都继承了 A 并重写了某个方法，D 同时继承 BC 会产生歧义；</p>
-</li>
-<li><p>多态：提高代码的复用性，主要通过两种方式实现：</p>
-<ul>
-<li>继承：父类引用指向子类对象；</li>
-<li>实现：接口引用指向具体实现类；</li>
+<li>对象引用类型：可能是一个指向对象起始地址的引用指针，也可能是一个代表对象的句柄，总之可以通过该值关联到对象。</li>
+<li>returnAddress 类型：执行一条字节码指令的地址。</li>
 </ul>
-</li>
-<li><p>抽象：有时并不计入四大特性，用来保护实现，例如接口就是对实现的一种抽象，无需关注实现。</p>
-</li>
-</ul>
+<p>这些数据类型在局部变量表中的存储空间以局部变量槽（Slot）来表示，其中 64 位长度的 long 和 double 类型的数据会占用两个变量槽，其余的数据类型只占用一个。<code>局部变量表所需的内存空间在编译期间完成分配</code>，当进入一个方法时，这个方法需要在栈帧中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变局部变量表的大小（大小指槽的个数）。</p>
+<p>《Java虚拟机规范》中，对这个内存区域规定了两类异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError 异常；如果 Java 虚拟机栈容量可以动态扩展，当栈扩展时无法申请到足够的内存会抛出 OutOfMemoryError 异常（HotSpot 虚拟机的栈容量是不可以动态扩展的）。</p>
+<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>Java 虚拟机栈是为虚拟机执行 Java 方法服务，本地方法栈则是为虚拟机执行使用到的本地（Native）方法服务。</p>
+<p>有的 Java 虚拟机（譬如Hot-Spot虚拟机）直接就把本地方法栈和虚拟机栈合二为一。与虚拟机栈一样，本地方法栈也会在栈深度溢出或者栈扩展失败时分别抛出 StackOverflowError 和 OutOfMemoryError 异常。</p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p><code>Java 堆是被所有线程共享的一块内存区域，“几乎”所有的对象实例都在这里分配内存。</code>它是垃圾收集器管理的内存区域，因此一些资料中它也被称作 “GC堆”（Garbage Collected Heap）。“几乎”的原因是随着逃逸分析的发展和标量替换等手段，对象可能通过标量替换手段变成栈上分配。</p>
+<p>由于垃圾收集器大部分基于分代收集理论设计，所以 Java 堆中经常出现 “新生代”、“老年代”等名词，但这些区域划分仅仅是一部分垃圾收集器的共同特性或者说设计风格而已，而非某个 Java 虚拟机具体实现的固有内存布局，更不是《Java虚拟机规范》里对 Java堆的进一步细致划分。</p>
+<p>从分配内存的角度看，所有线程共享的 Java 堆中可以划分出多个线程私有的分配缓冲区 （Thread Local Allocation Buffer，TLAB），以提升对象分配时的效率。因为堆是线程所共享的，因此在分配内存时需要考虑线程安全，如果每个线程都有一定的私有缓冲区，则只需在为线程分配私有缓冲区时加锁即可。</p>
+<p>如果在 Java 堆中没有内存完成实例分配，并且堆也无法再扩展时（-Xmx），Java 虚拟机将会抛出 OutOfMemoryError 异常。</p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><code>方法区（Method Area）与 Java 堆一样是各个线程共享的内存区域，它用于存储已被虚拟机加载的类型信息、常量、静态变量、即时编译器编译后的代码缓存等数据。</code>虽然《Java虚拟机规范》中把方法区描述为堆的一个逻辑部分，但是它却有一个别名叫作“非堆”（Non-Heap），目的是与 Java 堆区分开来。</p>
+<p>在 JDK8 以前，Java 程序员习惯称呼方法区为“永久代”（Permanent Generation）或将其混为一谈，但本质上这两者并不是等价的，只是因为当时的 HotSpot 虚拟机设计团队选择把收集器的分代设计扩展至方法区，或者说使用永久代来实现方法区，使得 HotSpot 的垃圾收集器能够像管理 Java 堆一样管理这部分内存，省去了为这个区域专门编写内存管理代码。但是对于其他虚拟机实现，譬如 BEA JRockit、IBM J9 等来说，是不存在永久代的概念的。</p>
+<p>在收购了 BEA 后，为了移植 JRockit 中的优秀特性，在 JDK 6 的 时候 HotSpot 开发团队就有放弃永久代，逐步改为采用本地内存（Native Memory）来实现方法区的计划了。JDK 7 的 HotSpot，已经把原本放在永久代的字符串常量池、静态变量等移出，而到了 JDK 8，终于完全废弃了永久代的概念，改用与 JRockit、J9 一样在本地内存中实现的元空间（Meta space）来代替，把 JDK 7 中永久代还剩余的内容（主要是类型信息）全部移到元空间中。</p>
+<p>相对而言，垃圾收集行为在这个区域的确是比较少出现的，但<code>并非数据进入了方法区就如永久代的名字一样“永久”存在了</code>。这区域的内存回收目标主要是针对常量池的回收和对类型的卸载，一般来说这个区域的回收效果比较难令人满意，尤其是类型的卸载，条件相当苛刻，但是这部分区域的回收有时又确实是必要的。</p>
 <blockquote>
-<p>用了面向对象语言就是面向对象开发吗？</p>
+<p>准备阶段是正式为类中定义的变量（即静态变量，被 static 修饰的变量）分配内存并设置类变量初始值的阶段，从概念上讲，这些变量所使用的内存都应当在方法区中进行分配，但必须注意到方法区本身是一个逻辑上的区域，在 JDK7 及之前，HotSpot 使用永久代来实现方法区时，实现是完全符合这种逻辑概念的；而在 JDK8 及之后，类变量则会随着 Class 对象一起存放在 Java 堆中，这时候“类变量在 方法区”就完全是一种对逻辑概念的表述了。</p>
 </blockquote>
-<ul>
-<li>滥用 getter、setter 方法。lombok 的注解确实很方便，但这样其实违背了面向对象的封装特性，例如 createTime 等字段其实是不需要 setter 方法的，需要在创建对象的时候就确定。</li>
-<li>滥用全局变量、全局方法（Constants、Utils）。这样会导致修改后所有引用的地方都重新编译，而且有的时候只需要其中的某几个变量（或方法）却导入了整个类。<ul>
-<li>功能拆分，不要定义一个大而全的类。例如 Constants 拆分为 DateConstants、RedisConstants、MysqlConstants</li>
-</ul>
-</li>
-<li>**<code>定义数据与方法分离的类</code>**。传统的 MVC 开发中，数据在相应的 BO、VO、PO 中，而操作却封装在对应的 Controller、Service 中，这就是典型的面向过程，也就是<code>“贫血模型”</code>的开发方法。不过这样的开发方式依然很流行，因为大部分的需求并不复杂，只是从数据库中找到一些字段，组织对应的 VO，先写 service 反推 controller。</li>
-</ul>
-<blockquote>
-<p>如何理解接口与抽象类？</p>
-</blockquote>
-<p>随着 jdk 版本的更新，接口也可以有默认实现，也可以定义变量作为常量使用。抽象类依然不允许被实例化，继承抽象类必须重写抽象类的所有方法。</p>
-<p>先说结论：<strong>抽象类的作用更多是为了代码复用，而接口的作用则更偏向与“协议”，具备什么样的功能</strong>。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BaseEntity</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">8417380540303280008L</span>;<br>    <br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;所属用户标识&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;USER_ID&quot;)</span><br>    <span class="hljs-keyword">private</span> String userId;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;记录是否有效，默认为1表示有效&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;ACTIVE&quot;)</span><br>    <span class="hljs-keyword">private</span> String active;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;创建时间，默认为当前时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;CREATED_AT&quot;, updatable = false)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime createdAt;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;更新时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;UPDATED_AT&quot;)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime updatedAt;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>在 JDK8 及之后，类变量则会随着 Class 对象一起存放在 Java 堆中。</strong></p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>运行时常量池（Runtime Constant Pool）是方法区的一部分。Class 文件中有一项信息是常量池表（Constant Pool Table），用于存放编译期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。</p>
+<p>运行时常量池相对于 Class 文件常量池的另外一个重要特征是具备动态性，Java 语言并不要求常量一定只有编译期才能产生，也就是说，并非预置入 Class 文件中常量池的内容才能进入方法区运行时常 量池，<code>运行期间也可以将新的常量放入池中</code>，这种特性被开发人员利用得比较多的便是 String 类的 intern() 方法。</p>
+<p>《Java虚拟机规范》的规定，如果方法区（包括运行时常量池）无法满足新的内存分配需求时，将抛出 OutOfMemoryError 异常。</p>
+<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>直接内存（Direct Memory）并不是虚拟机运行时数据区的一部分，但也会导致 OutOfMemoryError 的出现。</p>
+<p>NIO（New Input&#x2F;Output）类引入了一种基于通道（Channel）与缓冲区（Buffer）的 I&#x2F;O 方式，它可以使用 Native 函数库<code>直接分配堆外内存</code>，然后通过一个存储在 Java 堆里面的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据（Netty 中经常使用）。</p>
+<p>注意：直接内存不再受 Java 堆内存的限制，只受本机物理内存限制（物理大小和操作系统级限制），但如果设置 -Xmx 等信息时不注意，可能会导致各个内存区域和大于物理内存，从而导致 OutOfMemoryError 。</p>
 
-<p>例如我们有一个上面的类，对于一个正常的删除来讲，一方面我们要查询这个数据是否存在（例如有些系统删除不存在的空数据会返回错误），另一方面判断当前登录用户是否具有删除权限（即资源的 USER_ID 是否为当前登录人或是否是当前登录人的下属），最后还需要记录日志。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">delete</span><span class="hljs-params">(String uuid)</span> &#123;<br>    <span class="hljs-type">Entity</span> <span class="hljs-variable">entity</span> <span class="hljs-operator">=</span> getEntityFromDB(uuid);<br>    <span class="hljs-keyword">if</span> (entity == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> ......<br>    &#125;<br>    <span class="hljs-keyword">if</span> (entity <span class="hljs-keyword">instanceof</span> BaseEntity) &#123;<br>		<span class="hljs-type">BaseEntity</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> (BaseEntity)entity;<br>        <span class="hljs-keyword">if</span> (!e.getActive.equals(<span class="hljs-string">&quot;1&quot;</span>)) &#123;<br>            <br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            e.setActive(<span class="hljs-string">&quot;0&quot;</span>);<br>            saveEntityToDB(entity);<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> T <span class="hljs-title function_">saveToDataBase</span><span class="hljs-params">(T entity)</span>;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> Entity <span class="hljs-title function_">getEntityFromDB</span><span class="hljs-params">(String uuid)</span>;<br></code></pre></td></tr></table></figure>
-
-<p>借助抽象类与多态，可以提高代码的复用性，减少重复代码。</p>
-<blockquote>
-<p>如何理解基于接口而非实现编程？</p>
-</blockquote>
-<p>假如目前有一个上传图片到公有云的需求</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span> &#123;<br>    <br>    <span class="hljs-comment">// 获取合法 token</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getToken</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 如果目录不存在就创建目录</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">createDictoryIfNotExists</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 上传图片</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">uploadPictureToAliyun</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span>() &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">Main</span> <span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">uploadPictureAliyunImpl</span> <span class="hljs-variable">impl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span>();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> impl.getToken();<br>        ........<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>如果这样实现，后期替换为其他云厂商，例如自有的私有云，就需要替换很多代码，实际上这种情况只需要定义一个上传图片的接口，由不同的存储来实现就行。</p>
-<p>基于接口编程，即进行更好的抽象设计，不暴露过多实现。</p>
-<blockquote>
-<p>为什么说多用组合少用继承？</p>
-</blockquote>
-<p>以鸟（bird）为例，可以分为是否会飞、是否会下蛋……</p>
-<p><img src="/2026/05/17/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/image-20250916170508725.png" srcset="/img/loading.gif" lazyload alt="image-20250916170508725"></p>
-<p>当继承层次越来越深，关系会越来越复杂，会严重影响代码的稳定性与可维护性。但是当继承层次很浅且业务稳定时，依然可以利用继承和多态特性来实现特定功能。</p>
-<p>继承实际上可以替换为组合来实现，例如定义两个接口：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Eggable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">egg</span><span class="hljs-params">()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>每一种鸟类根据自己的情况来实现对应接口即可，但是这会引入新的问题，例如有 n 个鸟类实现的 fly 接口都是一样的，那代码重复会十分严重，解决方式就是“委托”：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultFlyableImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        ......<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AAABird</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-comment">// 一般是使用注解注入</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">DefaultFlyableImpl</span> <span class="hljs-variable">defaultFlyImpl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultFlyableImpl</span>();<br>    <br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        defaultFlyImpl.fly();<br>    &#125;<br>    <br>&#125;<br></code></pre></td></tr></table></figure>
                 
               </div>
             
@@ -477,8 +452,15 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="category-chain-item">设计模式</a>
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/" class="category-chain-item">经典图书</a>
   
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="category-chain-item">深入理解Java虚拟机</a>
+  
+  
+
   
 
       </span>
@@ -492,9 +474,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#设计模式</a>
-      
-        <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" class="print-no-link">#面向对象</a>
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
     </div>
   
@@ -506,8 +486,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>面向对象设计指南</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/17/面向对象设计指南/</div>
+      <div>JVM Structure</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/18/JVM-Structure/</div>
     </div>
     <div class="license-meta">
       
@@ -519,7 +499,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月17日</div>
+          <div>2026年5月18日</div>
         </div>
       
       
@@ -551,9 +531,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B8%AD%E7%9A%84%E7%BB%8F%E5%85%B8%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" title="设计模式中的经典设计原则">
+                      <a href="/2026/05/19/Java-Object/" title="Java Object">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">设计模式中的经典设计原则</span>
+                        <span class="hidden-mobile">Java Object</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -561,8 +541,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/16/JVM-Structure/" title="JVM Structure">
-                        <span class="hidden-mobile">JVM Structure</span>
+                      <a href="/2026/05/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B8%AD%E7%9A%84%E7%BB%8F%E5%85%B8%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" title="设计模式中的经典设计原则">
+                        <span class="hidden-mobile">设计模式中的经典设计原则</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

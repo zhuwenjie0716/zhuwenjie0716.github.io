@@ -19,24 +19,28 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="JVM 内存结构Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：  程序计数器在 Java 虚拟机的概念模型里，程序计数器存的是下一条需要执行的字节码指令的地址，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行">
+    <meta name="description" content="垃圾回收方法论垃圾收集（Garbage Collect）也就是常说的 GC，GC 这个概念不是 Java 独有的，在 Java 之前已经有其他语言有 GC 的理念了，1960 年诞生于麻省理工学院的 Lisp 是第一门开始使用内存动态分配和垃圾收集技术的语言。 垃圾收集需要考虑以下这些事情：  回收什么区域的内存? 如何判断内存可回收? 怎么回收?  回收什么区域的内存Java 的内存区域被分为程">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JVM Structure">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/16/JVM-Structure/index.html">
+<meta property="og:title" content="垃圾回收方法论">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="JVM 内存结构Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：  程序计数器在 Java 虚拟机的概念模型里，程序计数器存的是下一条需要执行的字节码指令的地址，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行">
+<meta property="og:description" content="垃圾回收方法论垃圾收集（Garbage Collect）也就是常说的 GC，GC 这个概念不是 Java 独有的，在 Java 之前已经有其他语言有 GC 的理念了，1960 年诞生于麻省理工学院的 Lisp 是第一门开始使用内存动态分配和垃圾收集技术的语言。 垃圾收集需要考虑以下这些事情：  回收什么区域的内存? 如何判断内存可回收? 怎么回收?  回收什么区域的内存Java 的内存区域被分为程">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/16/JVM-Structure/image-20251230152447993.png">
-<meta property="article:published_time" content="2026-05-16T00:22:26.000Z">
-<meta property="article:modified_time" content="2026-05-15T06:41:39.814Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127093942105.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094126338.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094710039.png">
+<meta property="article:published_time" content="2026-05-20T07:41:57.000Z">
+<meta property="article:modified_time" content="2026-05-19T01:43:50.935Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="JVM">
+<meta property="article:tag" content="垃圾回收">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/16/JVM-Structure/image-20251230152447993.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png">
   
   
   
-  <title>JVM Structure - Hexo</title>
+  <title>垃圾回收方法论 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -311,7 +315,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="JVM Structure"></span>
+            <span id="subtitle" data-typed-text="垃圾回收方法论"></span>
           
         </div>
 
@@ -322,8 +326,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-16 08:22" pubdate>
-          2026年5月16日 早上
+        <time datetime="2026-05-20 15:41" pubdate>
+          2026年5月20日 下午
         </time>
       </span>
     
@@ -334,7 +338,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          4.8k 字
         
       </span>
     
@@ -345,7 +349,7 @@
         
         
         
-          26 分钟
+          40 分钟
         
       </span>
     
@@ -397,39 +401,72 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">JVM Structure</h1>
+            <h1 id="seo-header">垃圾回收方法论</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="JVM-内存结构"><a href="#JVM-内存结构" class="headerlink" title="JVM 内存结构"></a>JVM 内存结构</h1><p>Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。根据《Java虚拟机规范》的规定，Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：</p>
-<p><img src="/2026/05/16/JVM-Structure/image-20251230152447993.png" srcset="/img/loading.gif" lazyload alt="image-20251230152447993"></p>
-<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>在 Java 虚拟机的概念模型里，程序计数器存的是<code>下一条需要执行的字节码指令的地址</code>，由于 Java 的多线程是通过分配处理器执行时间的方式来实现，所以为了在切换线程时保留执行状态（执行到了哪个位置等），<code>每个线程都有自己的程序计数器</code>。</p>
-<p>如果线程正在执行的是一个 Java 方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是本地（Native）方法，这个计数器值则应为空（Undefined）。此内存区域是唯 一一个在《Java虚拟机规范》中没有规定任何 OutOfMemoryError 情况的区域。</p>
-<h2 id="Java-虚拟机栈"><a href="#Java-虚拟机栈" class="headerlink" title="Java 虚拟机栈"></a>Java 虚拟机栈</h2><p><code>Java 虚拟机栈也是线程私有的</code>，每个方法被执行的时候，Java 虚拟机都会同步创建一个<code>栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态连接、方法出口等信息</code>。每一个方法被调用直至执行完毕的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。</p>
-<p>局部变量表存放了编译期可知的基本数据类型（boolean、byte、char、short、int、 float、long、double）、对象引用类型和 returnAddress 类型。</p>
+                <h1 id="垃圾回收方法论"><a href="#垃圾回收方法论" class="headerlink" title="垃圾回收方法论"></a>垃圾回收方法论</h1><p>垃圾收集（Garbage Collect）也就是常说的 GC，GC 这个概念不是 Java 独有的，在 Java 之前已经有其他语言有 GC 的理念了，1960 年诞生于麻省理工学院的 Lisp 是第一门开始使用内存动态分配和垃圾收集技术的语言。</p>
+<p>垃圾收集需要考虑以下这些事情：</p>
 <ul>
-<li>对象引用类型：可能是一个指向对象起始地址的引用指针，也可能是一个代表对象的句柄，总之可以通过该值关联到对象。</li>
-<li>returnAddress 类型：执行一条字节码指令的地址。</li>
+<li>回收什么区域的内存?</li>
+<li>如何判断内存可回收?</li>
+<li>怎么回收?</li>
 </ul>
-<p>这些数据类型在局部变量表中的存储空间以局部变量槽（Slot）来表示，其中 64 位长度的 long 和 double 类型的数据会占用两个变量槽，其余的数据类型只占用一个。<code>局部变量表所需的内存空间在编译期间完成分配</code>，当进入一个方法时，这个方法需要在栈帧中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变局部变量表的大小（大小指槽的个数）。</p>
-<p>《Java虚拟机规范》中，对这个内存区域规定了两类异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError 异常；如果 Java 虚拟机栈容量可以动态扩展，当栈扩展时无法申请到足够的内存会抛出 OutOfMemoryError 异常（HotSpot 虚拟机的栈容量是不可以动态扩展的）。</p>
-<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>Java 虚拟机栈是为虚拟机执行 Java 方法服务，本地方法栈则是为虚拟机执行使用到的本地（Native）方法服务。</p>
-<p>有的 Java 虚拟机（譬如Hot-Spot虚拟机）直接就把本地方法栈和虚拟机栈合二为一。与虚拟机栈一样，本地方法栈也会在栈深度溢出或者栈扩展失败时分别抛出 StackOverflowError 和 OutOfMemoryError 异常。</p>
-<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p><code>Java 堆是被所有线程共享的一块内存区域，“几乎”所有的对象实例都在这里分配内存。</code>它是垃圾收集器管理的内存区域，因此一些资料中它也被称作 “GC堆”（Garbage Collected Heap）。“几乎”的原因是随着逃逸分析的发展和标量替换等手段，对象可能通过标量替换手段变成栈上分配。</p>
-<p>由于垃圾收集器大部分基于分代收集理论设计，所以 Java 堆中经常出现 “新生代”、“老年代”等名词，但这些区域划分仅仅是一部分垃圾收集器的共同特性或者说设计风格而已，而非某个 Java 虚拟机具体实现的固有内存布局，更不是《Java虚拟机规范》里对 Java堆的进一步细致划分。</p>
-<p>从分配内存的角度看，所有线程共享的 Java 堆中可以划分出多个线程私有的分配缓冲区 （Thread Local Allocation Buffer，TLAB），以提升对象分配时的效率。因为堆是线程所共享的，因此在分配内存时需要考虑线程安全，如果每个线程都有一定的私有缓冲区，则只需在为线程分配私有缓冲区时加锁即可。</p>
-<p>如果在 Java 堆中没有内存完成实例分配，并且堆也无法再扩展时（-Xmx），Java 虚拟机将会抛出 OutOfMemoryError 异常。</p>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><code>方法区（Method Area）与 Java 堆一样是各个线程共享的内存区域，它用于存储已被虚拟机加载的类型信息、常量、静态变量、即时编译器编译后的代码缓存等数据。</code>虽然《Java虚拟机规范》中把方法区描述为堆的一个逻辑部分，但是它却有一个别名叫作“非堆”（Non-Heap），目的是与 Java 堆区分开来。</p>
-<p>在 JDK8 以前，Java 程序员习惯称呼方法区为“永久代”（Permanent Generation）或将其混为一谈，但本质上这两者并不是等价的，只是因为当时的 HotSpot 虚拟机设计团队选择把收集器的分代设计扩展至方法区，或者说使用永久代来实现方法区，使得 HotSpot 的垃圾收集器能够像管理 Java 堆一样管理这部分内存，省去了为这个区域专门编写内存管理代码。但是对于其他虚拟机实现，譬如 BEA JRockit、IBM J9 等来说，是不存在永久代的概念的。</p>
-<p>在收购了 BEA 后，为了移植 JRockit 中的优秀特性，在 JDK 6 的 时候 HotSpot 开发团队就有放弃永久代，逐步改为采用本地内存（Native Memory）来实现方法区的计划了。JDK 7 的 HotSpot，已经把原本放在永久代的字符串常量池、静态变量等移出，而到了 JDK 8，终于完全废弃了永久代的概念，改用与 JRockit、J9 一样在本地内存中实现的元空间（Meta space）来代替，把 JDK 7 中永久代还剩余的内容（主要是类型信息）全部移到元空间中。</p>
-<p>相对而言，垃圾收集行为在这个区域的确是比较少出现的，但<code>并非数据进入了方法区就如永久代的名字一样“永久”存在了</code>。这区域的内存回收目标主要是针对常量池的回收和对类型的卸载，一般来说这个区域的回收效果比较难令人满意，尤其是类型的卸载，条件相当苛刻，但是这部分区域的回收有时又确实是必要的。</p>
-<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>运行时常量池（Runtime Constant Pool）是方法区的一部分。Class 文件中有一项信息是常量池表（Constant Pool Table），用于存放编译期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。</p>
-<p>运行时常量池相对于 Class 文件常量池的另外一个重要特征是具备动态性，Java 语言并不要求常量一定只有编译期才能产生，也就是说，并非预置入 Class 文件中常量池的内容才能进入方法区运行时常 量池，<code>运行期间也可以将新的常量放入池中</code>，这种特性被开发人员利用得比较多的便是 String 类的 intern() 方法。</p>
-<p>《Java虚拟机规范》的规定，如果方法区（包括运行时常量池）无法满足新的内存分配需求时，将抛出 OutOfMemoryError 异常。</p>
-<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>直接内存（Direct Memory）并不是虚拟机运行时数据区的一部分，但也会导致 OutOfMemoryError 的出现。</p>
-<p>NIO（New Input&#x2F;Output）类引入了一种基于通道（Channel）与缓冲区（Buffer）的 I&#x2F;O 方式，它可以使用 Native 函数库<code>直接分配堆外内存</code>，然后通过一个存储在 Java 堆里面的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据（Netty 中经常使用）。</p>
-<p>注意：直接内存不再受 Java 堆内存的限制，只受本机物理内存限制（物理大小和操作系统级限制），但如果设置 -Xmx 等信息时不注意，可能会导致各个内存区域和大于物理内存，从而导致 OutOfMemoryError 。</p>
+<h2 id="回收什么区域的内存"><a href="#回收什么区域的内存" class="headerlink" title="回收什么区域的内存"></a>回收什么区域的内存</h2><p>Java 的内存区域被分为程序计数器、虚拟机栈、堆、本地方法栈和方法区几个部分，其中程序计数器、虚拟机栈和本地方法栈随线程的生命周期运转，每一个栈帧中分配的内存在类结构确定下来时基本已知，所以这几个区域的内存分配和回收都具备确定性，当方法执行结束或线程结束时，内存自然就跟着释放了。</p>
+<p>堆和方法区的内存回收则不确定性很大，一个方法执行不同的分支所需要的内存可能都不一样，只有运行期才知道程序究竟会创建多少个对象，垃圾收集器所关注的也是这部分内存该如何管理。</p>
+<h2 id="如何判断内存可回收"><a href="#如何判断内存可回收" class="headerlink" title="如何判断内存可回收"></a>如何判断内存可回收</h2><p>判断堆内存可回收其实就是认为这片内存所代表的对象已经不会再访问到了，方法区则是主要回收废弃的常量和不再使用的类型。和堆中判断对象可回收相比，方法区判断常量不再被引用及类型不再使用则比较复杂，进行垃圾收集的“性价比”通常也比较低。</p>
+<p>判断一个类型不再使用是很复杂的，需要满足以下条件：</p>
+<ul>
+<li>该类的所有实例都已回收；</li>
+<li>该类的类加载器也被回收，实际上这点除非是精心设计的场景（OSGI、JSP），通常很难达成；</li>
+<li>该类对应的 Class 对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</li>
+</ul>
+<p>所以我们主要关注堆内存的回收。</p>
+<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p>狭义的引用就是如果 refenence 类型的数据存储的值代表另一块内存的地址，那么该 refenence 就是某个对象的引用。</p>
+<p>在这样的定义下，对象只有引用和无引用两种，描述不了其它的情形：譬如我们希望描述一种对象，它在内存足够时就可以存活，内存不足时可以回收，于是 JDK1.2 对引用进行了扩充，将引用分为强引用（Strongly Reference）、软引用（Soft Reference）、弱引用（Weak Reference）和虚引用（Phantom Reference）4 种，这 4 种引用强度依次逐渐减弱。</p>
+<p>强引用即我们日常中最普遍的引用复制，诸如 <code>Object a = new Object()</code> 这样，只要引用关系还在，无论任何情况下垃圾回收器都不能回收。</p>
+<p>软引用是用来描述一些还有用，但非必须的对象。只被软引用关联着的对象，在系统将要发生内存溢出异常前，会把这些对象列进回收范围之中进行第二次回收。</p>
+<p>弱引用也是用来描述那些非必须对象，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生为止。</p>
+<p>虚引用也称为“幽灵引用”或者“幻影引用”，它是最弱的一种引用关系。一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的只是为了能在这个对象被收集器回收时收到一个系统通知。</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>引用计数法的逻辑非常简单，判定效率也很高，也有一些语言的应用案例，实现就是：每个对象设置一个字段存放被引用的个数，当这个数为 0 时说明对象不再被使用了。</p>
+<p>但是引用计数法无法解决循环依赖的问题，当 A-&gt; B &amp;&amp; B-&gt;A 时 AB 的引用都至少为1，那么永远无法被回收了，即使它们不会再被访问。</p>
+<h3 id="可达性分析法"><a href="#可达性分析法" class="headerlink" title="可达性分析法"></a>可达性分析法</h3><p>当前主流的商用语言的内存管理子系统都是通过可达性分析（Reachability Analysis）算法来判定对象是否存活的，基本思路就是通过 一系列称为“GC Roots”的根对象作为起始节点集，从这些节点开始，根据引用关系向下搜索，搜索过程所走过的路径称为“引用链”（Reference Chain），如果某个对象到 GC Roots 间没有任何引用链相连， 或者用图论的话来说就是从 GC Roots 到这个对象不可达时，则证明此对象是不可能再被使用的。</p>
+<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png" srcset="/img/loading.gif" lazyload alt="image-20260127090400550"></p>
+<p>Java 中可固定作为 GC Roots 的对象包括以下几个部分：</p>
+<ul>
+<li>虚拟机栈（栈帧中的本地变量表）中引用的对象，譬如各个线程被调用的方法堆栈中使用到的参数、局部变量、临时变量等；</li>
+<li>方法区中类静态属性引用的对象，譬如Java类的引用类型静态变量；</li>
+<li>方法区中常量引用的对象，譬如字符串常量池（String Table）里的引用；</li>
+<li>虚拟机内部的引用，如基本数据类型对应的 Class 对象，一些常驻的异常对象（比如 NullPointExcepiton、OutOfMemoryError）等，还有系统类加载器；</li>
+<li>…….</li>
+</ul>
+<p>除了这些固定的 GC Roots 集合以外，根据用户所选用的垃圾收集器以及当前回收的内存区域不同，还可以有其他对象“临时性”地加入，共同构成完整 GC Roots 集合。例如在回收某区域时，这个区域的对象被另一区域的对象引用，那么另一区域的这个对象也需要假如到 GC Roots 中。</p>
+<p>不可达的对象也不是立刻死亡的，当它被第一次标记时，如果重写了 finilize 方法且 finilize 方法是没有被调用，会被放到一个低优先级的调度队列中执行 <code>finilize() 方法</code>，如果在执行过程中与 GC Roots 中的对象建立了连接，那在第二次标记时它将被移出“即将回收”的集合。任何一个对象的 finalize() 方法都只会被系统自动调用一次，如果对象面临下一次回收，它的 finalize() 方法不会被再次执行。finalize() 并不能等价于 C 语言中的析构函数，由于优先级低且为了避免执行缓慢而导致内存不能回收，甚至不能保证这个方法被执行完成，<code>推荐直接忘掉</code>这个方法。</p>
+<h2 id="怎么回收"><a href="#怎么回收" class="headerlink" title="怎么回收"></a>怎么回收</h2><p>如何判定对象消亡的角度出发，垃圾收集算法可以划分为“引用计数式垃圾收集”（Reference Counting GC）和“追踪式垃圾收集”（Tracing GC）两大类，这两类也常被称作“直接垃圾收集”和“间接垃圾收集”，主流 Java 虚拟机中都是第二类。</p>
+<h3 id="分代收集理论"><a href="#分代收集理论" class="headerlink" title="分代收集理论"></a>分代收集理论</h3><p>Java 开发应该经常听到诸如新生代、老年代等词语，这些词语来自于分代收集理论。</p>
+<p>分代收集理论中有两个重要假说：</p>
+<ul>
+<li>弱分代假说（Weak Generational Hypothesis）：绝大多数对象都是朝生夕灭的；</li>
+<li>强分代假说（Strong Generational Hypothesis）：熬过越多次垃圾收集过程的对象就越难以消亡。</li>
+</ul>
+<p>这两个分代假说共同奠定了多款常用的垃圾收集器的一致的设计原则：收集器应该将 Java 堆划分出不同的区域，然后将回收对象依据其年龄（年龄即对象熬过垃圾收集过程的次数）分配到不同的区域之中存储。</p>
+<p>堆内存分代之后，垃圾收集器才可以每次只回收其中某一个或者某些部分的区域 ——因而才有了“Minor GC”“Major GC”“Full GC”这样的回收类型的划分；也才能够针对不同的区域安排与里面存储对象存亡特征相匹配的垃圾收集算法，例如<strong>在新生代中可以关注如何保留少量的存活对象</strong>，而<strong>在老年代关注如何回收少量的死亡对象</strong>。——因而发展出了“标记-复制算法”“标记-清除算法”“标记-整理算法”等针对性的垃圾收集算法。</p>
+<p>现在的商用 Java 虚拟机里，设计者一般至少会把 Java 堆划分为<code>新生代 （Young Generation）</code>和<code>老年代（Old Generation）</code>两个区域。垃圾收集可以分为部分收集（Partial GC）和整堆收集（Full GC）两大类，部分收集又可以分为Young GC（新生代）、Old GC（老年代） 和 Mix GC（混合收集，G1收集器）。</p>
+<p>需要特别考虑的是，对象不是孤立的，对象之间会存在跨代引用。基于跨代引用理论：跨代引用相对于同代引用来说仅占极少数。（因为如果老年代引用了新生代对象，那么新生代对象大概率也要进入老年代，那么就消除了跨代引用），虚拟机在<code>新生代上建立一个全局的数据结构（该结构被称为“记忆集”，Remembered Set）</code>，这个结构把老年代划分成若干小块，标识出老年代的哪一块内存会存在跨代引用。此后当<code>发生Young GC时，只有包含了跨代引用的小块内存里的对象才会被加入到 GC  Roots</code> 进行扫描。虽然这种方法需要在对象改变引用关系（如将自己或者某个属性赋值）时维护记录数 据的正确性，会增加一些运行时的开销，但比起收集时扫描整个老年代来说仍然是划算的。</p>
+<h3 id="标记-清除（其他算法的基础）"><a href="#标记-清除（其他算法的基础）" class="headerlink" title="标记-清除（其他算法的基础）"></a>标记-清除（其他算法的基础）</h3><p>最基础的垃圾收集算法是“标记-清除”（Mark-Sweep）算法，算法分为“标记”和“清除”两个阶段，标记所有待回收的对象，清除所有标记的对象，或者相反操作。</p>
+<p>它的主要缺点有两个：第一个是执行效率不稳定，如果 Java 堆中包含大量对象，而且其中大部分是需要被回收的，这时必须进行大量标记和清除的动作，导致标记和清除两个过程的执行效率都随对象数量增长而降低；第二个是内存空间的碎片化问题，标记、清除之后会产生大量不连续的内存碎片。优点则是没有任何的空间冗余。</p>
+<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127093942105.png" srcset="/img/loading.gif" lazyload alt="image-20260127093942105"></p>
+<h3 id="标记-复制（新生代）"><a href="#标记-复制（新生代）" class="headerlink" title="标记-复制（新生代）"></a>标记-复制（新生代）</h3><p>1969 年 Fenichel 提出了一种称为“半区复制”（Semispace Copying）的垃圾收集算法，它将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。</p>
+<p>该算法分配内存时不用考虑空间碎片的复杂情况，只要移动堆顶指针，按顺序分配即可。这样实现简单，运行高效，不过其缺陷也显而易见，这种复制回收算法的代价是将可用内存缩小为了原来的一半。</p>
+<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094126338.png" srcset="/img/loading.gif" lazyload alt="image-20260127094126338"></p>
+<p>现在的商用 Java 虚拟机大多都优先采用了这种收集算法去回收新生代，不过由于新生代大多数对象朝生夕死，并不需要按照 1∶1 的比例来划分新生代的内存空间。HotSpot 虚拟机的 Serial、ParNew 等新生代收集器把新生代分为一块较大的 Eden 空间和两块较小的 Survivor空间（Appel 式回收），默认空间是 8:1:1，每次分配内存只使用 Eden 和其中一块 Survivor。不过任何人都没有办法百分百保证每次回收都只有不多于10%的对象存活，因此 Appel 式回收还有一个充当罕见情况的“逃生门”的安全设计，当 Survivor 空间不足以容纳一次 Young GC 之后存活的对象时，就需要依赖其他内存区域（实际上大多就是老年代）进行分配担保（Handle Promotion）。</p>
+<h3 id="标记-整理（老年代）"><a href="#标记-整理（老年代）" class="headerlink" title="标记-整理（老年代）"></a>标记-整理（老年代）</h3><p>标记-复制算法在对象存活率较高时就要进行较多的复制操作，效率将会降低。更关键的是，如果不想浪费 50% 的空间，就需要有额外的空间进行分配担保，以应对被使用的内存中所有对象都100%存活的极端情况，所以在老年代一般不能直接选用这种算法。</p>
+<p>针对老年代对象的存亡特征，1974 年 Edward Lueders 提出了另外一种有针对性的“标记-整理”（Mark-Compact）算法，其中的标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是<code>让所有存活的对象都向内存空间一端移动，然后直接清理掉边界以外的内存</code>。</p>
+<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094710039.png" srcset="/img/loading.gif" lazyload alt="image-20260127094710039"></p>
+<p>在老年代这种每次回收都有大量对象存活区域，移动存活对象并更新所有引用这些对象的地方将会是一种极为负重的操作，而且这种对象移动操作必须全程暂停用户应用程序才能进行。但如果跟标记-清除算法那样完全不考虑移动和整理存活对象的话，弥散于堆中的存活对象导致的空间碎片化问题就只能依赖更为复杂的内存分配器和内存访问器来解决。</p>
+<p>基于以上两点，<strong>是否移动对象都存在弊端，移动则内存回收时会更复杂，不移动则内存分配时会更复杂</strong>。移动对象暂停时间较长，不移动对象停顿时间会更短，甚至可以不需要停顿，但从吞吐量上看，不移动则可能由于内存碎片提前触发下一次的 GC，长久来看依然是影响吞吐量的。</p>
+<p>基于标记-清除算法的 CMS 收集器平时多数时间都采用标记-清除算法，暂时容忍内存碎片的存在，直到内存空间的碎片化程度已经大到影响对象分配时，会采用标记-整理算法收集一次，以获得规整的内存空间。</p>
 
                 
               </div>
@@ -472,6 +509,8 @@
       
         <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
+        <a href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="print-no-link">#垃圾回收</a>
+      
     </div>
   
 </div>
@@ -482,8 +521,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>JVM Structure</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/16/JVM-Structure/</div>
+      <div>垃圾回收方法论</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/20/垃圾回收方法论/</div>
     </div>
     <div class="license-meta">
       
@@ -495,7 +534,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月16日</div>
+          <div>2026年5月20日</div>
         </div>
       
       
@@ -527,9 +566,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/17/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/" title="面向对象设计指南">
+                      <a href="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" title="垃圾收集器">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">面向对象设计指南</span>
+                        <span class="hidden-mobile">垃圾收集器</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -537,8 +576,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" title="Redis源码分析之ziplist篇">
-                        <span class="hidden-mobile">Redis源码分析之ziplist篇</span>
+                      <a href="/2026/05/19/Java-Object/" title="Java Object">
+                        <span class="hidden-mobile">Java Object</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
