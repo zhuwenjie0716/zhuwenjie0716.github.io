@@ -5,3 +5,23 @@ code {
 h1 {
     text-align: center;
 }
+
+.markdown-body blockquote {
+  padding: 0.8rem 1.2rem;
+  background: #f0f2f5;            /* 浅灰色背景，与纯白正文区分 */
+  color: #1e293b;
+  border-left: 6px solid #3b82f6; /* 蓝边框保持醒目 */
+  border-radius: 0 12px 12px 0;
+  font-style: normal;
+  /* 阴影增强立体感 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08),
+              0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease;
+}
+
+/* 嵌套引用可稍深一点灰色，层次更丰富 */
+.markdown-body blockquote blockquote {
+  background: #e6e9ef;            /* 更深的灰 */
+  border-left-color: #8b5cf6;
+  margin: 0.5rem 0;
+}

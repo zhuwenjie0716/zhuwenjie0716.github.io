@@ -19,25 +19,31 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+    <meta name="description" content="增量更新与原始快照Java 语言的垃圾回收一直有一个为人所诟病的点，即垃圾回收时会触发 “STW”，为了减少 “STW” 的时间，垃圾收集器也在不断改进。 在日常开发中，我们经常会通过多线程的手段缩短程序的执行时间，目前主流的垃圾收集器也使用了并发在某些阶段让 GC线程 和 用户线程 可以同时工作，以尽可能及时地对请求进行处理。 提到并发，那就一定会涉及线程安全问题。试想：如果一个扫地机器人（GC">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Netty的FastThreadLocal快在哪">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/index.html">
+<meta property="og:title" content="增量更新与原始快照">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+<meta property="og:description" content="增量更新与原始快照Java 语言的垃圾回收一直有一个为人所诟病的点，即垃圾回收时会触发 “STW”，为了减少 “STW” 的时间，垃圾收集器也在不断改进。 在日常开发中，我们经常会通过多线程的手段缩短程序的执行时间，目前主流的垃圾收集器也使用了并发在某些阶段让 GC线程 和 用户线程 可以同时工作，以尽可能及时地对请求进行处理。 提到并发，那就一定会涉及线程安全问题。试想：如果一个扫地机器人（GC">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png">
-<meta property="article:published_time" content="2026-05-04T14:28:05.000Z">
-<meta property="article:modified_time" content="2026-05-07T06:52:14.785Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521094412379.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521094900788.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521100105367.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521095840792.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521101020730.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521102746758.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521103055947.png">
+<meta property="article:published_time" content="2026-05-22T03:03:19.000Z">
+<meta property="article:modified_time" content="2026-05-21T05:49:56.119Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="源码分析">
-<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="垃圾回收">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521094412379.png">
   
   
   
-  <title>Netty的FastThreadLocal快在哪 - Hexo</title>
+  <title>增量更新与原始快照 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +318,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Netty的FastThreadLocal快在哪"></span>
+            <span id="subtitle" data-typed-text="增量更新与原始快照"></span>
           
         </div>
 
@@ -323,8 +329,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-04 22:28" pubdate>
-          2026年5月4日 晚上
+        <time datetime="2026-05-22 11:03" pubdate>
+          2026年5月22日 上午
         </time>
       </span>
     
@@ -335,7 +341,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          2.2k 字
         
       </span>
     
@@ -346,7 +352,7 @@
         
         
         
-          29 分钟
+          19 分钟
         
       </span>
     
@@ -398,61 +404,67 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Netty的FastThreadLocal快在哪</h1>
+            <h1 id="seo-header">增量更新与原始快照</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Netty的FastThreadLocal快在哪"><a href="#Netty的FastThreadLocal快在哪" class="headerlink" title="Netty的FastThreadLocal快在哪"></a>Netty的FastThreadLocal快在哪</h1><p>Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。</p>
-<p>FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？</p>
-<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>ThreadLocal 可以用来实现线程内单例。</p>
-<p>对于线程内单例，简单的实现可以维护一个 ConcurrentHashMap，其中 Key 是 Thread 对象，Value 是 ThreadLocal 的类型。ThreadLocal 不是这么实现的，因为在高并发的场景并发修改 Map 如果需要加锁，势必会降低性能。</p>
-<p>JDK 为了避免加锁，采用了相反的设计思路。JDK 在每个 Thread 内维护一个 Map，Map 的元素称为 Entry，Map 的 Key 是 ThreadLocal，Value 是这个 ThreadLocal 的类型的值。</p>
-<p><img src="/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/image-20260504224251962.png" srcset="/img/loading.gif" lazyload alt="image-20260504224251962"></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;Integer&gt; threadLocal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>threadLocal.set(<span class="hljs-number">1</span>);<br></code></pre></td></tr></table></figure>
-
-<p>即该线程内的 ThreadLocalMap，会有一个 Entry 元素 &lt;threadLocal, 1&gt;。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread对象<br>  └─ ThreadLocalMap (哈希表)<br>       ├─ Entry[<span class="hljs-number">16</span>] (哈希槽位，可能冲突)<br>       ├─ Entry[<span class="hljs-number">17</span>] (哈希槽位)<br>       └─ Entry[<span class="hljs-number">18</span>] (哈希槽位)<br></code></pre></td></tr></table></figure>
-
-<p>ThreadLocalMap 是一种使用线性探测法实现的哈希表，底层采用数组存储数据。当发生哈希冲突时，要向后寻找空闲的位置，当冲突频率很高时，<code>解决哈希冲突的成本很大</code>，而且在查找数据时也需要向后查找（哈希值对应的位置可能被其它节点线性探测占用了）。当容量达到阈值时，需要进行扩容，扩容后需要再哈希确定元素位置。</p>
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>提起 ThreadLocal 也不得不提内存泄漏，系统中为了避免频繁的创建销毁线程，一般都会使用线程池复用线程。想一下下面的场景：</p>
-<ol>
-<li>线程在执行过程中向某个方法内创建的 ThreadLocal 对象中设置了值；</li>
-<li>方法执行结束，线程回收到线程池；</li>
-<li>由于线程内的 ThreadLocalMap 中引用了第一步的 ThreadLocal 对象，所以即使方法执行结束，ThreadLocal 对象也无法被回收。</li>
-</ol>
-<p>JDK 为了避免这样的情况，做了以下措施：</p>
-<ol>
-<li>ThreadLocalMap 的 Key 采用弱引用类型，即当没有强引用时只要发生 gc 就会回收；但只有 Key 时弱引用，Value 依然是强引用；</li>
-<li>在执行 ThreadLocal.set()&#x2F;get() 方法时，ThreadLocal 会清除 ThreadLocalMap 中 key 为 NULL 的 Entry 对象，让它能够被 GC 回收。</li>
-</ol>
-<p>但是为了避免内存泄漏，还是要求某个 ThreadLocal 对象不再使用时，立即调用 remove() 方法删除 Entry 对象。</p>
-<h2 id="FastThreadLocal"><a href="#FastThreadLocal" class="headerlink" title="FastThreadLocal"></a>FastThreadLocal</h2><p>通过对 ThreadLocal 的介绍，它有以下缺点：</p>
+                <h1 id="增量更新与原始快照"><a href="#增量更新与原始快照" class="headerlink" title="增量更新与原始快照"></a>增量更新与原始快照</h1><p>Java 语言的垃圾回收一直有一个为人所诟病的点，即垃圾回收时会触发 “STW”，为了减少 “STW” 的时间，垃圾收集器也在不断改进。</p>
+<p>在日常开发中，我们经常会通过多线程的手段缩短程序的执行时间，目前主流的垃圾收集器也使用了并发在某些阶段让 GC线程 和 用户线程 可以同时工作，以尽可能及时地对请求进行处理。</p>
+<p>提到并发，那就一定会涉及线程安全问题。试想：如果一个扫地机器人（GC线程）处理完了一部分的区域的垃圾（部分对象），开始处理其他区域的垃圾（其他对象），但此时用户（用户线程）又向处理过的区域丢垃圾（引用未处理区域的对象或删除对象引用），那该怎么办呢？</p>
+<p>“STW” 的过程中，如果所有用户线程暂停，对象间的引用关系就不会改变，没有这个问题。在并发情况下，是通过<strong>先记录所有标记过程中对于对象引用的修改，并发标记完成后再暂停进行处理</strong>来保证处理时的一致性。</p>
+<h2 id="三色标记法"><a href="#三色标记法" class="headerlink" title="三色标记法"></a>三色标记法</h2><p>三色标记法是一种经典的可达性分析师算法，它将对象分为三种颜色：</p>
 <ul>
-<li>解决哈希冲突的成本大，可能会存在性能瓶颈；</li>
-<li>如果不及时 remove，可能产生内存泄漏；</li>
+<li><p>黑色：表示对象已经被垃圾收集器访问过，且这个对象的所有引用都已经扫描过。</p>
+</li>
+<li><p>灰色：表示对象已经被垃圾收集器访问过，但这个对象上至少存在一个引用还没有被扫描过。</p>
+</li>
+<li><p>白色：表示对象尚未被垃圾收集器访问过。</p>
+</li>
 </ul>
-<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>FastThreadLocalThread 是对 Thread 类的一层包装，每个线程对应一个 InternalThreadLocalMap 实例。只有 FastThreadLocal 和 FastThreadLocalThread 组合使用时，才能发挥 FastThreadLocal 的性能优势。</p>
-<p>InternalThreadLocalMap 与 ThreadLocalMap 的实现差别很大，虽然也是采用数组的方式存储元素，但它可以做到 O(1) 的访问速度，而且只存储 Value，原因就藏在源码里：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> index;<br><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FastThreadLocal</span><span class="hljs-params">()</span> &#123;<br>    index = InternalThreadLocalMap.nextVariableIndex();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>在创建 FastThreadLocal 时，会为其中的 index 属性赋一个值，赋值的逻辑很简单：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">nextIndex</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();    <br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">nextVariableIndex</span><span class="hljs-params">()</span> &#123;<br>       <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> nextIndex.getAndIncrement();<br>       <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) &#123;<br>           nextIndex.decrementAndGet();<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;too many thread-local indexed variables&quot;</span>);<br>       &#125;<br>       <span class="hljs-keyword">return</span> index;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<p>也就是每一个 FastThreadLocal 都有唯一的一个 index，那在 Thread 中存储 FastThreadLocal值 的时候，直接存到 index 对应的位置不就直接解决哈希冲突了吗？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br>            ├─ [<span class="hljs-number">1</span>] → FastThreadLocal_1的值<br>            ├─ [<span class="hljs-number">2</span>] → FastThreadLocal_2的值<br>            ├─ [<span class="hljs-number">3</span>] → UNSET（未使用）<br>            └─ [<span class="hljs-number">4</span>] → FastThreadLocal_4的值<br></code></pre></td></tr></table></figure>
-
-<p>当数组容量满时，需要根据 index 的值进行扩容（注意这里不能是简单的 2 倍关系，例如当前长度是 32，但是插入了一个 index 是 72 的 FastThreadLocal，那么扩容2倍是不够的），但这并不会浪费很多空间，那些没使用的位置只是存放了同一个缺省对象的引用。</p>
-<h3 id="内存泄漏-1"><a href="#内存泄漏-1" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>FastThreadLocalThread 对于内存泄漏又有什么改进呢？</p>
-<p>Netty 通过 DefaultThreadFactory 创建的所有线程都是 FastThreadLocalThread（Netty 的 EventLoop 就是 FastThreadLocalThread），并且所有提交的 Runnable 任务会被包装成 FastThreadLocalRunnable。</p>
-<p>当一个线程（特别是线程池中的线程）执行完任务后，其实就可以清理当前线程上绑定的所有 FastThreadLocal 变量了。在 FastThreadLocalThread 的设计中，如果一个 index 被设置了值，那么这个 FastThreadLocal 就会放到一个 Set 中，这个 Set 就存在 indexedVariables[0] 的位置。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br></code></pre></td></tr></table></figure>
-
-<p>Netty 还封装了 FastThreadLocalRunnable，FastThreadLocalRunnable 最后会执行 FastThreadLocal.removeAll() 将 Set 集合中所有 FastThreadLocal 对象都清理掉。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultRunnableDecorator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Runnable r;<br><br>    DefaultRunnableDecorator(Runnable r) &#123;<br>        <span class="hljs-built_in">this</span>.r = r;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            r.run();<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            FastThreadLocal.removeAll();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>相比 JDK 原生的 ThreadLocal，Netty 的 FastThreadLocal 一方面提高了并发情况下的性能，也优化了内存泄漏。</p>
-<p>但 FastThreadLocal 不一定比 ThreadLocal 快，只有是 FastThreadLocalThread 类型的线程才会更快，如果是普通线程反而会更慢。</p>
+<p>以下面这个图来分析三色标记法的流程：</p>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521094412379.png" srcset="/img/loading.gif" lazyload alt="image-20260521094412379"></p>
+<ol>
+<li>在可达性分析最开始的阶段，所有的对象都是白色的；</li>
+<li>将<code>GC Roots</code> 直接引用到的对象 挪到 【灰色集合】中；</li>
+<li>从灰色集合中获取对象：<br>3.1. 将本对象引用到的其他对象（出边）全部挪到 【灰色集合】中；<br>3.2. 将本对象挪到 【黑色集合】里面；</li>
+<li>重复执行 3，直到【灰色集合】为空；</li>
+<li>此时仍然是白色的对象，即代表不可达。</li>
+</ol>
+<p>一般执行步骤 2 时是会暂停用户线程的，最终的图示如下：</p>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521094900788.png" srcset="/img/loading.gif" lazyload alt="image-20260521094900788"></p>
+<p>现在思考下在并发标记时什么情况下会出问题？</p>
+<ol>
+<li>有一个对象已经扫描完成是黑色的了，但此时引用该对象的那条引用被删除了，这个对象应该被清除的，误标记为存活对象。这会导致垃圾回收不彻底，但影响不大，可以在下个周期被回收。这种对象被称为<strong>浮动垃圾（多标）</strong>。</li>
+</ol>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521100105367.png" srcset="/img/loading.gif" lazyload alt="image-20260521100105367"></p>
+<ol start="2">
+<li>在遍历某个灰色对象的过程中，删除了它所引用的一个对象，这个对象还被一个黑色对象引用了。如果这么进行下去会导致本应该存活的<strong>对象消失（漏标）</strong>，是不可接受的。</li>
+</ol>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521095840792.png" srcset="/img/loading.gif" lazyload alt="image-20260521095840792"></p>
+<p>Wilson 于 1994 年在理论上证明了，当且仅当以下两个条件同时满足时，会产生“对象消失”的问题，即原本应该是黑色的对象被误标为白色： </p>
+<ul>
+<li>赋值器插入了一条或多条从黑色对象到白色对象的新引用； </li>
+<li>赋值器删除了全部从灰色对象到该白色对象的直接或间接引用。</li>
+</ul>
+<p>如果第一个条件是新增了灰色对象到白色对象的引用是否可行呢？例如在获取灰色对象引用集合和灰色对象变黑之间新增了对一个白色对象的引用。实现上这是不可以的，JVM 通过 <strong>屏障（ Barrier）</strong>维护了这个步骤的正确性。</p>
+<p>既然对象消失必须同时满足这两个条件，那么只要打破其中一个条件就可以了，这就是接下来介绍的增量更新（Incremental Update）和原始快照（Snapshot At The Beginning， SATB）。</p>
+<h2 id="增量更新（Incremental-Update）"><a href="#增量更新（Incremental-Update）" class="headerlink" title="增量更新（Incremental Update）"></a>增量更新（Incremental Update）</h2><p>CMS 是基于增量更新来做并发标记的，破坏的是条件一。</p>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521101020730.png" srcset="/img/loading.gif" lazyload alt="image-20260521101020730"></p>
+<p>增量更新的核心逻辑是：当黑色对象插入新的指向白色对象的引用时，就将这个新加入的引用记录下来，待并发标记完成后，重新对这种新增的引用记录进行扫描。可以简化理解为，<strong>黑色对象一旦新插入了指向白色对象的引用之后，它就变回灰色对象了</strong>。</p>
+<p>如下图所示，A 由黑色变为灰色，将在后续被重新扫描：</p>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521102746758.png" srcset="/img/loading.gif" lazyload alt="image-20260521102746758"></p>
+<h2 id="原始快照（Snapshot-At-The-Beginning）"><a href="#原始快照（Snapshot-At-The-Beginning）" class="headerlink" title="原始快照（Snapshot At The Beginning）"></a>原始快照（Snapshot At The Beginning）</h2><p>G1、Shenandoah 则是用原始快照来实现的，破坏的是条件二。</p>
+<p>当灰色对象要删除指向白色对象的引用关系时，就将这个要删除的引用记录下来，在并发扫描结束之后，再将这些记录过的引用关系中的灰色对象为根，重新扫描一次。这也可以简化理解为，在标记阶段中如果指针更新前引用的对象是白色对象，就将其涂成灰色。</p>
+<p>如下图所示，C 由白色变为灰色，将在后续被重新扫描：</p>
+<p><img src="/2026/05/22/%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8E%9F%E5%A7%8B%E5%BF%AB%E7%85%A7/image-20260521103055947.png" srcset="/img/loading.gif" lazyload alt="image-20260521103055947"></p>
+<p>这里你可能有疑问，C 虽然是灰色，但根本没有黑色对象引用呀。原始快照就是这样，它只考虑灰色对象对白色对象的引用删除，只要一个对象在并发标记开始时是可达的（即存在于快照的有效中），即使随后它所有的入口引用都被删除，仍然会被本轮 GC 标记为存活。虽然这可能暂时保留垃圾，也做到了绝不漏标快照中的对象。</p>
+<h2 id="增量更新-VS-SATB"><a href="#增量更新-VS-SATB" class="headerlink" title="增量更新 VS SATB"></a>增量更新 VS SATB</h2><p>增量更新通过写屏障拦截<strong>黑对象新增指向白对象</strong>的引用，把这个黑对象重新标为灰色，放入待扫描队列，最后 Remark（重新标记）时，只扫这些被修改过的对象。</p>
+<p>SATB 以并发标记开始那一刻的对象图为 “快照”，写屏障拦截<strong>引用被删除</strong>（灰→白），把 旧值（被删掉的引用） 记下来，保证 “快照里活着的对象” 本轮一定不被误删，新产生的对象直接当黑色，本轮不回收。</p>
+<p>为什么 CMS 采用增量更新而 G1 采用原始快照呢？</p>
+<p>这个问题涉及到很多方面，包括堆内存的布局、记忆集的维护、垃圾收集器的目标。</p>
+<p>CMS 工作的老年代是一整块连续内存，Remark 时只追踪新增引用，重新扫描的范围小、成本可控，而且浮动垃圾更少，符合 CMS 追求低内存占用的目标。代价则是 Remark 阶段要深度重扫部分对象。</p>
+<p>G1 的堆被拆成几百个 Region，回收是 “按 Region 回收”，采用 SATB 只记录 “被删掉的引用”，不需要深度重扫整个 Region。代价是产生更多的浮动垃圾，但 G1 是分代 + 分区，浮动垃圾影响可控，换来更低、更可控的停顿是值得的。如果 G1 用增量更新，通过记忆集跨 Region 扫描代价极高、停顿不可控。</p>
 
                 
               </div>
@@ -471,12 +483,12 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/" class="category-chain-item">经典图书</a>
   
   
     <span>></span>
     
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="category-chain-item">深入理解Java虚拟机</a>
   
   
 
@@ -493,9 +505,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="print-no-link">#源码分析</a>
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
-        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+        <a href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="print-no-link">#垃圾回收</a>
       
     </div>
   
@@ -507,8 +519,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Netty的FastThreadLocal快在哪</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/04/Netty的FastThreadLocal快在哪/</div>
+      <div>增量更新与原始快照</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/22/增量更新与原始快照/</div>
     </div>
     <div class="license-meta">
       
@@ -520,7 +532,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月4日</div>
+          <div>2026年5月22日</div>
         </div>
       
       
@@ -552,18 +564,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" title="Netty的ByteBuf好用在哪">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Netty的ByteBuf好用在哪</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/" title="Netty逻辑架构与核心组件">
-                        <span class="hidden-mobile">Netty逻辑架构与核心组件</span>
+                      <a href="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" title="垃圾收集器">
+                        <span class="hidden-mobile">垃圾收集器</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
