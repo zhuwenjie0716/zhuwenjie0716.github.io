@@ -26,14 +26,14 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Netty的Mpsc队列如何实现队列是一种 FIFO（先进先出）的数据结构，JDK 中定义了 java.util.Queue 的队列接口，与 List、Set 接口类似，java.util.Queue 也继承于 Collection 集合接口。此外，JDK 还提供了一种双端队列接口 java.util.Deque，我们最常用的 LinkedList 就是实现了 Deque 接口。JDK 提供了一些">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E7%9A%84Mpsc%E9%98%9F%E5%88%97%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0/image-20260506113245673.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260506113245673.png">
 <meta property="article:published_time" content="2026-05-06T10:51:02.000Z">
-<meta property="article:modified_time" content="2026-05-07T06:52:57.814Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.003Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="Netty">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E7%9A%84Mpsc%E9%98%9F%E5%88%97%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0/image-20260506113245673.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260506113245673.png">
   
   
   
@@ -413,7 +413,7 @@
 </ul>
 <h2 id="伪共享"><a href="#伪共享" class="headerlink" title="伪共享"></a>伪共享</h2><p>在 <a href="https://zhuwenjie0716.github.io/2026/04/23/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8BCPU%E7%AF%87/">性能优化之CPU篇</a> 中，有介绍多核 CPU 的结构。程序在执行时，会先将内存中的数据载入三级缓存，再进入每颗核心独有的二级缓存，最后进入最快的一级缓存，之后才会被 CPU 使用。</p>
 <p>伪共享的场景就与CPU的多核架构有关：</p>
-<p><img src="/2026/05/06/Netty%E7%9A%84Mpsc%E9%98%9F%E5%88%97%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0/image-20260506113245673.png" srcset="/img/loading.gif" lazyload alt="image-20260506113245673"></p>
+<p><img src="/img/image-20260506113245673.png" srcset="/img/loading.gif" lazyload alt="image-20260506113245673"></p>
 <p>假设变量 A、B、C、D 被加载到同一个 Cache Line，它们会被高频地修改。当线程 1 在 CPU Core1 中中对变量 A 进行修改，修改完成后 CPU Core1 会通知其他 CPU Core 该缓存行已经失效。然后线程 2 在 CPU Core2 中对变量 C 进行修改时，发现 Cache line 已经失效，此时 CPU Core1 会将数据重新写回内存，CPU Core2 再从内存中读取数据加载到当前 Cache line 中。</p>
 <p>所以同一个 Cache line 被越多的线程修改，那么造成的写竞争就会越激烈，数据会频繁写入内存，导致性能浪费。</p>
 <p><strong>解决伪共享问题的方式就是让变量处于不同的 cache line 上</strong>。假如这是个 long 变量占 8B，cache line 大小通常是 64B，在这个变量的前后各填充 7 个 long 类型的变量，就可以让不同线程共享的对象加载到不同的缓存行。</p>

@@ -26,17 +26,17 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Java对象Java 是一门面向对象的编程语言，Java 程序运行过程中无时无刻都有对象被创建出来。 对象的组成在 HotSpot 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：**对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）**。 对象头中存储的是与对象自身定义的数据无关的信息，包括：对象自身运行时数据和类型指针两部分。 对象运行时数据如哈希">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260104165308712.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126112329192.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126112541748.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260126131547977.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260104165308712.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260126112329192.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260126112541748.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260126131547977.png">
 <meta property="article:published_time" content="2026-05-19T03:17:59.000Z">
-<meta property="article:modified_time" content="2026-05-18T03:22:54.046Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:10.978Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/19/Java-Object/image-20260104165308712.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260104165308712.png">
   
   
   
@@ -413,7 +413,7 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Bit-format of an object header (most significant first, big endian layout below):</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//  32 bits:</span><br><span class="hljs-comment">//  --------</span><br><span class="hljs-comment">//  hash:25 ------------&gt;| age:4    biased_lock:1 lock:2 (normal object)</span><br><span class="hljs-comment">//  JavaThread*:23 epoch:2 age:4    biased_lock:1 lock:2 (biased object)</span><br><span class="hljs-comment">//  size:32 ------------------------------------------&gt;| (CMS free block)</span><br><span class="hljs-comment">//  PromotedObject*:29 ----------&gt;| promo_bits:3 -----&gt;| (CMS promoted object)</span><br></code></pre></td></tr></table></figure>
 
 <p>例如在 32 位的 HotSpot 虚拟机中，对象未被同步锁锁定的状态下，Mark Word 的 32 个比特存储空间中的 25 个比特用于存储对象哈希码，4 个比特用于存储对象分代年龄，2 个比特用于存储锁标志位，1 个比特固定为 0，在其他状态（轻量级锁定、重量级锁定、GC标 记、可偏向）下对象的存储内容如表所示。</p>
-<p><img src="/2026/05/19/Java-Object/image-20260104165308712.png" srcset="/img/loading.gif" lazyload alt="image-20260104165308712"></p>
+<p><img src="/img/image-20260104165308712.png" srcset="/img/loading.gif" lazyload alt="image-20260104165308712"></p>
 <p><strong>类型指针（Klass Pointer）即对象指向它的类型元数据的指针，Java 虚拟机通过这个指针来确定该对象是哪个类的实例。</strong>不过并不是所有的虚拟机实现都需要在对象数据上保留类型指针，例如通过句柄访问对象。</p>
 <p>除去对象头，接下来的实例数据部分是对象真正存储的有效信息，包括继承以及自定义的字段，这部分的存储顺序会受到虚拟机分配策略参数（-XX：FieldsAllocationStyle 参数）和字段在 Java 源码中定义顺序的影响。默认规则为：longs&#x2F;doubles、ints、shorts&#x2F;chars、bytes&#x2F;booleans、oops（Ordinary Object Pointers，OOPs），在满足这个前提条件的情况下，在父类中定义的变量会出现在子类之前。如果 HotSpot 虚拟机的 +XX：CompactFields 参数值为 true（默认就为true），那子类之中较窄的变量也允许插入父类变量的空隙之中，以节省出一点点空间。</p>
 <p>对象的第三部分是对齐填充，这并不是必然存在的，也没有特别的含义，它仅仅起着占位符的作用。由于 HotSpot 虚拟机的自动内存管理系统要求对象起始地址必须是 8 字节的整数倍，换句话说就是任何对象的大小都必须是 8 字节的整数倍。对象头部分已经被精心设计成正好是8字节的倍数，因此，如果对象实例数据部分没有对齐的话，就需要通过对齐填充来补全。</p>
@@ -428,14 +428,14 @@
 <h2 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h2><p>Java 程序会通过栈上的 reference 数据来操作堆上的具体对象，reference 的理解是如果 reference 类型的数据中存储的数值代表的是另外一块内存的起始地址，就称该 reference 数据是代表某块内存、某个对象的引用。</p>
 <p>但是 reference 只规范了能够找到对象，而没有规定其实现方式，所以主流的实现方式其实有使用句柄和直接访问两种。</p>
 <p>使用句柄的好处是，在垃圾回收的过程中，对象的内存位置是会变化的，这时只需要修改句柄引用的对象位置即可，缺点则是每次访问对象都多一次内存访问。</p>
-<p><img src="/2026/05/19/Java-Object/image-20260126112329192.png" srcset="/img/loading.gif" lazyload alt="image-20260126112329192"></p>
+<p><img src="/img/image-20260126112329192.png" srcset="/img/loading.gif" lazyload alt="image-20260126112329192"></p>
 <p>使用直接访问的好处是可以直接访问到对象实例数据（注意是对象实例数据，访问对象的类型数据时需要考虑如何实现），但在垃圾回收的过程中可能需要更新多处引用对象的值。</p>
-<p><img src="/2026/05/19/Java-Object/image-20260126112541748.png" srcset="/img/loading.gif" lazyload alt="image-20260126112541748"></p>
+<p><img src="/img/image-20260126112541748.png" srcset="/img/loading.gif" lazyload alt="image-20260126112541748"></p>
 <p>对 HotSpot 而言，它主要使用直接访问方式进行对象访问， <strong>现代的 HotSpot JVM 使用了分代 GC，大部分对象都是在年轻代分配并快速回收，</strong> 这些对象基本不会移动。</p>
 <h2 id="对象大小与压缩指针"><a href="#对象大小与压缩指针" class="headerlink" title="对象大小与压缩指针"></a>对象大小与压缩指针</h2><p>在 64 位系统中，普通的对象引用通常需要 64 位（8字节）的空间，因为 4 字节只能表示 32 位的一个地址，也就是最多只能表示 4GB 的空间，但是绝大多数的应用程序都不会占用那么大的空间，即堆内存一般不会超过 32GB。</p>
 <p>Java 的对象通过设计，大小一定是 8 的倍数，那么也就是对象所在位置的值的 2 进制最后 3 位一定是 0，既然我们知道对象的最后 3 位一定是 0，就可以不要这 3 位了，也就是之前的 0001 代表的是第 1 个字节，而现在的 0001 代表的是第 8 个字节（ 0001 &lt;&lt; 3）,那么可以表示的内存范围也是之前的 8 倍，即可以表示 32GB 的空间。</p>
 <p>64 位 Java 虚拟机引入了压缩指针（Compressed Pointer）技术，将 Java 对象指针压缩为 32 位。这样，对象头部中的 Klass Pointer 就被压缩为 32 位，从而将对象头部的大小从 16 字节减小到 12 字节。图示来自：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/poemyang/p/19170159">压缩指针对对象大小的影响</a>：</p>
-<p><img src="/2026/05/19/Java-Object/image-20260126131547977.png" srcset="/img/loading.gif" lazyload alt="image-20260126131547977"></p>
+<p><img src="/img/image-20260126131547977.png" srcset="/img/loading.gif" lazyload alt="image-20260126131547977"></p>
 <p>在存储的时候，由于已经 8 字节对齐，所以我们直接 &gt;&gt; 3 存储，在读取时，我们需要用一个 long 类型接收读取值 &lt;&lt; 3 位后的结果 + heapBase（堆起始地址）。</p>
 <p>目前压缩指针在 64 位 JVM &amp;&amp; 堆内存 ≤ 32GB 时是默认开启的~</p>
 

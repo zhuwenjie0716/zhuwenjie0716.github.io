@@ -26,17 +26,17 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Redis源码分析之dict篇在上一篇 Redis长什么样 提到了 Redis 其实用了全局的 hash 表来存储所有的键值对，即下方图示的 dict，dict 中有两个数组，其中 ht[1] 只在 rehash 时候才真正用到，平时都是指向 null，hash 的底层又是使用数组来实现的，那就引出了接下来的几个问题：  redis 初始化这个 dict 时数组容量是多少 如果发生了 hash 冲">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/0398e9ef1ff47347cb54dd36a32da19c.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509094313971.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509092051735.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509092431819.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/0398e9ef1ff47347cb54dd36a32da19c.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260509094313971.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260509092051735.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260509092431819.png">
 <meta property="article:published_time" content="2026-05-09T00:12:22.000Z">
-<meta property="article:modified_time" content="2026-05-09T01:51:14.351Z">
+<meta property="article:modified_time" content="2026-05-22T08:56:58.992Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/0398e9ef1ff47347cb54dd36a32da19c.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/0398e9ef1ff47347cb54dd36a32da19c.png">
   
   
   
@@ -412,7 +412,7 @@
 <li>如果发生了 hash 冲突怎么办</li>
 <li>扩容机制（扩容的时机，扩容的实现)</li>
 </ul>
-<p><img src="/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/0398e9ef1ff47347cb54dd36a32da19c.png" srcset="/img/loading.gif" lazyload alt="image-20250106162507568"> </p>
+<p><img src="/img/0398e9ef1ff47347cb54dd36a32da19c.png" srcset="/img/loading.gif" lazyload alt="image-20250106162507568"> </p>
 <h2 id="dict-的创建"><a href="#dict-的创建" class="headerlink" title="dict 的创建"></a>dict 的创建</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* Create a new hash table */</span><br>dict *<span class="hljs-title function_">dictCreate</span><span class="hljs-params">(dictType *type, <span class="hljs-type">void</span> *privDataPtr)</span><br>&#123;<br>    dict *d = zmalloc(<span class="hljs-keyword">sizeof</span>(*d));<br>    _dictInit(d,type,privDataPtr);<br>    <span class="hljs-keyword">return</span> d;<br>&#125;<br><br><span class="hljs-comment">/* Initialize the hash table */</span><br><span class="hljs-type">int</span> _dictInit(dict *d, dictType *type, <span class="hljs-type">void</span> *privDataPtr)<br>&#123;<br>    _dictReset(&amp;d-&gt;ht[<span class="hljs-number">0</span>]);<br>    _dictReset(&amp;d-&gt;ht[<span class="hljs-number">1</span>]);<br>    d-&gt;type = type;			<br>    d-&gt;privdata = privDataPtr;<br>    d-&gt;rehashidx = <span class="hljs-number">-1</span>;<br>    d-&gt;iterators = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">return</span> DICT_OK;<br>&#125;<br><br><span class="hljs-comment">/* Reset a hash table already initialized with ht_init().</span><br><span class="hljs-comment"> * <span class="hljs-doctag">NOTE:</span> This function should only be called by ht_destroy(). */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> _dictReset(dictht *ht)<br>&#123;<br>    ht-&gt;table = <span class="hljs-literal">NULL</span>;<br>    ht-&gt;size = <span class="hljs-number">0</span>;		<span class="hljs-comment">// table 的长度, 一定是2的幂数值, 2^2,2^3...</span><br>    ht-&gt;sizemask = <span class="hljs-number">0</span>;	<span class="hljs-comment">// size - 1,具体原因参见上篇</span><br>    ht-&gt;used = <span class="hljs-number">0</span>;		<span class="hljs-comment">// 已经存的元素总数</span><br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>代码分析：</p>
@@ -469,15 +469,15 @@
 <ol>
 <li>此时负载因子&gt;1，系统不忙可以扩容，新建一个长度为16的数组：</li>
 </ol>
-<p><img src="/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509094313971.png" srcset="/img/loading.gif" lazyload alt="image-20260509094313971"></p>
+<p><img src="/img/image-20260509094313971.png" srcset="/img/loading.gif" lazyload alt="image-20260509094313971"></p>
 <ol start="2">
 <li>迁移第一个桶（bucket）的数据，如果元素本来 %4&#x3D;0，那么 %16 可选是 [0,4,8,12]（出于图片长度的考虑，图示按照新数组长度为8模拟）。迁移完成后 rehashidx&#x3D;1，标识该迁移数组下标为1的桶里的数据了：</li>
 </ol>
-<p><img src="/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509092051735.png" srcset="/img/loading.gif" lazyload alt="image-20260509092051735"></p>
+<p><img src="/img/image-20260509092051735.png" srcset="/img/loading.gif" lazyload alt="image-20260509092051735"></p>
 <ol start="3">
 <li>迁移数组下标为1的桶（bucket）的数据：</li>
 </ol>
-<p><img src="/2026/05/09/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdict%E7%AF%87/image-20260509092431819.png" srcset="/img/loading.gif" lazyload alt="image-20260509092431819"></p>
+<p><img src="/img/image-20260509092431819.png" srcset="/img/loading.gif" lazyload alt="image-20260509092431819"></p>
 <p>Rehash （也叫渐进式重哈希）将数据迁移分散到多次操作中完成，有效地避免了一次性迁移大量数据导致系统阻塞的情况。</p>
 <h3 id="dictReplace"><a href="#dictReplace" class="headerlink" title="dictReplace"></a>dictReplace</h3><p>该函数向 hash table 中添加数据，如果 key 已经存在会替换</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* Add or Overwrite:</span><br><span class="hljs-comment"> * Add an element, discarding the old value if the key already exists.</span><br><span class="hljs-comment"> * Return 1 if the key was added from scratch, 0 if there was already an</span><br><span class="hljs-comment"> * element with such key and dictReplace() just performed a value update</span><br><span class="hljs-comment"> * operation. */</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">dictReplace</span><span class="hljs-params">(dict *d, <span class="hljs-type">void</span> *key, <span class="hljs-type">void</span> *val)</span><br>&#123;<br>    dictEntry *entry, *existing, auxentry;<br><br>    <span class="hljs-comment">/* Try to add the element. If the key</span><br><span class="hljs-comment">     * does not exists dictAdd will succeed. */</span><br>    entry = dictAddRaw(d,key,&amp;existing);<br>    <span class="hljs-keyword">if</span> (entry) &#123;<br>        dictSetVal(d, entry, val);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/* Set the new value and free the old one. Note that it is important</span><br><span class="hljs-comment">     * to do that in this order, as the value may just be exactly the same</span><br><span class="hljs-comment">     * as the previous one. In this context, think to reference counting,</span><br><span class="hljs-comment">     * you want to increment (set), and then decrement (free), and not the</span><br><span class="hljs-comment">     * reverse. */</span><br>    auxentry = *existing;<br>    dictSetVal(d, existing, val);<br>    dictFreeVal(d, &amp;auxentry);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>

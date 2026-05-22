@@ -26,18 +26,18 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Oauth2的4种许可模式Oauth 即 Open auth ，一种开放授权协议，通过为每个第三方软件和每个用户的组合分别生成对受保护资源具有受限的访问权限的凭据，也就是访问令牌，来代替之前的用户名和密码。而生成访问令牌之前的登录操作，又是在用户跟平台之间进行的，第三方软件根本无从得知用户的任何信息，使第三方软件调用大量 API 的时候，不再传输用户名和密码，从而减少网络安全的攻击面。 假如你是一">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205163038227.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135407760.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135737527.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140020043.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140806952.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241205162722046.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241205163038227.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241206135407760.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241206135737527.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241206140020043.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20241206140806952.png">
 <meta property="article:published_time" content="2026-04-22T05:32:58.000Z">
-<meta property="article:modified_time" content="2026-04-22T05:36:58.000Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:10.940Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Oauth2">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20241205162722046.png">
   
   
   
@@ -412,9 +412,9 @@
 <p>在 OAuth 2.0 的体系里面有 4 种角色，按照官方的称呼它们分别是资源拥有者、客户端、授权服务和受保护资源。在上述例子中对应关系如下：资源拥有者 -&gt; 小明，客户端 -&gt; 小兔软件，授权服务 -&gt; 京东商家开放平台的授权服务，受保护资源 -&gt; 小明店铺在京东上面的订单。  </p>
 <h2 id="授权码许可（Authorization-Code）"><a href="#授权码许可（Authorization-Code）" class="headerlink" title="授权码许可（Authorization Code）"></a>授权码许可（Authorization Code）</h2><p>在授权码许可类型中，授权服务的工作，可以划分为两大部分，一个是颁发授权码 code，一个是颁发访问令牌 access_token。</p>
 <p>整体流程图如下：</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205162722046.png" srcset="/img/loading.gif" lazyload alt="image-20241205162722046"> </p>
+<p><img src="/img/image-20241205162722046.png" srcset="/img/loading.gif" lazyload alt="image-20241205162722046"> </p>
 <p>时序图如下：</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241205163038227.png" srcset="/img/loading.gif" lazyload alt="image-20241205163038227"> </p>
+<p><img src="/img/image-20241205163038227.png" srcset="/img/loading.gif" lazyload alt="image-20241205163038227"> </p>
 <p>其中重要的是两次重定向的过程：</p>
 <ul>
 <li>第一次重定向，由第三方软件（客户端）发起，重定向到京东的开放平台授权页面，引导用户进行授权</li>
@@ -437,18 +437,18 @@
 <p>这种认证方式的 grant_type 为：<code>authorization_code</code></p>
 <h2 id="资源拥有者凭证许可（Resource-Owner-Password-Credentials）"><a href="#资源拥有者凭证许可（Resource-Owner-Password-Credentials）" class="headerlink" title="资源拥有者凭证许可（Resource  Owner Password Credentials）"></a>资源拥有者凭证许可（Resource  Owner Password Credentials）</h2><p>试想一种这样的情况，小兔此时就是京东官方出品的一款软件，小明也是京东的用户，那么小明其实是可以使用用户名和密码来直接使用小兔这款软件的。</p>
 <p>那么，只需要在小明首次登录时，带着用户名和密码去授权模块认证一次，就可以返回 access_token 用于后续操作了。</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135407760.png" srcset="/img/loading.gif" lazyload alt="image-20241206135407760"> </p>
+<p><img src="/img/image-20241206135407760.png" srcset="/img/loading.gif" lazyload alt="image-20241206135407760"> </p>
 <p>这种认证方式的 grant_type 为：<code>password</code></p>
 <h2 id="客户端凭证许可（Client-Credentials）"><a href="#客户端凭证许可（Client-Credentials）" class="headerlink" title="客户端凭证许可（Client Credentials）"></a>客户端凭证许可（Client Credentials）</h2><p>如果<code>没有明确的资源拥有者</code>，换句话说就是，小兔软件访问了一个不需要用户小明授权的数据，比如获取京东 LOGO 的图片地址，这个 LOGO 信息不属于任何一个第三方用户，再比如其它类型的第三方软件来访问平台提供的省份信息，省份信息也不属于任何一个第 三方用户。</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206135737527.png" srcset="/img/loading.gif" lazyload alt="image-20241206135737527"></p>
+<p><img src="/img/image-20241206135737527.png" srcset="/img/loading.gif" lazyload alt="image-20241206135737527"></p>
 <p>这种认证方式的 grant_type 为：<code>client_credentials</code></p>
 <h2 id="隐式许可（Implicit）"><a href="#隐式许可（Implicit）" class="headerlink" title="隐式许可（Implicit）"></a>隐式许可（Implicit）</h2><p>隐式许可流程是<code>唯一在前端通信中要求返回 access_token 的流程</code></p>
 <p>如果小明使用的小兔打单软件应用<code>没有后端服务</code>，就是在浏览器里面执行的，比如纯粹的 JavaScript 应用，应该如何使用 OAuth 2.0 呢？ 在这种情况下，小兔软件对于浏览器就没有任何保密的数据可以隐藏了，也不再需要应用密钥 app_secret 的值了，也不用再通过授权码 code 来换取访问令牌 access_token 的值了。</p>
 <p>因为<code>使用授权码的目的之一，就是把浏览器和第三方软件的信息做一个隔离，确保浏览器看不到第三方软件最重要的访问令牌 access_token 的值</code>。</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140020043.png" srcset="/img/loading.gif" lazyload alt="image-20241206140020043"> </p>
+<p><img src="/img/image-20241206140020043.png" srcset="/img/loading.gif" lazyload alt="image-20241206140020043"> </p>
 <h2 id="PKCE-协议"><a href="#PKCE-协议" class="headerlink" title="PKCE 协议"></a>PKCE 协议</h2><p>随着移动端应用的兴起，比如现在有一个<code>没有服务端的 APP</code>，也想要像 Web 应用那样自由的请求和响应，那它应该把 app_secret 存在哪里呢？因为 APP 会被安装到成千上万台设备上，如果 app_secret 被破解，可能造成灾难性的后果。</p>
 <p>OAuth 2.0 里面就有这样的指导方法。这个方法就是我们将要介绍的 PKCE 协议，，全称是 Proof Key for Code Exchange by OAuth Public Clients。</p>
-<p><img src="/2026/04/22/Oauth2%E7%9A%844%E7%A7%8D%E8%AE%B8%E5%8F%AF%E6%A8%A1%E5%BC%8F/image-20241206140806952.png" srcset="/img/loading.gif" lazyload alt="image-20241206140806952"> </p>
+<p><img src="/img/image-20241206140806952.png" srcset="/img/loading.gif" lazyload alt="image-20241206140806952"> </p>
 <p>首先，App 自己要生成一个随机的、长度在 43~128 字符之间的，参数为 code_verifier  的字符串验证码；接着，我们再利用这个 code_verifier，来生成一个被称为“挑战码”的参数 code_challenge。</p>
 <p>生成 code_challenge 的几种方式如下：</p>
 <ul>

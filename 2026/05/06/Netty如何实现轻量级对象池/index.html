@@ -26,14 +26,14 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Netty如何实现轻量级对象池对于 Netty 这种高吞吐、低延迟的网络框架中，对象（尤其是 ByteBuf）的创建和释放极为频繁。如果每次都通过 new 来创建对象，容易产生以下问题：  GC 频繁：大量短生命周期对象会频繁触发 Young GC，影响系统稳定。 延迟抖动：GC 的 Stop-The-World 事件会导致请求延迟不稳定。 内存碎片：频繁的分配和释放会导致堆内存碎片化。  Net">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260506081504533.png">
 <meta property="article:published_time" content="2026-05-06T00:11:02.000Z">
-<meta property="article:modified_time" content="2026-05-07T06:52:38.305Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.033Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="Netty">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260506081504533.png">
   
   
   
@@ -428,7 +428,7 @@
 
 <p>如果 Stack 的 elements 数组中有可用的对象实例，直接将对象实例弹出；如果 elements 数组中没有可用的对象实例，会调用 scavenge 方法。scavenge 翻译为拾荒，作用是从其他线程回收的对象实例中转移一些到 elements 数组中。</p>
 <p>scavenge 方法会从 stack 对象 cursor 指针指向的 WeakOrderQueue 开始遍历，cursor 会保留上次遍历的位置，这样的好处是不会每次都优先遍历前面位置的 WeakOrderQueue，分摊跨线程回收对象的压力。</p>
-<p><img src="/2026/05/06/Netty%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20260506081504533.png" srcset="/img/loading.gif" lazyload alt="image-20260506081504533"></p>
+<p><img src="/img/image-20260506081504533.png" srcset="/img/loading.gif" lazyload alt="image-20260506081504533"></p>
 <p>此外，每次移动 cursor 时，都会检查 WeakOrderQueue 对应的线程是否已经退出了，如果线程已经退出，那么线程中的对象实例都会被回收，然后将 WeakOrderQueue 节点从链表中移除。</p>
 <p>每个 WeakOrderQueue 中都包含一个 Link 链表，Netty 每次会回收其中的一个 Link 节点所存储的对象。从图中可以看出，Link 内部会包含一个读指针 readIndex，每个 Link 节点默认存储 16 个对象，读指针到链表尾部就是可以用于回收的对象实例，每次回收对象时，readIndex 都会从上一次记录的位置开始回收。</p>
 <h2 id="Recycler-对象回收"><a href="#Recycler-对象回收" class="headerlink" title="Recycler 对象回收"></a>Recycler 对象回收</h2><p>Recycler 对象回收比获取对象要简单一些。</p>

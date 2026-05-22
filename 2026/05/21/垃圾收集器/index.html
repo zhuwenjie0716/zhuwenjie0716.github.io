@@ -26,23 +26,23 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="垃圾收集器收集算法是内存回收的方法论，而垃圾收集器是内存回收的实践者。  JDK8 时，默认收集器组合是（Parallel Scavenge + Parallel Old），JDK 9 之后，（Serial，CMS） 以及（ParNew，Serial Old）的组合已经被废弃了，默认收集器也变成了 G1。 垃圾回收就像打扫房间一样，当你在打扫房间的时候同时又在制造垃圾，那么房间很难打扫干净，因此">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128132038344.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128135320905.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128135719380.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128140235510.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141154645.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141515822.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141847252.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260518160234011.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260519084640055.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260519090551006.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128132038344.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128135320905.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128135719380.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128140235510.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128141154645.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128141515822.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260128141847252.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260518160234011.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260519084640055.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260519090551006.png">
 <meta property="article:published_time" content="2026-05-21T07:42:04.000Z">
-<meta property="article:modified_time" content="2026-05-19T01:52:39.865Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:10.971Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="垃圾回收">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128132038344.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260128132038344.png">
   
   
   
@@ -413,21 +413,21 @@
               <div class="markdown-body">
                 
                 <h1 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h1><p>收集算法是内存回收的方法论，而垃圾收集器是内存回收的实践者。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128132038344.png" srcset="/img/loading.gif" lazyload alt="image-20260128132038344"></p>
+<p><img src="/img/image-20260128132038344.png" srcset="/img/loading.gif" lazyload alt="image-20260128132038344"></p>
 <p>JDK8 时，默认收集器组合是（Parallel Scavenge + Parallel Old），JDK 9 之后，（Serial，CMS） 以及（ParNew，Serial Old）的组合已经被废弃了，默认收集器也变成了 G1。</p>
 <p>垃圾回收就像打扫房间一样，当你在打扫房间的时候同时又在制造垃圾，那么房间很难打扫干净，因此 Java 垃圾回收一个被人所诟病的点就是 Stow The World（stw），直译就是停止这个世界，即 Java 垃圾回收会导致某段时间内进程完全无响应，在当前越来越追求低时延的环境下，这是很多系统不愿意接受的。</p>
 <p>除了时延，还有一个关注的方向是吞吐量，比如把房子全部打扫一遍，那么接下来很久可能都不用再打扫了，如果每次只打扫一块区域，那么确实打扫的很快，但接下来又会频繁打扫。</p>
 <p>因此虽然随着技术的进步，收集器的综合表现（内存占用、延迟、吞吐量）在提高，但直到现在还没有最好的收集器出现，更加不存在“万能”的收集器，所以我们选择的只是对具体应用最合适的收集器。</p>
 <h2 id="Serial"><a href="#Serial" class="headerlink" title="Serial"></a>Serial</h2><p>Serial 收集器是一个单线程工作的收集器，但它的“单线程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强调在<code>它进行垃圾收集时，必须暂停其他所有工作线程</code>，直到它收集结束。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128135320905.png" srcset="/img/loading.gif" lazyload alt="image-20260128135320905"></p>
+<p><img src="/img/image-20260128135320905.png" srcset="/img/loading.gif" lazyload alt="image-20260128135320905"></p>
 <p>Serial 收集器简单而高效（与其他收集器的单线程相比），对于内存资源受限的环境，它是所有收集器里额外内存消耗（Memory Footprint，为保证垃圾收集而存储信息的额外空间）最小的。在用户桌面的应用场景以及近年来流行的部分微服务应用中，分配给虚拟机管理的内存一般来说并不会特别大，Serial 收集器对运行在客户端模式下的虚拟机来说是一个很好的选择。</p>
 <h2 id="ParNew"><a href="#ParNew" class="headerlink" title="ParNew"></a>ParNew</h2><p>ParNew 收集器实质上是 Serial 收集器的多线程并行版本，除了同时使用多条线程进行垃圾收集之外，其余的行为都与 Serial 收集器完全一致。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128135719380.png" srcset="/img/loading.gif" lazyload alt="image-20260128135719380"></p>
+<p><img src="/img/image-20260128135719380.png" srcset="/img/loading.gif" lazyload alt="image-20260128135719380"></p>
 <p>虽然如此，它却是不少运行在服务端模式下的 HotSpot 虚拟机，尤其是 JDK7 之前的遗留系统中首选的新生代收集器，其中有一个与功能、性能无关但其实很重要的原因是：除了 Serial 收集器外，目前只有它能与 CMS 收集器配合工作。<code>CMS 收集器是 HotSpot 虚拟机中第一款真正意义上支持并发的垃圾收集器，它首次实现了让垃圾收集线程与用户线程（基本上）同时工作。</code></p>
 <p>但 JDK9 开始，G1 是一个面向全堆的收集器，不再需要其他新生代收集器的配合工作，可以理解为从此以后，ParNew 合并入CMS，成为它专门处理新生代的组成部分。</p>
 <p>ParNew 收集器在单核心处理器的环境中绝对不会有比 Serial 收集器更好的效果，甚至由于存在线程交互的开销，该收集器在通过超线程（Hyper-Threading）技术实现的伪双核处理器环境中都不能百分之百保证超越 Serial 收集器。</p>
 <h2 id="Parallel-Scavenge"><a href="#Parallel-Scavenge" class="headerlink" title="Parallel Scavenge"></a>Parallel Scavenge</h2><p>Parallel Scavenge 收集器的特点是它的关注点与其他收集器不同，<code>CMS 等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而 Parallel Scavenge 收集器的目标则是达到一个可控制的吞吐量（Throughput）</code>。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128140235510.png" srcset="/img/loading.gif" lazyload alt="image-20260128140235510"></p>
+<p><img src="/img/image-20260128140235510.png" srcset="/img/loading.gif" lazyload alt="image-20260128140235510"></p>
 <p>停顿时间越短就越适合需要与用户交互或需要保证服务响应质量的程序，良好的响应速度能提升用户体验；而高吞吐量则可以最高效率地利用处理器资源，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的分析任务。</p>
 <p>Parallel Scavenge 收集器提供了两个参数用于精确控制吞吐量，分别是控制最大垃圾收集停顿时间 的-XX：MaxGCPauseMillis 参数以及直接设置吞吐量大小的-XX：GCTimeRatio 参数。</p>
 <ul>
@@ -436,10 +436,10 @@
 </ul>
 <p><code>自适应调节策略也是 Parallel Scavenge 收集器区别于 ParNew 收集器的一个重要特性。</code>参数-XX：+UseAdaptiveSizePolicy 激活之后，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量（按照上面两个参数的配置）。</p>
 <h2 id="Serial-Old"><a href="#Serial-Old" class="headerlink" title="Serial Old"></a>Serial Old</h2><p>Serial Old 是 Serial 收集器的老年代版本，它同样是一个单线程收集器，使用标记-整理算法。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141154645.png" srcset="/img/loading.gif" lazyload alt="image-20260128141154645"></p>
+<p><img src="/img/image-20260128141154645.png" srcset="/img/loading.gif" lazyload alt="image-20260128141154645"></p>
 <h2 id="Parallel-Old"><a href="#Parallel-Old" class="headerlink" title="Parallel Old"></a>Parallel Old</h2><p>Parallel Old 是 Parallel Scavenge 收集器的老年代版本，支持多线程并发收集，基于标记-整理算法实现。在此之前，新生代的Parallel Scavenge 收集器一直处于相当尴尬的状态，因为老年代除了Serial Old（PS MarkSweep）收集器以外别无选择，收集效率会被拖累导致整体效率甚至不如 （ParNew+CMS）。</p>
 <p>直到 Parallel Old 收集器出现后，“吞吐量优先”收集器终于有了比较名副其实的搭配组合，在注重吞吐量或者处理器资源较为稀缺的场合，都可以优先考虑 Parallel Scavenge 加 Parallel Old 收集器这个组合。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141515822.png" srcset="/img/loading.gif" lazyload alt="image-20260128141515822"></p>
+<p><img src="/img/image-20260128141515822.png" srcset="/img/loading.gif" lazyload alt="image-20260128141515822"></p>
 <h2 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h2><p>CMS（Concurrent Mark Sweep，直译并发标记清除）收集器是一种以获取最短回收停顿时间为目标的收集器，它的运作过程相对于前面几种收集器来说要更复杂一些，整个过程分为四个步骤：</p>
 <ul>
 <li><p>初始标记（CMS initial mark） ；</p>
@@ -453,7 +453,7 @@
 </ul>
 <p>其中初始标记、重新标记这两个步骤仍然需要“Stop The World”。初始标记仅仅只是标记一下 GC Roots 能直接关联到的对象，速度很快；并发标记阶段就是从 GC Roots 的直接关联对象开始遍历整个对象图的过程，这个过程耗时较长但是不需要停顿用户线程，可以与垃圾收集线程一起并发运行；而重新标记阶段则是为了修正并发标记期间，因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间通常会比初始标记阶段稍长一 些，但也远比并发标记阶段的时间短；最后是并发清除阶段，清理删除掉标记阶段判断的已经死亡的对象，由于不需要移动存活对象，所以这个阶段也是可以与用户线程同时并发的。</p>
 <p>整个过程中耗时最长的并发标记和并发清除阶段中，垃圾收集器线程都可以与用户线程一 起工作，所以从总体上来说，CMS 收集器的内存回收过程是与用户线程一起并发执行的。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260128141847252.png" srcset="/img/loading.gif" lazyload alt="image-20260128141847252"></p>
+<p><img src="/img/image-20260128141847252.png" srcset="/img/loading.gif" lazyload alt="image-20260128141847252"></p>
 <p>CMS 收集器是 HotSpot 虚拟机追求低停顿的第一次成功尝试，但是它还远达不到完美的程度。</p>
 <ul>
 <li>CMS 在并发标记时由于与用户线程并发运行，会争抢 CPU 资源，当处理器核心数量不足四个时， CMS 对用户程序的影响就可能变得很大（并发回收线程数为（cpu 数+3）&#x2F;4，占比超过 25%）；</li>
@@ -475,7 +475,7 @@
 <li>最终标记（Final Marking）：对用户线程做另一个短暂的暂停，用于处理并发阶段结束后仍遗留下来的最后那少量的 SATB 记录。 </li>
 <li>筛选回收（Live Data Counting and Evacuation）：负责更新 Region 的统计数据，对各个 Region 的回收价值和成本进行排序，根据用户所期望的停顿时间来制定回收计划，可以自由选择任意多个 Region 构成回收集，然后把决定回收的那一部分 Region 的存活对象复制到空的 Region 中，再清理掉整个旧 Region 的全部空间。这里的操作涉及存活对象的移动，是必须暂停用户线程，由多条收集器线程并行完成的。</li>
 </ul>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260518160234011.png" srcset="/img/loading.gif" lazyload alt="image-20260518160234011"></p>
+<p><img src="/img/image-20260518160234011.png" srcset="/img/loading.gif" lazyload alt="image-20260518160234011"></p>
 <p><strong>G1 收集器除了并发标记外，其余阶段也是要完全暂停用户线程的， 换言之，它并非纯粹地追求低延迟</strong>。</p>
 <p>但是 G1 依然会面对跨 Region 引用的问题，解决方案是每个 Region 都维护有自己的记忆集，这些记忆集会记录下别的 Region 指向自己的指针，并标记这些指针分别在哪些卡页的范围之内，由于 Region 的数量远多于分代数，G1 至少要耗费大约相当于 Java 堆容量 10% 至 20% 的额外内存来维持收集器工作。</p>
 <p>相比 CMS，G1 的优点有很多，暂且不论可以指定最大停顿时间、分 Region 的内存布局、按收益动态确定回收集这些创新性设计带来的红利，单从最传统的算法理论上看，G1 也更有发展潜力。与 CMS 的“标记-清除”算法不同，<strong>G1 从整体来看是基于“标记-整理”算法实现的收集器，但从局部（两个Region 之间）上看又是基于“标记-复制”算法实现</strong>，无论如何，这两种算法都意味着 G1 运作期间不会产生内存空间碎片，垃圾收集完成之后能提供规整的可用内存。这种特性有利于程序长时间运行，在程序为大对象分配内存时不容易因无法找到连续内存空间而提前触发下一次收集。</p>
@@ -492,7 +492,7 @@
 </ul>
 <p>对象的死亡其实跟对象中所有的属性都没关系，而是由其是否在引用链上决定的。HotSpot 虚拟机的几种收集器有不同的标记实现方案，有的把标记直接记录在对象头上（如 Serial 收集器），有的把标记记录在与对象相互独立的数据结构上（如 G1、Shenandoah 使 用了一种相当于堆内存的 1&#x2F;64 大小的，称为 BitMap 的结构来记录标记信息），而 ZGC 的染色指针是最直接的、最纯粹的，它直接把标记信息记在引用对象的指针上。</p>
 <p>ZGC 收集器一个标志性的设计是它采用的<strong>染色指针</strong>技术，在 64 位操作系统上，理论上的寻址范围是 2^64，但出于需求、性能和成本的考虑，很多架构（AMD64、Linux、Windows）并不会完全支持 64 位，例如 64 位 Linux 支持 47 位（128TB）的进程虚拟地址空间和 46 位（64TB）的物理地址空间。ZGC 的染色指针技术盯上了这剩下的 46 位指针宽度，将其高 4 位提取出来存储四个标志信息，当然这也直接导致 ZGC 能够管理的内存不可以超过 4TB（2的42次幂）。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260519084640055.png" srcset="/img/loading.gif" lazyload alt="image-20260519084640055"></p>
+<p><img src="/img/image-20260519084640055.png" srcset="/img/loading.gif" lazyload alt="image-20260519084640055"></p>
 <p>使用了染色指针技术后，就不再支持压缩指针和 32 位平台了，但它带来的收益也是非常可观的。</p>
 <ul>
 <li>染色指针可以使得一旦某个 Region 的存活对象被移走之后，这个 Region 立即就能够被释放和重用掉，而不必等待整个堆中所有指向该 Region 的引用都被修正后才能清理。</li>
@@ -501,7 +501,7 @@
 </ul>
 <p>不过作为本该由操作系统管理的内存，Java 虚拟机作为一个应用进程，有能力这样自定义内存中不同位的含义吗？</p>
 <p>操作系统中其实会使用分页管理机制将不同进程相同索引页面映射到不同的物理地址，Linux&#x2F;x86-64 平台上的 ZGC 使用了<strong>多重映射（Multi-Mapping）</strong>将多个不同的虚拟内存地址映射到同一个物理内存地址上，这是一种多对一映射，意味着 ZGC 在虚拟内存中看到的地址空间要比实际的堆内存容量来得更大。</p>
-<p><img src="/2026/05/21/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/image-20260519090551006.png" srcset="/img/loading.gif" lazyload alt="image-20260519090551006"></p>
+<p><img src="/img/image-20260519090551006.png" srcset="/img/loading.gif" lazyload alt="image-20260519090551006"></p>
 <ul>
 <li>并发标记（Concurrent Mark）：并发标记是遍历对象图做可达性分析的阶段，也要经历短暂停顿，与 G1 不同的是，ZGC 的标记是在指针上而不是在对象上进行的，标记阶段会更新染色指针中的 Marked0、Marked1 标志位。</li>
 <li>并发预备重分配（Concurrent Prepare for Relocate）：根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些Region 组成重分配集（Relocation Set）。重分配集与 G1 收集器的回收集（Collection Set）还是有区别的，它并非为了收益优先的增量回收，而是每次回收都会扫描所有的 Region，用范围更大的扫描成本换取省去 G1 中记忆集的维护成本。</li>

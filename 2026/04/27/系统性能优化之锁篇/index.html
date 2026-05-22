@@ -26,17 +26,17 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="系统性能优化之锁篇多线程下为了确保程序不会出错，必须加锁后才能访问共享资源。锁也是有层级之分的，在不同的场景下加不同的锁，对系统性能也有着很大影响。 互斥锁与自旋锁互斥锁与自旋锁是最底层的两个锁，其他的锁几乎都是基于此实现的。**互斥锁加锁失败时会释放CPU进入阻塞状态，自旋锁则会忙等待**。 **当无法确定锁住的代码需要执行多久时，应当首选互斥锁。**互斥锁是一种独占锁，当被线程取得后，除非线程">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111249735.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111309693.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625110845779.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250625105013432.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250625111249735.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250625111309693.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250625110845779.png">
 <meta property="article:published_time" content="2026-04-27T05:25:29.000Z">
-<meta property="article:modified_time" content="2026-04-27T06:03:42.000Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.051Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="性能优化">
 <meta property="article:tag" content="锁">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20250625105013432.png">
   
   
   
@@ -409,7 +409,7 @@
                 <h1 id="系统性能优化之锁篇"><a href="#系统性能优化之锁篇" class="headerlink" title="系统性能优化之锁篇"></a>系统性能优化之锁篇</h1><p>多线程下为了确保程序不会出错，必须加锁后才能访问共享资源。锁也是有层级之分的，在不同的场景下加不同的锁，对系统性能也有着很大影响。</p>
 <h2 id="互斥锁与自旋锁"><a href="#互斥锁与自旋锁" class="headerlink" title="互斥锁与自旋锁"></a>互斥锁与自旋锁</h2><p>互斥锁与自旋锁是最底层的两个锁，其他的锁几乎都是基于此实现的。**<code>互斥锁加锁失败时会释放CPU进入阻塞状态，自旋锁则会忙等待</code>**。</p>
 <p>**<code>当无法确定锁住的代码需要执行多久时，应当首选互斥锁。</code>**互斥锁是一种独占锁，当被线程取得后，除非线程释放，其他线程的取锁代码都会阻塞。阻塞通常是由操作系统内核实现的，取锁失败时将线程置于休眠状态，当锁释放后寻找合适的时机唤醒线程。</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625105013432.png" srcset="/img/loading.gif" lazyload alt="image-20250625105013432"></p>
+<p><img src="/img/image-20250625105013432.png" srcset="/img/loading.gif" lazyload alt="image-20250625105013432"></p>
 <p>但是线程取锁失败时的阻塞与唤醒增加了上下文切换的成本，或许这段时间比锁住的代码段执行时间还长。而且，线程主动进入休眠是高并发服务无法容忍的行为，这让其他异步请求都无法执行。</p>
 <p><strong><code>如果被锁住的代码执行时间很短，就应该用自旋锁取代互斥锁。</code></strong></p>
 <p>自旋锁比互斥锁快得多，因为它通过 CPU 提供的 CAS 函数（全称 Compare And Swap），在用户态代码中完成加锁与解锁操作。它将比较与交换合成为一条硬件级原子指令，避免了多线程下的可能出现的问题。</p>
@@ -422,16 +422,16 @@
 <p><strong>因此，读写锁真正发挥优势的场景，必然是读多写少的场景，否则读锁将很难并发持有。</strong></p>
 <p>实际上，读写锁既可以倾向于读线程，又可以倾向于写线程。前者我们称为读优先锁，后者称为写优先锁。</p>
 <p>读优先锁更强调效率，它期待锁能被更多的线程持有：当读锁被持有时，先来一个线程希望取写锁，又来一个线程希望取读锁，即使取写锁的线程先来，后续前来获取读锁的线程依然可以立刻加锁成功，因为这样两个线程在并发持有锁，效率更高。当然如果有源源不断的读线程，则会导致写线程饥饿。</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111249735.png" srcset="/img/loading.gif" lazyload alt="image-20250625111249735"></p>
+<p><img src="/img/image-20250625111249735.png" srcset="/img/loading.gif" lazyload alt="image-20250625111249735"></p>
 <p>写优先锁由于写锁的优先级更高，当有源源不断的写线程，则会导致读线程饥饿。</p>
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625111309693.png" srcset="/img/loading.gif" lazyload alt="image-20250625111309693"></p>
+<p><img src="/img/image-20250625111309693.png" srcset="/img/loading.gif" lazyload alt="image-20250625111309693"></p>
 <p>除此之外还有<code>读写公平锁，按照请求顺序排队，读线程依然可以并发持有读锁，但是无法“加队”到写线程前</code>。</p>
 <h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>无论互斥锁、自旋锁还是读写锁，都属于悲观锁。“乐观”，就是假定冲突的概率很低，所以它采用的“加锁”方式是，<code>先修改完共享资源，再验证这段时间内有没有发生冲突</code>。如果没有其他线程在修改资源，那么操作完成。如果发现其他线程已经修改了这个资源，就放弃本次操作。</p>
 <p>至于放弃后如何重试，则与业务场景相关，虽然<code>重试的成本很高</code>，但出现冲突的概率足够低的话，还是可以接受的。可见，<strong>乐观锁全程并没有加锁，所以它也叫无锁编程。</strong></p>
 <p>例如在线修改文档，可以记录下获取到当前文档时的版本号，在提交时携带原始版本号，如果期间有其他用户修改，则原始版本号无法对应，就放弃本次修改。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">update</span> #&#123;<span class="hljs-keyword">table</span>&#125; <span class="hljs-keyword">set</span> version <span class="hljs-operator">=</span> #&#123;newVersion&#125; <span class="hljs-keyword">where</span> id <span class="hljs-operator">=</span> #&#123;id&#125; <span class="hljs-keyword">and</span> version <span class="hljs-operator">=</span> #&#123;oldVersion&#125;<br></code></pre></td></tr></table></figure>
 
-<p><img src="/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E9%94%81%E7%AF%87/image-20250625110845779.png" srcset="/img/loading.gif" lazyload alt="image-20250625110845779"></p>
+<p><img src="/img/image-20250625110845779.png" srcset="/img/loading.gif" lazyload alt="image-20250625110845779"></p>
 <p>乐观锁除了应用在 Web 分布式场景，在数据库等单机上也有广泛的应用。只是面向多线程时，最后的验证步骤是通过 CPU 提供的 CAS 操作完成的。</p>
 <p>乐观锁虽然去除了锁操作，但是一旦发生冲突，重试的成本非常高。所以，<strong>只有在冲突概率非常低，且加锁成本较高时，才考虑使用乐观锁。</strong></p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>互斥锁能够满足各类功能性要求，特别是被锁住的代码执行时间不可控时，它通过内核执行线程切换及时释放了资源，但它的性能消耗最大。如果能够确定被锁住的代码取到锁后很快就能释放，应该使用更高效的自旋锁。</p>

@@ -26,17 +26,17 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="如何实现高吞吐的定时任务处理实现一个定时任务的调度不算太难，一个简单的思路如下：一个存放定时任务的队列，一个按照固定时间间隔扫描的线程，这个线程每隔一段时间扫描队列里的所有任务，如果需要执行就进行调度。 首先，这个任务一定要暴露一些属性，使得线程可以判断某个时刻是否需要执行： 123456789101112131415161718192021222324252627282930public cla">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513140812939.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513141029686.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260513131808772.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260513140812939.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260513141029686.png">
 <meta property="article:published_time" content="2026-05-13T02:10:29.000Z">
-<meta property="article:modified_time" content="2026-05-13T06:31:06.399Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.011Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Netty">
 <meta property="article:tag" content="TimeWheel">
 <meta property="article:tag" content="Kafka">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260513131808772.png">
   
   
   
@@ -436,7 +436,7 @@
 <p>注意：上述只是为了举例，在计算机系统里，1s 可以做很多事情了，所以一个元素代表的时间一般要很小，而且数组长度通常设置为 2 的幂，方便位运算取模。</p>
 <p><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/epdf/10.1145/37499.37504">Hashed and Hierarchical Timing Wheels</a> 这篇文章比较了实现定时器的各种数据结构，并提出了层次化的 timing wheel 和 hash timing wheel 等结构。</p>
 <p>时间轮可以理解为一种环形结构，像钟表一样被分为多个 slot 槽位。每个 slot 代表一个时间段，每个 slot 中可以存放多个任务，使用的是链表结构保存该时间段到期的所有任务。时间轮通过一个时针随着时间一个个 slot 转动，并执行 slot 中的所有到期任务。</p>
-<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513131808772.png" srcset="/img/loading.gif" lazyload alt="image-20260513131808772"></p>
+<p><img src="/img/image-20260513131808772.png" srcset="/img/loading.gif" lazyload alt="image-20260513131808772"></p>
 <p>以上图为例，这个时间轮中有一个长度为 8 的数组，假设每个代表 1s，现在指针指向 2 的位置，如果需要添加一个 12s 后执行的任务，那么就需要放置到 ((2 + 12) &#x2F; 1 % 8) 也就是 slot6 的位置。</p>
 <p>当指针走到 slot6 时，怎么判断每个任务是现在就执行还是在后续的轮次中执行呢？第一种方式是遍历所有的任务，取任务的 deadline &lt;&#x3D; 对应时间（时间轮启动时间 + 转动次数 * 每次转动代表的周期）的任务，第二种方式在添加任务到 slot 时就计算会在第几轮执行，像现在添加一个 12s 后执行的任务对应的轮次就是 (2 + 12) &#x2F; 8，也就是下一轮次执行，这样每一个 slot 只取轮次为 0 的任务执行即可，其他任务的轮次减去1。</p>
 <p>时间轮有点类似 HashMap，如果多个任务如果对应同一个 slot，处理冲突的方法采用的是拉链法。在任务数量比较多的场景下，适当增加时间轮的 slot 数量，可以减少时针转动时遍历的任务个数。</p>
@@ -469,10 +469,10 @@
 <p>对于时间轮来说，可能有多个线程同时向其中追加任务，同时时间轮线程也在扫描任务并移除放入到线程池中执行，这是一个典型的多生产者单消费者场景。Netty 并不会把任务直接添加到时间轮中，而是先放到一个 <a href="https://zhuwenjie0716.github.io/2026/05/06/Netty%E7%9A%84Mpsc%E9%98%9F%E5%88%97%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0/">Mpsc Queue</a> 队列里，借助 Mpsc Queue 保证多线程向时间轮添加任务的线程安全性。</p>
 <p>另外 Netty 中的时间轮是通过固定的时间间隔 tickDuration 进行推动的，如果长时间没有到期任务，那么会存在时间轮空推进的现象，从而造成一定的性能损耗。</p>
 <h2 id="Kafka-的时间轮实现"><a href="#Kafka-的时间轮实现" class="headerlink" title="Kafka 的时间轮实现"></a>Kafka 的时间轮实现</h2><p>Kafka 也有时间轮的应用，它的实现思路与 Netty 存在区别的，但数据结构部分类似，Kafka 的时间轮也是采用环形数组存储定时任务，数组中的每个 slot 代表一个 Bucket，每个 Bucket 保存了定时任务列表 TimerTaskList，TimerTaskList 同样采用双向链表的结构实现，链表的每个节点代表真正的定时任务 TimerTaskEntry。</p>
-<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513140812939.png" srcset="/img/loading.gif" lazyload alt="image-20260513140812939"></p>
+<p><img src="/img/image-20260513140812939.png" srcset="/img/loading.gif" lazyload alt="image-20260513140812939"></p>
 <p>为了解决空推进的问题，Kafka 借助 JDK 的 DelayQueue 来负责推进时间轮。DelayQueue 保存了时间轮中的每个 Bucket，并且根据 Bucket 的到期时间进行排序，最近的到期时间被放在 DelayQueue 的队头。Kafka 中会有一个线程来读取 DelayQueue 中的任务列表，如果时间没有到，那么 DelayQueue 会一直处于阻塞状态，从而解决空推进的问题。DelayQueue 只存放了 Bucket，Bucket 的数量并不多，相比空推进带来的影响是利大于弊的。</p>
 <p>Kafka 还使用了多级时间轮来处理时间跨度过大的问题：</p>
-<p><img src="/2026/05/13/%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%90%9E%E5%90%90%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86/image-20260513141029686.png" srcset="/img/loading.gif" lazyload alt="image-20260513141029686"></p>
+<p><img src="/img/image-20260513141029686.png" srcset="/img/loading.gif" lazyload alt="image-20260513141029686"></p>
 <p>从图中可以看出，第一层时间轮每个时间格为 1ms，整个时间轮的跨度为 20ms；第二层时间轮每个时间格为 20ms，整个时间轮跨度为 400ms；第三层时间轮每个时间格为 400ms，整个时间轮跨度为 8000ms。每一层时间轮都有自己的指针，每层时间轮走完一圈后，上层时间轮也会相应推进一格。</p>
 <p>假设现在有一个任务到期时间是 450ms 之后，应该放在第三层时间轮的第一格。随着时间的流逝，当指针指向该时间格时，发现任务到期时间还有 50ms，这里就涉及时间轮降级的操作，它会将任务重新提交到时间轮中。此时发现第一层时间轮整体跨度不够，需要放在第二层时间轮中第三格。当时间再经历 40ms 之后，该任务又会触发一次降级操作，放入到第一层时间轮，最后等到 10ms 后执行任务。</p>
 <p>层级时间轮对时间粒度进行了更好的控制，可以应对更加复杂的定时任务处理场景，适用的范围更广。</p>

@@ -26,16 +26,16 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="JVM编译体系 从计算机程序出现的第一天起，对效率的追逐就是程序员天生的坚定信仰，这个过程犹如一场没有终点、永不停歇的 F1 方程式竞赛，程序员是车手，技术平台则是在赛道上飞驰的赛车。  Java 程序到执行一般要经过两个步骤，一个步骤是指从 .java 变为 .class 文件的过程，另一个是运行期把字节码转变成本地机器码的过程。随着提前编译器（AOT，Ahead Of Time Compile">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/image-20260522105153855.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/image-20260522111712898.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260522105153855.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260522111712898.png">
 <meta property="article:published_time" content="2026-05-24T00:41:57.000Z">
-<meta property="article:modified_time" content="2026-05-22T08:34:47.651Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.016Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="编译">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/image-20260522105153855.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260522105153855.png">
   
   
   
@@ -461,7 +461,7 @@
 <p>目前主流的两款商用 Java 虚拟机（HotSpot、OpenJ9）里，Java 程序最初都是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁，就会把这些代码认定为“热点代码”（Hot Spot Code），为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成本地机器码，并以各种手段尽可能地进行代码优化，运行时完成这个任务的后端编译器被称为即时编译器。</p>
 <p>即使编译器的作用就是：<strong>把运行频繁的代码译为本地机器码，并尽可能地进行代码优化</strong>。</p>
 <p>主流的 Java 虚拟机中都是解释器和编译器共存的，结构如下：</p>
-<p><img src="/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/image-20260522105153855.png" srcset="/img/loading.gif" lazyload alt="image-20260522105153855"></p>
+<p><img src="/img/image-20260522105153855.png" srcset="/img/loading.gif" lazyload alt="image-20260522105153855"></p>
 <p>当程序需要迅速启动和执行的时候，解释器可以首先发挥作用，省去编译的时间，立即运行。当程序启动后，随着时间的推移，编译器逐渐发挥作用，把越来越多的代码编译成本地代码，这样可以减少解释器的中间损耗，获得更高的执行效率。</p>
 <p>图中的 Client Compiler 即为 C1 编译器，Server Compiler 为 C2 编译器，有些资料中提到过的打算替代 C2 的 Graal 编译器，目前更多是作为实验性编译器。</p>
 <h4 id="分层编译"><a href="#分层编译" class="headerlink" title="分层编译"></a>分层编译</h4><p>如果在终端执行这样的指令：</p>
@@ -492,7 +492,7 @@
 <li>虚拟机运行在服务端模式下，回边计数器阈值的计算公式为：方法调用计数器阈值（-XX: CompileThreshold）乘以（OSR比率（-XX:OnStackReplacePercentage）减去解释器监控比率（-XX: InterpreterProfilePercentage）的差值）除以 100。其中 -XX：OnStackReplacePercentage 默认值为 140， XX:InterpreterProfilePercentage 默认值为 33，如果都取默认值，那服务端模式虚拟机回边计数器的阈值为 10700。</li>
 </ul>
 <p>当解释器遇到一条回边指令时，会先查找将要执行的代码片段是否有已经编译好的版本，如果有的话，它将会优先执行已编译的代码，否则就把回边计数器的值加一，然后判断方法调用计数器与回 边计数器值之和是否超过回边计数器的阈值。当超过阈值的时候，将会提交一个栈上替换编译请求， 并且把回边计数器的值稍微降低一些，以便继续在解释器中执行循环，等待编译器输出编译结果，流程如图：</p>
-<p><img src="/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/image-20260522111712898.png" srcset="/img/loading.gif" lazyload alt="image-20260522111712898"></p>
+<p><img src="/img/image-20260522111712898.png" srcset="/img/loading.gif" lazyload alt="image-20260522111712898"></p>
 <p>验证 JIT 即时编译可以参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/mthoutai/p/19201690">JVM的即时编译JIT的介绍 - 实践</a>。</p>
 <h3 id="提前编译"><a href="#提前编译" class="headerlink" title="提前编译"></a>提前编译</h3><p>提前编译器有：JDK 的 Jaotc。</p>
 <p>因为 Java 的一个核心优势是平台中立性，其宣传口号是“一次编译，到处运行”，与平台相关的提前编译在理念上就是有冲突的，所以期间沉寂了很久。</p>

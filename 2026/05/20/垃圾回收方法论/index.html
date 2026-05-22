@@ -26,17 +26,17 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="垃圾回收方法论垃圾收集（Garbage Collect）也就是常说的 GC，GC 这个概念不是 Java 独有的，在 Java 之前已经有其他语言有 GC 的理念了，1960 年诞生于麻省理工学院的 Lisp 是第一门开始使用内存动态分配和垃圾收集技术的语言。 垃圾收集需要考虑以下这些事情：  回收什么区域的内存? 如何判断内存可回收? 怎么回收?  回收什么区域的内存Java 的内存区域被分为程">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127093942105.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094126338.png">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094710039.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260127090400550.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260127093942105.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260127094126338.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260127094710039.png">
 <meta property="article:published_time" content="2026-05-20T07:41:57.000Z">
-<meta property="article:modified_time" content="2026-05-19T01:43:50.935Z">
+<meta property="article:modified_time" content="2026-05-22T08:51:11.020Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="垃圾回收">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260127090400550.png">
   
   
   
@@ -432,7 +432,7 @@
 <h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>引用计数法的逻辑非常简单，判定效率也很高，也有一些语言的应用案例，实现就是：每个对象设置一个字段存放被引用的个数，当这个数为 0 时说明对象不再被使用了。</p>
 <p>但是引用计数法无法解决循环依赖的问题，当 A-&gt; B &amp;&amp; B-&gt;A 时 AB 的引用都至少为1，那么永远无法被回收了，即使它们不会再被访问。</p>
 <h3 id="可达性分析法"><a href="#可达性分析法" class="headerlink" title="可达性分析法"></a>可达性分析法</h3><p>当前主流的商用语言的内存管理子系统都是通过可达性分析（Reachability Analysis）算法来判定对象是否存活的，基本思路就是通过 一系列称为“GC Roots”的根对象作为起始节点集，从这些节点开始，根据引用关系向下搜索，搜索过程所走过的路径称为“引用链”（Reference Chain），如果某个对象到 GC Roots 间没有任何引用链相连， 或者用图论的话来说就是从 GC Roots 到这个对象不可达时，则证明此对象是不可能再被使用的。</p>
-<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127090400550.png" srcset="/img/loading.gif" lazyload alt="image-20260127090400550"></p>
+<p><img src="/img/image-20260127090400550.png" srcset="/img/loading.gif" lazyload alt="image-20260127090400550"></p>
 <p>Java 中可固定作为 GC Roots 的对象包括以下几个部分：</p>
 <ul>
 <li>虚拟机栈（栈帧中的本地变量表）中引用的对象，譬如各个线程被调用的方法堆栈中使用到的参数、局部变量、临时变量等；</li>
@@ -456,14 +456,14 @@
 <p>需要特别考虑的是，对象不是孤立的，对象之间会存在跨代引用。基于跨代引用理论：跨代引用相对于同代引用来说仅占极少数。（因为如果老年代引用了新生代对象，那么新生代对象大概率也要进入老年代，那么就消除了跨代引用），虚拟机在<code>新生代上建立一个全局的数据结构（该结构被称为“记忆集”，Remembered Set）</code>，这个结构把老年代划分成若干小块，标识出老年代的哪一块内存会存在跨代引用。此后当<code>发生Young GC时，只有包含了跨代引用的小块内存里的对象才会被加入到 GC  Roots</code> 进行扫描。虽然这种方法需要在对象改变引用关系（如将自己或者某个属性赋值）时维护记录数 据的正确性，会增加一些运行时的开销，但比起收集时扫描整个老年代来说仍然是划算的。</p>
 <h3 id="标记-清除（其他算法的基础）"><a href="#标记-清除（其他算法的基础）" class="headerlink" title="标记-清除（其他算法的基础）"></a>标记-清除（其他算法的基础）</h3><p>最基础的垃圾收集算法是“标记-清除”（Mark-Sweep）算法，算法分为“标记”和“清除”两个阶段，标记所有待回收的对象，清除所有标记的对象，或者相反操作。</p>
 <p>它的主要缺点有两个：第一个是执行效率不稳定，如果 Java 堆中包含大量对象，而且其中大部分是需要被回收的，这时必须进行大量标记和清除的动作，导致标记和清除两个过程的执行效率都随对象数量增长而降低；第二个是内存空间的碎片化问题，标记、清除之后会产生大量不连续的内存碎片。优点则是没有任何的空间冗余。</p>
-<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127093942105.png" srcset="/img/loading.gif" lazyload alt="image-20260127093942105"></p>
+<p><img src="/img/image-20260127093942105.png" srcset="/img/loading.gif" lazyload alt="image-20260127093942105"></p>
 <h3 id="标记-复制（新生代）"><a href="#标记-复制（新生代）" class="headerlink" title="标记-复制（新生代）"></a>标记-复制（新生代）</h3><p>1969 年 Fenichel 提出了一种称为“半区复制”（Semispace Copying）的垃圾收集算法，它将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。</p>
 <p>该算法分配内存时不用考虑空间碎片的复杂情况，只要移动堆顶指针，按顺序分配即可。这样实现简单，运行高效，不过其缺陷也显而易见，这种复制回收算法的代价是将可用内存缩小为了原来的一半。</p>
-<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094126338.png" srcset="/img/loading.gif" lazyload alt="image-20260127094126338"></p>
+<p><img src="/img/image-20260127094126338.png" srcset="/img/loading.gif" lazyload alt="image-20260127094126338"></p>
 <p>现在的商用 Java 虚拟机大多都优先采用了这种收集算法去回收新生代，不过由于新生代大多数对象朝生夕死，并不需要按照 1∶1 的比例来划分新生代的内存空间。HotSpot 虚拟机的 Serial、ParNew 等新生代收集器把新生代分为一块较大的 Eden 空间和两块较小的 Survivor空间（Appel 式回收），默认空间是 8:1:1，每次分配内存只使用 Eden 和其中一块 Survivor。不过任何人都没有办法百分百保证每次回收都只有不多于10%的对象存活，因此 Appel 式回收还有一个充当罕见情况的“逃生门”的安全设计，当 Survivor 空间不足以容纳一次 Young GC 之后存活的对象时，就需要依赖其他内存区域（实际上大多就是老年代）进行分配担保（Handle Promotion）。</p>
 <h3 id="标记-整理（老年代）"><a href="#标记-整理（老年代）" class="headerlink" title="标记-整理（老年代）"></a>标记-整理（老年代）</h3><p>标记-复制算法在对象存活率较高时就要进行较多的复制操作，效率将会降低。更关键的是，如果不想浪费 50% 的空间，就需要有额外的空间进行分配担保，以应对被使用的内存中所有对象都100%存活的极端情况，所以在老年代一般不能直接选用这种算法。</p>
 <p>针对老年代对象的存亡特征，1974 年 Edward Lueders 提出了另外一种有针对性的“标记-整理”（Mark-Compact）算法，其中的标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是<code>让所有存活的对象都向内存空间一端移动，然后直接清理掉边界以外的内存</code>。</p>
-<p><img src="/2026/05/20/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%96%B9%E6%B3%95%E8%AE%BA/image-20260127094710039.png" srcset="/img/loading.gif" lazyload alt="image-20260127094710039"></p>
+<p><img src="/img/image-20260127094710039.png" srcset="/img/loading.gif" lazyload alt="image-20260127094710039"></p>
 <p>在老年代这种每次回收都有大量对象存活区域，移动存活对象并更新所有引用这些对象的地方将会是一种极为负重的操作，而且这种对象移动操作必须全程暂停用户应用程序才能进行。但如果跟标记-清除算法那样完全不考虑移动和整理存活对象的话，弥散于堆中的存活对象导致的空间碎片化问题就只能依赖更为复杂的内存分配器和内存访问器来解决。</p>
 <p>基于以上两点，<strong>是否移动对象都存在弊端，移动则内存回收时会更复杂，不移动则内存分配时会更复杂</strong>。移动对象暂停时间较长，不移动对象停顿时间会更短，甚至可以不需要停顿，但从吞吐量上看，不移动则可能由于内存碎片提前触发下一次的 GC，长久来看依然是影响吞吐量的。</p>
 <p>基于标记-清除算法的 CMS 收集器平时多数时间都采用标记-清除算法，暂时容忍内存碎片的存在，直到内存空间的碎片化程度已经大到影响对象分配时，会采用标记-整理算法收集一次，以获得规整的内存空间。</p>
