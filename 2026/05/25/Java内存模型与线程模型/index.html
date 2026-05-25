@@ -1,0 +1,958 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java内存模型与线程模型在现代的多核架构机器中，每颗 cpu 都有自己的高速缓存，它们又共享主内存的数据，因此多 cpu 并发时需要处理缓存一致性（Cache Coherence）的问题，例如多处理器都写回时以谁的为准。为了解决这个问题，各个处理器访问缓存时都会遵循一些协议，在读写时要根据协议来进行操作，这类协议有 MSI、MESI（Illinois Protocol）、MOSI、 Synaps">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java内存模型与线程模型">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/25/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java内存模型与线程模型在现代的多核架构机器中，每颗 cpu 都有自己的高速缓存，它们又共享主内存的数据，因此多 cpu 并发时需要处理缓存一致性（Cache Coherence）的问题，例如多处理器都写回时以谁的为准。为了解决这个问题，各个处理器访问缓存时都会遵循一些协议，在读写时要根据协议来进行操作，这类协议有 MSI、MESI（Illinois Protocol）、MOSI、 Synaps">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260524130047857.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260524131150247.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260525101219362.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260525101722931.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260525102029382.png">
+<meta property="article:published_time" content="2026-05-25T00:21:33.000Z">
+<meta property="article:modified_time" content="2026-05-25T02:59:30.868Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Happens-Before">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260524130047857.png">
+  
+  
+  
+  <title>Java内存模型与线程模型 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java内存模型与线程模型"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-25 08:21" pubdate>
+          2026年5月25日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          74 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java内存模型与线程模型</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java内存模型与线程模型"><a href="#Java内存模型与线程模型" class="headerlink" title="Java内存模型与线程模型"></a>Java内存模型与线程模型</h1><p>在现代的多核架构机器中，每颗 cpu 都有自己的高速缓存，它们又共享主内存的数据，因此多 cpu 并发时需要处理缓存一致性（Cache Coherence）的问题，例如多处理器都写回时以谁的为准。为了解决这个问题，各个处理器访问缓存时都会遵循一些协议，在读写时要根据协议来进行操作，这类协议有 MSI、MESI（Illinois Protocol）、MOSI、 Synapse、Firefly 及 Dragon Protocol 等。</p>
+<p><img src="/img/image-20260524130047857.png" srcset="/img/loading.gif" lazyload alt="image-20260524130047857"></p>
+<p><strong>“内存模型”一词，可以理解为在特定的操作协议下，对特定的内存或高速缓存进行读写访问的过程抽象。</strong>Java 的内存模型与这里的内存访问操作及硬件的缓存访问操作具有高度的可类比性。</p>
+<p>为了充分利用资源，处理器可能会对输入代码进行乱序执行（Out-Of-Order Execution）优化，举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>i++;<br>j++;<br></code></pre></td></tr></table></figure>
+
+<p>由于处理器执行 <code>int i = 0</code> 时 i 已经在寄存器或 cpu 缓存中了，直接执行 <code>i++</code> 可能会更高效，所以顺序性并不能靠代码的先后顺序来保证，Java 中即时编译器中会有指令重排序 （Instruction Reorder）优化。</p>
+<p>此外，Java 并发中的一些内容在分布式系统中也同样存在，例如：<a href="https://zhuwenjie0716.github.io/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/">分布式系统中的谁先谁后</a>。</p>
+<h2 id="Java-Memory-Model"><a href="#Java-Memory-Model" class="headerlink" title="Java Memory Model"></a>Java Memory Model</h2><p>《Java 虚拟机规范》定义了“Java 内存模型”（Java Memory Model，JMM）来屏蔽各种硬件和操作系统的内存访问差异，以实现让Java 程序在各种平台下都能达到一致的内存访问效果。经过长时间的验证和修补，直至 JDK5（实现了JSR-133）发布后，JMM 才终于成熟、完善起来了。</p>
+<p>Java 内存模型的主要目的是定义程序中各种变量的访问规则，即关注在虚拟机中把变量值存储到内存和从内存中取出变量值这样的底层细节（这里的变量指的是实例字段、静态字段和构成数组对象的元素，但是不包括局部变量与方法参数，因为后者是线程私有的，不会存在竞争问题）。</p>
+<p>Java 内存模型规定了所有的变量都存储在主内存（Main Memory）中。每条线程还有自己的工作内存（Working Memory），线程的工作内存中保存了被该线程使用的变量的主内存副本，线程对变量的所有操作（读取、赋值等）都必须在工作内存中进行，而不能直接读写主内存中的数据。不同的线程之间也无法直接访问对方工作内存中的变量，线程间变量值的传递均需要通过主内存来完成。</p>
+<p><img src="/img/image-20260524131150247.png" srcset="/img/loading.gif" lazyload alt="image-20260524131150247"></p>
+<p>注意：这里的主内存、工作内存和 JVM 模型中的堆、栈、方法区不是一个层级的划分。如果两者一定要勉强对应起来，那么从变量、主内存、工作内存的定义来看，主内存主要对应于堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域。如果从物理层次上，主内存直接对应于物理硬件的内存，而为了获取更好的运行速度，虚拟机（或者是硬件、操作系统本身的优化措施）可能会让工作内存优先存储于寄存器和高速缓存中。</p>
+<ul>
+<li>上文中提到：线程的工作内存中保存主内存副本，例如一个很大的对象其实是不会被完整的复制一份的，只是这个对象的引用、对象中某个在线程访问到的字段是有可能被复制的；</li>
+<li>volatile 变量依然有工作内存的拷贝，但是由于它特殊的操作顺序性规定，所以看起来如同直接在主内存中读写访问一般。</li>
+</ul>
+<p>JMM 中定义了 8 种操作来完成主内存与工作内存之间具体的交互：</p>
+<ul>
+<li>lock（锁定）：作用于主内存的变量，它把一个变量标识为一条线程独占的状态。</li>
+<li>unlock（解锁）：作用于主内存的变量，它把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定。</li>
+<li>read（读取）：作用于主内存的变量，它把一个变量的值从主内存传输到线程的工作内存中，以便随后的 load 动作使用。 </li>
+<li>load（载入）：作用于工作内存的变量，它把 read 操作从主内存中得到的变量值放入工作内存的 变量副本中。</li>
+<li>use（使用）：作用于工作内存的变量，它把工作内存中一个变量的值传递给执行引擎，每当虚拟机遇到一个需要使用变量的值的字节码指令时将会执行这个操作。</li>
+<li>assign（赋值）：作用于工作内存的变量，它把一个从执行引擎接收的值赋给工作内存的变量， 每当虚拟机遇到一个给变量赋值的字节码指令时执行这个操作。</li>
+<li>store（存储）：作用于工作内存的变量，它把工作内存中一个变量的值传送到主内存中，以便随后的 write 操作使用。</li>
+<li>write（写入）：作用于主内存的变量，它把 store 操作从工作内存中得到的变量的值放入主内存的变量中。</li>
+</ul>
+<p>如果要把一个变量从主内存拷贝到工作内存，那就要按顺序执行 read 和 load 操作，如果要把变量从工作内存同步回主内存，就要按顺序执行 store 和 write 操作（只要求操作的顺序，不要求操作的连续，中间可以有对其它变量的操作）。</p>
+<p>这些操作加上一些规则描述出了 Java 程序中哪些内存访问操作在并发下才是安全的，这种定义相当严谨，但也是极为烦琐，实践起来更是无比麻烦，后来被简化为 read、write、lock 和 unlock 四种操作，但基础设计并未改变。</p>
+<p>除了进行虚拟机开发的团队外，大概没有其他开发人员会以这种方式来思考并发问题，我们后面会用一个等效原则：<code>**先行发生原则，用来确定一个操作在并发环境下是否安全的**</code>。</p>
+<h2 id="AVO"><a href="#AVO" class="headerlink" title="AVO"></a>AVO</h2><p>AVO 只是我自己对原子性（Atomicity）、可见性（Visibility）、有序性（Ordering）的简写，非官方的缩写或表示。</p>
+<h3 id="原子性（Atomicity）"><a href="#原子性（Atomicity）" class="headerlink" title="原子性（Atomicity）"></a>原子性（Atomicity）</h3><p>并非一气呵成，岂能无懈可击。</p>
+<p>提起原子性我们可以很容易的想到一个问题：为什么多线程 <code>i++</code> 会有并发问题？ </p>
+<p>原因是虽然这只是一行代码，但真正的执行需要多个步骤，如读取原始值，原始值+1，写回新值，这就不是一个原子性的操作。</p>
+<p>开发过程中我们经常需要更大范围的一个原子性保证，此时会通过 <code>synchronized</code> 同步代码块来保证。关于 <code>synchronized</code> 的锁升级会在后续介绍，它的原子性保证是通过生成高层次的字节码指令 <code>monitorenter</code> 和 <code>monitorexit</code> 来隐式地使用 JMM 中的 lock 和 unlock 指令来实现的。</p>
+<h3 id="可见性（Visibility）"><a href="#可见性（Visibility）" class="headerlink" title="可见性（Visibility）"></a>可见性（Visibility）</h3><p>可见性（“你的改变我看不见”）就是指当一个线程修改了共享变量的值时，其他线程能够立即得知这个修改。</p>
+<p>Java 中的 <code>volatile</code>、<code>final</code>、<code>synchronized</code> 都能保证可见性：</p>
+<ul>
+<li>volatile 的特殊规则保证了新值能立即同步到主内存，以及每次使用前立即从主内存刷新；</li>
+<li>final 代表了这个对象的引用地址不会再发生变化，final 字段在构造器中一旦被初始化完成，在其他线程中就能看见值；</li>
+<li>synchronized 的可见性是由“对一个变量执行 unlock 操作之前，必须先把此变量同步回主内存中（执行 store、write 操作）”这条规则保证的。</li>
+</ul>
+<h3 id="有序性（Ordering）"><a href="#有序性（Ordering）" class="headerlink" title="有序性（Ordering）"></a>有序性（Ordering）</h3><p>有序性（“不按套路出牌”）在文章开篇其实已经举过例子了，<code>volatile</code> 和 <code>synchronized</code>  能保证有序性：</p>
+<ul>
+<li>volatile 关键字本身就包含了禁止指令重排序的语义；</li>
+<li>synchronized 是由“一个变量在同一个时刻只允许一条线程对其进行 lock 操作”这条规则保证的。</li>
+</ul>
+<h2 id="volatile"><a href="#volatile" class="headerlink" title="volatile"></a>volatile</h2><p>Java 内存模型为 volatile 专门定义了一些特殊的访问规则，使其修饰的对象具备两种特性：</p>
+<ul>
+<li>保证此变量对所有线程的可见性；</li>
+<li>禁止指令重排序优化；</li>
+</ul>
+<p>举一个大名鼎鼎的双重检测式单例的例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Singleton</span> &#123;<br>    <br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">static</span> Singleton instance;<br>    <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Singleton <span class="hljs-title function_">getInstance</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (instance == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">synchronized</span> (Singleton.class) &#123;<br>                <span class="hljs-keyword">if</span> (instance == <span class="hljs-literal">null</span>) &#123;<br>                    instance = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Singleton</span>();<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> instance;<br>    &#125;<br>    <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>            Singleton.getInstance();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>由于 <code>instance = new Singleton();</code> 不是原子操作，包括分配对象空间，初始化，instance 指向对象几步，如果 instance 指向对象先被执行，那么 main 方法中取得的单例就可能还没初始化好，导致空指针或意外错误。如果查看汇编文件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">0x01a3de0f</span>: mov    $<span class="hljs-number">0x3375cdb0</span>,%esi     ;...beb0cd75 <span class="hljs-number">33</span><br>                                        ;   &#123;oop(<span class="hljs-string">&#x27;Singleton&#x27;</span>)&#125;<br><span class="hljs-number">0x01a3de14</span>: mov    %eax,<span class="hljs-number">0x150</span>(%esi)     ;..<span class="hljs-number">.89865001</span> <span class="hljs-number">0000</span><br><span class="hljs-number">0x01a3de1a</span>: shr    $<span class="hljs-number">0x9</span>,%esi            ;...c1ee09<br><span class="hljs-number">0x01a3de1d</span>: movb   $<span class="hljs-number">0x0</span>,<span class="hljs-number">0x1104800</span>(%esi) ;...c6860048 <span class="hljs-number">100100</span><br><span class="hljs-number">0x01a3de24</span>: lock addl $<span class="hljs-number">0x0</span>,(%esp)       ;...f0830424 <span class="hljs-number">00</span><br>                                        ;*putstatic instance<br>                                        ; - Singleton::getInstance@<span class="hljs-number">24</span><br></code></pre></td></tr></table></figure>
+
+<p>有 volatile 修饰的变量，赋值后（前面 mov%eax，0x150(%esi) 这句便是赋值操作）多执行了一个“lock addl$0x0，(%esp)”操作，这个操作的作用相当于一个内存屏障，重排序时不能把后面的指令重排序到内存屏障之前的位置。而 lock 后面操作的作用是将本处理器的缓存写入了内存，该写入动作也会引起别的处理器或者别的内核无效化（Invalidate）其缓存，从而让前面 volatile 变量的修改对其他处理器立即可见。</p>
+<h2 id="先行发生"><a href="#先行发生" class="headerlink" title="先行发生"></a>先行发生</h2><p>如果所有的线程安全都需要靠 volatile 和 synchronized 来保证，那么 Java 程序写起来也太复杂了。Java 语言中有一 个“先行发生”（Happens-Before）的原则。这个原则非常重要，依赖这个原则，我们可以通过几条简单规则一揽子解决并发环境下两个操作之间是否可能存在冲突的所有问题，而不需要陷入 JMM 苦涩难懂的定义之中。</p>
+<p><a href="https://zhuwenjie0716.github.io/2026/04/15/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%B0%81%E5%85%88%E8%B0%81%E5%90%8E/">分布式系统中的谁先谁后</a> 中也提到了基于 <a target="_blank" rel="noopener" href="https://lamport.azurewebsites.net/pubs/time-clocks.pdf">lamport-Time, Clocks, and the Ordering of Events in a Distributed System</a> 的逻辑时钟和先行发生关系，分布式和多线程确实在很多地方有相似之处。</p>
+<p>JMM 下有一些“天然的”先行发生关系，这些先行发生关系无须任何同步器协助就已经存在，可以在编码中直接使用。如果两个操作之间的关系不在此列，并且无法从下列规则推导出来，则它们就没有顺序性保障，虚拟机可以对它们随意地进行重排序。</p>
+<ul>
+<li>程序次序规则（Program Order Rule）：在一个线程内，按照<strong>控制流顺序</strong>，书写在前面的操作先行发生于书写在后面的操作。注意，这里说的是控制流顺序而不是程序代码顺序，因为要考虑分支、循环等结构。 </li>
+<li>管程锁定规则（Monitor Lock Rule）：一个 unlock 操作先行发生于后面对同一个锁的 lock 操作。这 里必须强调的是“同一个锁”，而“后面”是指时间上的先后。</li>
+<li>volatile 变量规则（Volatile Variable Rule）：对一个 volatile 变量的写操作先行发生于后面对这个变量的读操作，这里的“后面”同样是指时间上的先后。</li>
+<li>线程启动规则（Thread Start Rule）：Thread 对象的 start() 方法先行发生于此线程的每一个动作。</li>
+<li>线程终止规则（Thread Termination Rule）：线程中的所有操作都先行发生于对此线程的终止检测，我们可以通过 Thread::join() 方法是否结束、Thread::isAlive() 的返回值等手段检测线程是否已经终止执行。</li>
+<li>线程中断规则（Thread Interruption Rule）：对线程 interrupt() 方法的调用先行发生于被中断线程的代码检测到中断事件的发生，可以通过 Thread::interrupted() 方法检测到是否有中断发生。</li>
+<li>对象终结规则（Finalizer Rule）：一个对象的初始化完成（构造函数执行结束）先行发生于它的 finalize() 方法的开始。 </li>
+<li>传递性（Transitivity）：如果操作 A 先行发生于操作 B，操作 B 先行发生于操作 C，那就可以得出操作 A 先行发生于操作 C 的结论。</li>
+</ul>
+<p>注意程序次序规则中的顺序是指控制流顺序，代码顺序由于存在重排序未必满足书写在前面的操作先行发生于书写在后面的操作。</p>
+<p>使用这些规则去判定操作间是否具备顺序性，对于读写共享变量的操作来说，就是判断线程是否安全。</p>
+<p>示例 1：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br>pubilc <span class="hljs-keyword">void</span> <span class="hljs-title function_">setValue</span><span class="hljs-params">(<span class="hljs-type">int</span> value)</span>&#123;<br>	<span class="hljs-built_in">this</span>.value = value;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getValue</span><span class="hljs-params">()</span>&#123;<br>	<span class="hljs-keyword">return</span> value;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果线程A先调用了 setValue(1)，随后线程B调用了 getValue()，那么线程B拿到的值是1吗？</p>
+<p>根据先行发生原则，由于操作不在一个线程，所以不满足程序次序规则；由于不涉及同步块，所以不满足管程锁定规则；由于变量没有 volatile 修饰，所以不满足 volatile 变量规则；后面的线程相关规则也无从谈起。所以这两个操作没有先行发生的关系，即使线程A操作在线程B操作的时间之前，线程B操作的返回值也是不确定的。</p>
+<p>示例1可以得出结论：<strong>一个操作“时间上的先发生”不代表这个操作会是“先行发生”</strong>。</p>
+<p>示例2：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 以下操作在同一个线程中执行</span><br><span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;<br></code></pre></td></tr></table></figure>
+
+<p>根据程序次序规则，“int i&#x3D;1” 的操作先行发生于 “int j&#x3D;2”，但是 “int j&#x3D;2” 的代码完全可能先被处理器执行，这并不影响先行发生原则的正确性， 因为我们在这条线程之中没有办法感知到这一点。</p>
+<p>由于这两行代码没有依赖关系，所以处理器先执行哪句都是不影响程序执行结果的，happens-before 描述了<strong>程序行为必须呈现出的效果</strong>，在单线程内，它只能保证后续在使用到 i 时它的值一定是1。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;<br>System.out.println(i);   <span class="hljs-comment">// 这里会打印什么？</span><br></code></pre></td></tr></table></figure>
+
+<p>无论前面的代码物理执行顺序如何，再最终打印 i 时一定会输出1，因为它依赖于 <code>int i=1</code> 且操作之间满足先行发生规则。</p>
+<p>示例2可以得出结论：<strong>即使一个操作“先行发生”，它也未必是“时间上的先发生”</strong>。</p>
+<p><strong>时间先后顺序与先行发生原则之间基本没有因果关系， 所以我们衡量并发安全问题的时候不要受时间顺序的干扰，一切必须以先行发生原则为准。</strong></p>
+<h2 id="线程模型"><a href="#线程模型" class="headerlink" title="线程模型"></a>线程模型</h2><p>线程是比进程更轻量级的调度执行单位，线程的引入，可以把一个进程的资源分配和执行调度分开，各个线程既可以共享进程资源（内存地址、文件I&#x2F;O等），又可以独立调度。这里首先以一个通用的应用程序的角度来看看线程是如何实现的。</p>
+<p>实现线程主要有三种方式：使用内核线程实现（1：1实现），使用用户线程实现（1：N 实现）， 使用用户线程加轻量级进程混合实现（N：M 实现）。</p>
+<h3 id="内核线程实现"><a href="#内核线程实现" class="headerlink" title="内核线程实现"></a>内核线程实现</h3><p>使用内核线程实现的方式也被称为 1：1 实现。内核线程（Kernel-Level Thread，KLT）就是直接由操作系统内核（Kernel，下称内核）支持的线程，这种线程由内核来完成线程切换，内核通过操纵调度器（Scheduler）对线程进行调度，并负责将线程的任务映射到各个处理器上。</p>
+<p>程序一般不会直接使用内核线程，而是使用内核线程的一种高级接口——轻量级进程（Light Weight Process，LWP），轻量级进程就是我们通常意义上所讲的线程，每个轻量级进程都由一个内核线程支持，这就是一对一的线程模型。</p>
+<p><img src="/img/image-20260525101219362.png" srcset="/img/loading.gif" lazyload alt="image-20260525101219362"></p>
+<p>由于每个轻量级进程对应一个内核线程，那么即使某个线程由于系统调用被阻塞也不影响进程其他线程的继续执行。但也正是由于其是内核线程实现的，所以各种线程操作，如创建、析构及同步，都需要进行系统调用，会发生用户态到内核态的状态切换，有一定的性能损耗。</p>
+<p>这种实现方式也导致系统能支持轻量级进程的数量是有限的，因为每一个都需要消耗一定的内核资源（如内核线程的栈空间）。</p>
+<p>那么为什么说内核线程调度的性能损耗比较大呢？</p>
+<p>程序是数据与代码的组合体，代码执行时还必须要有上下文数据（内存、缓存、寄存器中各个值）的支撑。当线程发起系统调用，通过中断切换进入内核态，如果系统调用需要阻塞，就会把状态修改为阻塞，放入等待队列中，处理器切换其它线程执行。</p>
+<p>当中断发生，尤其是阻塞涉及到线程切换时，从线程A切换到线程B去执行之前，操作系统首先要把线程A的上下文数据妥善保管好，然后把寄存器、内存分页等恢复到线程B挂起时候的状态，这样线程B被重新激活后才能仿佛从来没有被挂起过。这种保护和恢复现场的工作，免不了涉及一系列数据在各种寄存器、缓存中的来回拷贝。</p>
+<h3 id="用户线程实现"><a href="#用户线程实现" class="headerlink" title="用户线程实现"></a>用户线程实现</h3><p>使用用户线程（User Thread，UT）实现的方式被称为 1：N 实现。</p>
+<p><img src="/img/image-20260525101722931.png" srcset="/img/loading.gif" lazyload alt="image-20260525101722931"></p>
+<p>用户线程的建立、同步、销毁和调度完全在用户态中完成，不需要内核的帮助。如果程序实现得当，这种线程不需要切换到内核态，因此操作可以是非常快速且低消耗的，也能够支持规模更大的线程数量。</p>
+<p>用户线程的优势在于不需要系统内核支援，劣势也在于没有系统内核的支援，所有的线程操作都需要由用户程序自己去处理。线程的创建、销毁、切换和调度都是用户必须考虑的问题，而且由于操作系统只把处理器资源分配到进程，那诸如“阻塞如何处理”“、多处理器系统中如何将线程映射到其他处理器上”这类问题解决起来将会异常困难，甚至有些是不可能实现的。</p>
+<p>Java、Ruby 等语言都曾经使 用过用户线程，最终又都放弃了使用它。但是近年来许多新的、以高并发为卖点的编程语言又普遍支持了用户线程，譬如 Golang、Erlang 等，使得用户线程的使用率有所回升。</p>
+<h3 id="混合实现"><a href="#混合实现" class="headerlink" title="混合实现"></a>混合实现</h3><p>线程除了依赖内核线程实现和完全由用户程序自己实现之外，还有一种将内核线程与用户线程一 起使用的实现方式，被称为 N：M 实现。在这种混合实现下，既存在用户线程，也存在轻量级进程。 用户线程还是完全建立在用户空间中，因此用户线程的创建、切换、析构等操作依然廉价，并且可以支持大规模的用户线程并发。</p>
+<p><img src="/img/image-20260525102029382.png" srcset="/img/loading.gif" lazyload alt="image-20260525102029382"></p>
+<p>用户线程还是完全建立在用户空间中，因此用户线程的创建、切换、析构等操作依然廉价，并且可以支持大规模的用户线程并发。而操作系统支持的轻量级进程则作为用户线程和内核线程之间的桥梁， 这样可以使用内核提供的线程调度功能及处理器映射，并且用户线程的系统调用要通过轻量级进程来完成，这大大降低了整个进程被完全阻塞的风险（纯用户线程中，某个线程发起了系统调用，整个进程会陷入内核态阻塞，其它的用户线程也会被暂停，混合实现中只有一个 LWP 的用户线程会受到影响）。</p>
+<h3 id="Java-线程模型"><a href="#Java-线程模型" class="headerlink" title="Java 线程模型"></a>Java 线程模型</h3><p>Java 线程如何实现并不受《Java虚拟机规范》的约束，这是一个与具体虚拟机相关的话题。</p>
+<p>从 JDK1.3 起，<strong>“主流”平台上的“主流”商用 Java 虚拟机的线程模型普遍都被替换为基于操作系统原生线程模型来实现</strong>，即采用 1：1 的线程模型。</p>
+<p>以 HotSpot 为例，它的每一个 Java 线程都是直接映射到一个操作系统原生线程来实现的，而且中间没有额外的间接结构，所以HotSpot 自己是不会去干涉线程调度的（可以设置线程优先级给操作系统提供调度建议），全权交给底下的操作系统去处理，所以何时冻结或唤醒线程、该给线程分配多少处理器执行时间、该把线程安排给哪个处理器核心去执行等，都是由操作系统完成的，也都是由操作系统全权决定的。</p>
+<p>既然在开始强调了主流，那自然也有非主流的实现。在 Solaris 平台的 HotSpot 虚拟机，由于操作系统的线程特性本来就可以同时支持 1：1（BoundThreads） 及 N：M （LWPSynchronization）的线程模型，因此 Solaris 版的 HotSpot 也对应提供了两个平台专有的虚拟机参数，即 -XX： +UseLWPSynchronization（默认值）和 -XX：+UseBoundThreads 来明确指定虚拟机使用哪种线程模型。</p>
+<p>线程模型只对线程的并发规模和操作成本产生影响，对 Java 程序的编码和运行过程来说，这些差异都是完全透明的。</p>
+<p>Java 中的线程执行采用<strong>抢占式模型</strong>，每个线程由系统来分配执行时间，不会有一个线程导致整个进程甚至整个系统阻塞的问题。在两 个线程同时处于 Ready 状态时，优先级越高的线程越容易被系统选择执行。但<strong>线程优先级并不是一项稳定的调节手段</strong>，因为主流虚拟机上的 Java 线程是被映射到系统的原生线程上来实现的，所以线程调度最终还是由操作系统说了算。而且由于 Java 语言的优先级层次和操作系统的优先级层次未必能完全对应，会出现多个 Java 中的优先级对应操作系统同一个调度优先级的情况。</p>
+<p>现代 B&#x2F;S 系统中一次对外部业务请求的响应，往往需要分布在不同机器上的大量服务共同协作来实现，这种服务细分的架构在减少单个服务复杂度、增加复用性的同时，也不可避免地增加了服务的数量，缩短了留给每个服务的响应时间。1：1 的内核线程模型是如今Java 虚拟机线程实现的主流选择，但是这种映射到操作系统上的线程天然的缺陷是切换、调度成本高昂，系统能容纳的线程数量也很有限。现在在每个请求本身的执行时间变得很短、数量变得很多的前提下， 用户线程切换的开销甚至可能会接近用于计算本身的开销，这就会造成严重的浪费。</p>
+<p>于是 Java21 正式发布了虚拟线程，这个功能在 Java19&#x2F;20 是预览功能，默认关闭，需要添加参数<code>--enable-preview</code>启用，在很多其他语言中被称为协程、纤程、绿色线程、用户态线程等。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/" class="category-chain-item">经典图书</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="category-chain-item">深入理解Java虚拟机</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/Happens-Before/" class="print-no-link">#Happens-Before</a>
+      
+        <a href="/tags/%E5%B9%B6%E5%8F%91/" class="print-no-link">#并发</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java内存模型与线程模型</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/25/Java内存模型与线程模型/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/" title="JVM编译体系">
+                        <span class="hidden-mobile">JVM编译体系</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
