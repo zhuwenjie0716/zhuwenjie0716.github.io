@@ -19,25 +19,23 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+    <meta name="description" content="Redis源码分析之intset篇intset 是用于实现集合 (set) 这种对外的数据结构。它包含的元素无序，且不能重复。当插入的元素都是整形，底层使用 intset 存储，否则使用 dict。 intset 结构体定义如下： 123456&#x2F;&#x2F; intset 结构体typedef struct intset &#123;    uint32_t encoding;      &#x2F;&#x2F; 数据编码，表">
 <meta property="og:type" content="article">
-<meta property="og:title" content="面向对象设计指南">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/16/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E7%9A%84%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:title" content="Redis源码分析之intset篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/27/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bintset%E7%AF%87/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+<meta property="og:description" content="Redis源码分析之intset篇intset 是用于实现集合 (set) 这种对外的数据结构。它包含的元素无序，且不能重复。当插入的元素都是整形，底层使用 intset 存储，否则使用 dict。 intset 结构体定义如下： 123456&#x2F;&#x2F; intset 结构体typedef struct intset &#123;    uint32_t encoding;      &#x2F;&#x2F; 数据编码，表">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250916170508725.png">
-<meta property="article:published_time" content="2026-05-16T00:01:55.000Z">
-<meta property="article:modified_time" content="2026-05-22T08:51:10.947Z">
+<meta property="article:published_time" content="2026-05-27T07:04:42.000Z">
+<meta property="article:modified_time" content="2026-05-27T07:05:43.260Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="面向对象">
-<meta property="article:tag" content="设计模式">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20250916170508725.png">
   
   
   
-  <title>面向对象设计指南 - Hexo</title>
+  <title>Redis源码分析之intset篇 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +310,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="面向对象设计指南"></span>
+            <span id="subtitle" data-typed-text="Redis源码分析之intset篇"></span>
           
         </div>
 
@@ -323,8 +321,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-16 08:01" pubdate>
-          2026年5月16日 早上
+        <time datetime="2026-05-27 15:04" pubdate>
+          2026年5月27日 下午
         </time>
       </span>
     
@@ -335,7 +333,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          4.6k 字
         
       </span>
     
@@ -346,7 +344,7 @@
         
         
         
-          30 分钟
+          39 分钟
         
       </span>
     
@@ -398,68 +396,110 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">面向对象设计指南</h1>
+            <h1 id="seo-header">Redis源码分析之intset篇</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="面向对象设计指南"><a href="#面向对象设计指南" class="headerlink" title="面向对象设计指南"></a>面向对象设计指南</h1><p>一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。</p>
-<p>面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。</p>
+                <h1 id="Redis源码分析之intset篇"><a href="#Redis源码分析之intset篇" class="headerlink" title="Redis源码分析之intset篇"></a>Redis源码分析之intset篇</h1><p>intset 是用于实现集合 (set) 这种对外的数据结构。它包含的元素无序，且不能重复。当插入的元素都是整形，底层使用 intset 存储，否则使用 dict。</p>
+<p><code>intset</code> 结构体定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// intset 结构体</span><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">intset</span> &#123;</span><br>    <span class="hljs-type">uint32_t</span> encoding;      <span class="hljs-comment">// 数据编码，表示 intset 中的每个数据元素用几个字节（2、4、8）来存储，超出上限就需要转 dict 存储</span><br>    <span class="hljs-type">uint32_t</span> length;        <span class="hljs-comment">// 表示 intset 中的元素个数</span><br>    <span class="hljs-type">int8_t</span> contents[];      <span class="hljs-comment">// 柔性数组 总长度为  encoding * length</span><br>&#125; intset;<br></code></pre></td></tr></table></figure>
+
+<p>各字段含义如下：</p>
 <ul>
-<li><p>封装：通过访问权限控制，只对外暴露必要的操作，保护数据；</p>
-</li>
-<li><p>继承：<strong>代码复用</strong>，结构美感。不过 Java 语言不支持多重继承，原因是如果 BC 都继承了 A 并重写了某个方法，D 同时继承 BC 会产生歧义；</p>
-</li>
-<li><p>多态：提高代码的复用性，主要通过两种方式实现：</p>
+<li><code>encoding</code> 数据编码，表示intset中的每个数据元素用几个字节来存储。</li>
+</ul>
+<p>可选值：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> INTSET_ENC_INT16 (sizeof(int16_t))		<span class="hljs-comment">// 2字节</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INTSET_ENC_INT32 (sizeof(int32_t))		<span class="hljs-comment">// 4字节</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INTSET_ENC_INT64 (sizeof(int64_t))		<span class="hljs-comment">// 8字节</span></span><br></code></pre></td></tr></table></figure>
+
 <ul>
-<li>继承：父类引用指向子类对象；</li>
-<li>实现：接口引用指向具体实现类；</li>
+<li><code>length</code> intset 中的元素个数；</li>
+<li><code>contents</code> 柔性数组，存放真实数据，总大小为 encoding * length。</li>
 </ul>
-</li>
-<li><p>抽象：有时并不计入四大特性，用来保护实现，例如接口就是对实现的一种抽象，无需关注实现。</p>
-</li>
-</ul>
-<blockquote>
-<p>用了面向对象语言就是面向对象开发吗？</p>
-</blockquote>
+<p>需要注意的是，intset 会随着数据的添加而改变它的数据编码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6379</span>&gt; sadd myset <span class="hljs-number">1</span> <span class="hljs-number">2</span> <span class="hljs-number">3</span><br>(integer) <span class="hljs-number">3</span><br><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6379</span>&gt; memory usage <span class="hljs-title function_">myset</span><br><span class="hljs-params">(integer)</span> 61<br>127.0.0.1:6379&gt; sadd myset 4 5<br><span class="hljs-params">(integer)</span> 2<br>127.0.0.1:6379&gt; memory usage <span class="hljs-title function_">myset</span><br><span class="hljs-params">(integer)</span> 65<br>127.0.0.1:6379&gt; sadd myset 36666<br><span class="hljs-params">(integer)</span> 1<br>127.0.0.1:6379&gt; memory usage <span class="hljs-title function_">myset</span><br><span class="hljs-params">(integer)</span> 79<br></code></pre></td></tr></table></figure>
+
+<p>我们来分析一下：</p>
+<p>添加 3 个小元素后，myset 占用 61 字节，再添加两个小元素，myset 占用 65 字节，说明 1 个小元素占用 2字节，与我们的分析一致。同时也可以得出除了元素所占的空间，结构体本身占用 65 - 5*2 &#x3D; 55 字节。</p>
+<p>接着我们添加了 36666 元素，超出了 2 字节的表示范围，因此变为了4字节编码，共有（1、2、3、4、5、36666）6 个元素，占用 24 字节。</p>
+<p>结构体本身 55 字节 + 元素 24 字节 &#x3D; 79 字节</p>
+<p>与输出结果一致。</p>
+<p>了解了数据结构后，分析两个主要函数（插入和查找）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c">intset *<span class="hljs-title function_">intsetAdd</span><span class="hljs-params">(intset *is, <span class="hljs-type">int64_t</span> value, <span class="hljs-type">uint8_t</span> *success)</span> &#123;<br>    <span class="hljs-comment">// 获取要插入 value 的编码类型</span><br>    <span class="hljs-type">uint8_t</span> valenc = _intsetValueEncoding(value);<br>    <span class="hljs-type">uint32_t</span> pos;<br>    <span class="hljs-keyword">if</span> (success) *success = <span class="hljs-number">1</span>;<br><br>    <span class="hljs-comment">// 如果比当前的编码类型大，需要进行升级</span><br>    <span class="hljs-keyword">if</span> (valenc &gt; intrev32ifbe(is-&gt;encoding)) &#123;<br>        <span class="hljs-keyword">return</span> intsetUpgradeAndAdd(is, value);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 如果当前 value 已经存在</span><br>        <span class="hljs-keyword">if</span> (intsetSearch(is, value, &amp;pos)) &#123;<br>            <span class="hljs-keyword">if</span> (success) *success = <span class="hljs-number">0</span>;<br>            <span class="hljs-keyword">return</span> is;<br>        &#125;<br><br>        <span class="hljs-comment">// 内存扩充以容纳新的元素</span><br>        is = intsetResize(is, intrev32ifbe(is-&gt;length) + <span class="hljs-number">1</span>);<br>        <span class="hljs-comment">// 将待插入位置后面的元素统一向后移动 1 个位置</span><br>        <span class="hljs-keyword">if</span> (pos &lt; intrev32ifbe(is-&gt;length)) intsetMoveTail(is, pos, pos + <span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// 把 value 插入到指定 pos</span><br>    _intsetSet(is, pos, value);<br><br>    <span class="hljs-comment">// length + 1</span><br>    is-&gt;length = intrev32ifbe(intrev32ifbe(is-&gt;length) + <span class="hljs-number">1</span>);<br>    <span class="hljs-keyword">return</span> is;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <ul>
-<li>滥用 getter、setter 方法。lombok 的注解确实很方便，但这样其实违背了面向对象的封装特性，例如 createTime 等字段其实是不需要 setter 方法的，需要在创建对象的时候就确定。</li>
-<li>滥用全局变量、全局方法（Constants、Utils）。这样会导致修改后所有引用的地方都重新编译，而且有的时候只需要其中的某几个变量（或方法）却导入了整个类。<ul>
-<li>功能拆分，不要定义一个大而全的类。例如 Constants 拆分为 DateConstants、RedisConstants、MysqlConstants</li>
+<li>获取要插入数据的编码类型，与当前编码类型比较：<ul>
+<li>比当前编码类型大，进行升级存储，同时由于是新元素造成的存储升级，所以很轻松知道要插入元素的位置；</li>
+<li>比当前编码类型小，传入 value 进行查找：<ul>
+<li>能找到，直接返回；</li>
+<li>找不到，返回要插入的位置，首先进行内存扩充以容纳新元素，再把要插入位置的后面元素集体后移1个位置，最后把当前 value 插入到指定位置，整体长度 + 1。</li>
 </ul>
 </li>
-<li>**<code>定义数据与方法分离的类</code>**。传统的 MVC 开发中，数据在相应的 BO、VO、PO 中，而操作却封装在对应的 Controller、Service 中，这就是典型的面向过程，也就是<code>“贫血模型”</code>的开发方法。不过这样的开发方式依然很流行，因为大部分的需求并不复杂，只是从数据库中找到一些字段，组织对应的 VO，先写 service 反推 controller。</li>
 </ul>
+</li>
+</ul>
+<p>所以这个插入方法时间复杂度为 O(N)。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 在指定的 intset 中查找指定的元素 value，如果找到，则返回 1 并且将参数 pos 指向找到的元素位置</span><br><span class="hljs-comment">// 如果没找到，则返回 0 并且将参数 pos 指向能插入该元素的位置。</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint8_t</span> <span class="hljs-title function_">intsetSearch</span><span class="hljs-params">(intset *is, <span class="hljs-type">int64_t</span> value, <span class="hljs-type">uint32_t</span> *pos)</span> &#123;<br>        <span class="hljs-comment">// intset 里的数据是按小端（little endian）模式存储的，因此在大端（big endian）机器上运行时，这里的 intrev32ifbe 会做相应的转换</span><br>    <span class="hljs-type">int</span> min = <span class="hljs-number">0</span>, max = intrev32ifbe(is-&gt;length) - <span class="hljs-number">1</span>, mid = <span class="hljs-number">-1</span>;<br>    <br>    <span class="hljs-type">int64_t</span> cur = <span class="hljs-number">-1</span>;<br><br>    <span class="hljs-comment">// 如果 intset 为空,直接返回 0 和要插入的位置 0</span><br>    <span class="hljs-keyword">if</span> (intrev32ifbe(is-&gt;length) == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (pos) *pos = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 如果要插入的 value &gt; 最大值 或 &lt; 最小值,那么要插入的位置就确定了</span><br>        <span class="hljs-keyword">if</span> (value &gt; _intsetGet(is, max)) &#123;<br>            <span class="hljs-keyword">if</span> (pos) *pos = intrev32ifbe(is-&gt;length);<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value &lt; _intsetGet(is, <span class="hljs-number">0</span>)) &#123;<br>            <span class="hljs-keyword">if</span> (pos) *pos = <span class="hljs-number">0</span>;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 二分查找要插入的位置</span><br>    <span class="hljs-keyword">while</span> (max &gt;= min) &#123;<br>        mid = ((<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>) min + (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>) max) &gt;&gt; <span class="hljs-number">1</span>;<br>        cur = _intsetGet(is, mid);<br>        <span class="hljs-keyword">if</span> (value &gt; cur) &#123;<br>            min = mid + <span class="hljs-number">1</span>;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value &lt; cur) &#123;<br>            max = mid - <span class="hljs-number">1</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 如果找到的值就是要插入的值，返回1，并把 pos 指向该位置</span><br>    <span class="hljs-keyword">if</span> (value == cur) &#123;<br>        <span class="hljs-keyword">if</span> (pos) *pos = mid;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;    <span class="hljs-comment">// 返回 0，并把 pos 指向该插入的位置</span><br>        <span class="hljs-keyword">if</span> (pos) *pos = min;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>查找时首先对特殊情况进行处理（intset 为空、比最小值小，比最大值大）</li>
+<li>接着进行二分查找<ul>
+<li>如果最后找到的值和要插入的值相同，修改 pos 为当前位置，返回 1；</li>
+<li>如果不同，说明需要插入，pos 指向要插入的位置，返回 0。</li>
+</ul>
+</li>
+</ul>
+<p>查找时间复杂度为 O(log N)。</p>
+<p>Intset 和 ziplist 相比，都有时间换空间的意思，但也有一些不同：</p>
+<ul>
+<li>intset 中每个元素都是定长的，ziplist 元素长度可以不同；</li>
+<li>intset 只能存储整数，而 ziplist 任意二进制串都可以存储；</li>
+<li>intset 中的元素是有序的，查找时可以进行二分查找，而 ziplist 只能遍历。</li>
+</ul>
+<p>另外，intset 在以下情况发生时会转变为 dict</p>
+<ul>
+<li>添加了字符串，intset 无法表示</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6379</span>&gt; sadd myset <span class="hljs-number">1</span> <span class="hljs-number">2</span> <span class="hljs-number">3</span><br>(integer) <span class="hljs-number">3</span><br><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6379</span>&gt; object encoding myset<br><span class="hljs-string">&quot;intset&quot;</span><br><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6379</span>&gt; sadd myset <span class="hljs-title function_">zwj</span><br><span class="hljs-params">(integer)</span> 1<br>127.0.0.1:6379&gt; object encoding myset<br>&quot;hashtable<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>添加了一个数字，但它超出了能表示的范围。intset 能够表达的最大的整数范围为 -2^64^~2^64^-1，因此，如果添加的数字超出了这个范围，这也会导致 intset 转成 dict</li>
+<li>添加的集合元素个数超过了<code>set-max-intset-entries</code>配置的值（默认 <code>512</code>）的时候，此时查找效率为 O(log N)，数据量大时会比较慢，也会导致 intset 转成 dict</li>
+</ul>
+<p>Redis 的 set 数据结构还提供了计算交集（<code>sinter</code>）、并集（<code>sunion</code>）、差集（<code>sdiff</code>）的方法：</p>
+<p>计算交集的过程大概可以分为三部分：</p>
+<ol>
+<li>检查各个集合，对于不存在的集合当做空集来处理。一旦出现空集，则不用继续计算了，最终的交集就是空集；</li>
+<li>对各个集合按照元素个数由少到多进行排序。这个排序有利于后面计算的时候从最小的集合开始，需要处理的元素个数较少；</li>
+<li>对排序后第一个集合（也就是最小集合）进行遍历，对于它的每一个元素，依次在后面的所有集合中进行查找。只有在所有集合中都能找到的元素，才加入到最后的结果集合中。</li>
+</ol>
 <blockquote>
-<p>如何理解接口与抽象类？</p>
+<p>O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.</p>
 </blockquote>
-<p>随着 jdk 版本的更新，接口也可以有默认实现，也可以定义变量作为常量使用。抽象类依然不允许被实例化，继承抽象类必须重写抽象类的所有方法。</p>
-<p>先说结论：<strong>抽象类的作用更多是为了代码复用，而接口的作用则更偏向与“协议”，具备什么样的功能</strong>。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BaseEntity</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">8417380540303280008L</span>;<br>    <br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;所属用户标识&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;USER_ID&quot;)</span><br>    <span class="hljs-keyword">private</span> String userId;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;记录是否有效，默认为1表示有效&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;ACTIVE&quot;)</span><br>    <span class="hljs-keyword">private</span> String active;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;创建时间，默认为当前时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;CREATED_AT&quot;, updatable = false)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime createdAt;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;更新时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;UPDATED_AT&quot;)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime updatedAt;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>例如我们有一个上面的类，对于一个正常的删除来讲，一方面我们要查询这个数据是否存在（例如有些系统删除不存在的空数据会返回错误），另一方面判断当前登录用户是否具有删除权限（即资源的 USER_ID 是否为当前登录人或是否是当前登录人的下属），最后还需要记录日志。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">delete</span><span class="hljs-params">(String uuid)</span> &#123;<br>    <span class="hljs-type">Entity</span> <span class="hljs-variable">entity</span> <span class="hljs-operator">=</span> getEntityFromDB(uuid);<br>    <span class="hljs-keyword">if</span> (entity == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> ......<br>    &#125;<br>    <span class="hljs-keyword">if</span> (entity <span class="hljs-keyword">instanceof</span> BaseEntity) &#123;<br>		<span class="hljs-type">BaseEntity</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> (BaseEntity)entity;<br>        <span class="hljs-keyword">if</span> (!e.getActive.equals(<span class="hljs-string">&quot;1&quot;</span>)) &#123;<br>            <br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            e.setActive(<span class="hljs-string">&quot;0&quot;</span>);<br>            saveEntityToDB(entity);<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> T <span class="hljs-title function_">saveToDataBase</span><span class="hljs-params">(T entity)</span>;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> Entity <span class="hljs-title function_">getEntityFromDB</span><span class="hljs-params">(String uuid)</span>;<br></code></pre></td></tr></table></figure>
-
-<p>借助抽象类与多态，可以提高代码的复用性，减少重复代码。</p>
+<p>计算并集只需要遍历所有集合，将每一个元素都添加到最后的结果集合中。向集合中添加元素会自动去重。</p>
 <blockquote>
-<p>如何理解基于接口而非实现编程？</p>
+<p>O(N) where N is the total number of elements in all given sets.</p>
 </blockquote>
-<p>假如目前有一个上传图片到公有云的需求</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span> &#123;<br>    <br>    <span class="hljs-comment">// 获取合法 token</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getToken</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 如果目录不存在就创建目录</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">createDictoryIfNotExists</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 上传图片</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">uploadPictureToAliyun</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span>() &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">Main</span> <span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">uploadPictureAliyunImpl</span> <span class="hljs-variable">impl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span>();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> impl.getToken();<br>        ........<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>计算差集（A 和 B 的差集是 A 中有 B 中没有的，A - B）</p>
+<p>计算差集有两种可能的算法，它们的时间复杂度有所区别。</p>
+<p>第一种算法：</p>
+<ul>
+<li>对第一个集合进行遍历，对于它的每一个元素，依次在后面的所有集合中进行查找。只有在所有集合中都找不到的元素，才加入到最后的结果集合中。</li>
+</ul>
+<p>这种算法的时间复杂度为 O(N*M)，其中N是第一个集合的元素个数，M是集合数目。</p>
+<p>第二种算法：</p>
+<ul>
+<li>将第一个集合的所有元素都加入到一个中间集合中；</li>
+<li>遍历后面所有的集合，对于碰到的每一个元素，从中间集合中删掉它；</li>
+<li>最后中间集合剩下的元素就构成了差集。</li>
+</ul>
+<p>这种算法的时间复杂度为O(N)，其中N是所有集合的元素个数总和。</p>
+<p>在计算差集的开始部分，会先分别估算一下两种算法预期的时间复杂度，然后选择复杂度低的算法来进行运算。还有两点需要注意：</p>
+<ul>
+<li>在一定程度上优先选择第一种算法，因为它涉及到的操作比较少，只用添加，而第二种算法要先添加再删除；</li>
+<li>如果选择了第一种算法，那么在执行该算法之前，Redis 的实现中对于第二个集合之后的所有集合，按照元素个数<code>由多到少</code>进行了排序。这个排序有利于以更大的概率查找到元素，从而更快地结束查找。</li>
+</ul>
 
-<p>如果这样实现，后期替换为其他云厂商，例如自有的私有云，就需要替换很多代码，实际上这种情况只需要定义一个上传图片的接口，由不同的存储来实现就行。</p>
-<p>基于接口编程，即进行更好的抽象设计，不暴露过多实现。</p>
-<blockquote>
-<p>为什么说多用组合少用继承？</p>
-</blockquote>
-<p>以鸟（bird）为例，可以分为是否会飞、是否会下蛋……</p>
-<p><img src="/img/image-20250916170508725.png" srcset="/img/loading.gif" lazyload alt="image-20250916170508725"></p>
-<p>当继承层次越来越深，关系会越来越复杂，会严重影响代码的稳定性与可维护性。但是当继承层次很浅且业务稳定时，依然可以利用继承和多态特性来实现特定功能。</p>
-<p>继承实际上可以替换为组合来实现，例如定义两个接口：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Eggable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">egg</span><span class="hljs-params">()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>每一种鸟类根据自己的情况来实现对应接口即可，但是这会引入新的问题，例如有 n 个鸟类实现的 fly 接口都是一样的，那代码重复会十分严重，解决方式就是“委托”：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultFlyableImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        ......<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AAABird</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-comment">// 一般是使用注解注入</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">DefaultFlyableImpl</span> <span class="hljs-variable">defaultFlyImpl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultFlyableImpl</span>();<br>    <br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        defaultFlyImpl.fly();<br>    &#125;<br>    <br>&#125;<br></code></pre></td></tr></table></figure>
                 
               </div>
             
@@ -477,8 +517,15 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="category-chain-item">设计模式</a>
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
   
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
+  
+  
+
   
 
       </span>
@@ -492,9 +539,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" class="print-no-link">#面向对象</a>
+        <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="print-no-link">#源码分析</a>
       
-        <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#设计模式</a>
+        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
       
     </div>
   
@@ -506,8 +553,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>面向对象设计指南</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/16/面向对象设计的避坑指南/</div>
+      <div>Redis源码分析之intset篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/05/27/Redis源码分析之intset篇/</div>
     </div>
     <div class="license-meta">
       
@@ -519,7 +566,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月16日</div>
+          <div>2026年5月27日</div>
         </div>
       
       
@@ -551,18 +598,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B8%AD%E7%9A%84%E7%BB%8F%E5%85%B8%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" title="设计模式中的经典设计原则">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">设计模式中的经典设计原则</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" title="Redis源码分析之ziplist篇">
-                        <span class="hidden-mobile">Redis源码分析之ziplist篇</span>
+                      <a href="/2026/05/26/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E4%B8%8E%E9%94%81%E4%BC%98%E5%8C%96/" title="线程安全与锁优化">
+                        <span class="hidden-mobile">线程安全与锁优化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
