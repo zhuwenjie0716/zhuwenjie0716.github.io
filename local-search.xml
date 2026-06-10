@@ -4,6 +4,33 @@
   
   
   <entry>
+    <title>坎坷的 PaddlePaddle 旧版本安装</title>
+    <link href="/2026/06/10/%E5%9D%8E%E5%9D%B7%E7%9A%84%20PaddlePaddle%20%E6%97%A7%E7%89%88%E6%9C%AC%E5%AE%9E%E8%B7%B5/"/>
+    <url>/2026/06/10/%E5%9D%8E%E5%9D%B7%E7%9A%84%20PaddlePaddle%20%E6%97%A7%E7%89%88%E6%9C%AC%E5%AE%9E%E8%B7%B5/</url>
+    
+    <content type="html"><![CDATA[<h1 id="坎坷的-PaddlePaddle-旧版本安装"><a href="#坎坷的-PaddlePaddle-旧版本安装" class="headerlink" title="坎坷的 PaddlePaddle 旧版本安装"></a>坎坷的 PaddlePaddle 旧版本安装</h1><p>近期接手了一个老项目，Python3.7、PaddlePaddle2.4.2、Paddlets1.1.0。</p><p>Python3.7 姑且不提，<a href="https://github.com/PaddlePaddle/PaddleTS/releases">Paddlets1.1.0</a> 的最新版本是 2022 年底的，距今已经 3.5 年没更新了；PaddlePaddle2.4.2 常见的镜像源如: <a href="https://mirrors.aliyun.com/pypi/simple/paddlepaddle/">阿里云镜像源</a>、<a href="https://pypi.tuna.tsinghua.edu.cn/simple">清华镜像源</a> 均已无对应版本，<a href="https://www.paddlepaddle.org.cn/install/old#old-version-anchor-29-%E7%8E%AF%E5%A2%83%E6%94%AF%E6%8C%81">Paddle官网</a> 提供的安装方法 <code>python -m pip install paddlepaddle==2.4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple</code> 实测发现也已无对应版本，所以都会安装失败。<a href="https://mirror.baidu.com/pypi/simple">百度镜像源</a> 更是访问就报 403。</p><h2 id="虚拟环境"><a href="#虚拟环境" class="headerlink" title="虚拟环境"></a>虚拟环境</h2><p>第一次正式接手生产环境的 Python 项目，所以还是先补充下基本知识。</p><p>如果接触过 Docker 之类的容器技术，对虚拟环境肯定不陌生，简单来说就是为了避免资源（例如依赖的包，某项目依赖 1.1 版本，其他项目依赖 1.3 版本）冲突，通过某种技术对项目运行环境进行隔离，每一个项目运行的环境就是一个虚拟环境。Docker 采用的是逻辑虚拟化，而 Vmware 之类的虚拟机是真正的虚拟化技术。</p><p>Pyhon 中常用的虚拟环境有 venv 和 conda。</p><h3 id="venv"><a href="#venv" class="headerlink" title="venv"></a>venv</h3><p>venv 在使用 pycharm 时很常用：</p><p><img src="/img/image-20260610113637840.png" alt="image-20260610113637840"></p><p>同时如果在项目中打开终端（Terminal），在前面会有类似 (.venv) 的字样：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">(.venv) &gt;<br></code></pre></td></tr></table></figure><p>venv 需要一个真实的 python 解释器，解释一下就是 venv 中虽然也有 python 可执行文件，但这个可执行文件链接到了物理机上一个真实的解释器，就像应用程序的快捷方式一样，虽然在桌面也能打开，但删除了快捷方式不会影响真实文件，创建快捷方式的前提也是真实文件存在。假如我想创建 python3.7 的环境那么我就真的电脑上要存在一个 python3.7 的可执行文件（用可执行文件而不是 exe 的原因是，linux、macos 上不是 exe）。</p><h3 id="Conda"><a href="#Conda" class="headerlink" title="Conda"></a>Conda</h3><p>国内镜像下载地址：<a href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/">清华大学 minniconda 下载源</a></p><p>根据自己的环境选择合适的安装包，安装完成后在终端输入 <code>conda env list </code> 查看环境列表，如果提示 conda 命令找不到，需要把 condabin 目录添加到环境变量里，添加环境变量就是为了在任意位置都能够找到对应的可执行文件。</p><p>conda 像 python 的 pip 一样，也可以配置镜像源，对应的配置文件为用户目录下（windows: C盘当前用户目录，linux&#x2F;mac 是 ~&#x2F;）的 .condarc：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">show_channel_urls: <span class="hljs-literal">true</span><br>channel_priority: flexible<br>channels:<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/<br>default_channels:<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/<br>custom_channels:<br>  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  deepmodeling: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br></code></pre></td></tr></table></figure><p><strong>常用指令</strong></p><p>创建新的虚拟环境</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda create -n [env_name] python=[x.x]<br></code></pre></td></tr></table></figure><p>例如我想创建一个 python3.7 的名字为 python_3.7 的虚拟环境: <code>conda create -n python_3.7 python=3.7</code> </p><p>删除虚拟环境</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda remove -n [env_name] --all<br></code></pre></td></tr></table></figure><p>激活虚拟环境</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda activate [env_name]<br></code></pre></td></tr></table></figure><p>当激活虚拟环境后，终端会在最前方展示虚拟环境的名字，提醒用户此时所处的环境：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ conda activate python_3.7<br><br>$ (python_3.7) &gt;<br></code></pre></td></tr></table></figure><p>退出虚拟环境</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda activate [env_name]<br></code></pre></td></tr></table></figure><p>如果在虚拟环境外想要操作某个虚拟环境内的包，可以使用 -n 指定虚拟环境。</p><p>查看指定虚拟环境下已安装的包</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda list -n [env_name]<br></code></pre></td></tr></table></figure><p>指定虚拟环境安装某个包</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda install -n [env_name] [package]<br></code></pre></td></tr></table></figure><p>删除指定虚拟环境下某个包</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda remove -n [env_name] [package]<br></code></pre></td></tr></table></figure><p>更新指定虚拟环境下某个包</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda update -n [env_name] [package]<br></code></pre></td></tr></table></figure><p>如果已经执行了 conda activate 激活了某个虚拟环境，上述指令去掉 -n 即可，例如根据 requirement.txt 安装包：<code>conda install --file requirements.txt </code>。</p><p>离线安装也很常用，一个原因是并非所有的包都能在所配置的镜像源中找到，另一个原因是在内网环境中很多时候配置私有仓库的成本会比较大。</p><p>conda 离线安装的文件格式为 .tar.bz2，指令为：<code>conda install filename.tar.bz2</code>。但请注意，离线安装时 conda 不会处理依赖问题，如果安装的包无法工作，可能缺少需要手动解决的依赖项。就像 paddlepaddle 依赖 paddle_bfloat，离线安装时要先按照 paddle_bfloat 再安装 paddlepaddle。</p><h2 id="安装-PaddlePaddle"><a href="#安装-PaddlePaddle" class="headerlink" title="安装 PaddlePaddle"></a>安装 PaddlePaddle</h2><p>回到正题，那么怎么安装 PaddlePaddle2.4.2 呢？以下为 windows 安装 PaddlePaddle 的解决方案：</p><p>注意安装时使用的 pip 环境为当前所在的 venv 环境或 conda 环境！</p><p><strong>venv环境</strong></p><ol><li>安装 paddle_bfloat, PaddlePaddle 依赖这个,一定要先装这个<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pip install paddle_bfloat-0.1.7-cp37-cp37m-win_amd64.whl<br></code></pre></td></tr></table></figure></li><li>安装 PaddlePaddle<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pip install paddlepaddle-2.4.2-cp37-cp37m-win_amd64.whl<br></code></pre></td></tr></table></figure><strong>conda环境</strong></li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda install paddlepaddle-2.4.2-py37_cpu_windows.tar.bz2<br></code></pre></td></tr></table></figure><p>其实就是去网上找对应的安装包进行离线安装，主流的镜像网站均已很难找到对应安装包。</p><p>conda 环境的可以尝试在这里找：<a href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/">https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/</a></p><p>venv 环境的可以尝试在这里找：</p><p><a href="https://dashboard.stablebuild.com/pypi-deleted-packages/pkg/paddlepaddle/2.4.2">https://dashboard.stablebuild.com/pypi-deleted-packages/pkg/paddlepaddle/2.4.2</a></p><p><a href="https://pypi.org/project/paddle-bfloat/#files">https://pypi.org/project/paddle-bfloat/#files</a></p><p>Macos、Linux 同理。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Agent与模型</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Python</tag>
+      
+      <tag>PaddlePaddle</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Redis源码分析之QuickList篇</title>
     <link href="/2026/05/28/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BQuickList%E7%AF%87/"/>
     <url>/2026/05/28/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BQuickList%E7%AF%87/</url>
@@ -140,9 +167,9 @@
     
     <tags>
       
-      <tag>JVM</tag>
-      
       <tag>Java</tag>
+      
+      <tag>JVM</tag>
       
       <tag>编译</tag>
       
@@ -171,9 +198,9 @@
     
     <tags>
       
-      <tag>JVM</tag>
-      
       <tag>Java</tag>
+      
+      <tag>JVM</tag>
       
     </tags>
     
@@ -287,9 +314,9 @@
     
     <tags>
       
-      <tag>JVM</tag>
-      
       <tag>Java</tag>
+      
+      <tag>JVM</tag>
       
     </tags>
     
@@ -366,9 +393,9 @@
     
     <tags>
       
-      <tag>面向对象</tag>
-      
       <tag>设计模式</tag>
+      
+      <tag>面向对象</tag>
       
     </tags>
     

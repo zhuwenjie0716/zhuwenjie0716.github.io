@@ -19,25 +19,25 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+    <meta name="description" content="坎坷的 PaddlePaddle 旧版本安装近期接手了一个老项目，Python3.7、PaddlePaddle2.4.2、Paddlets1.1.0。 Python3.7 姑且不提，Paddlets1.1.0 的最新版本是 2022 年底的，距今已经 3.5 年没更新了；PaddlePaddle2.4.2 常见的镜像源如: 阿里云镜像源、清华镜像源 均已无对应版本，Paddle官网 提供的安装方法">
 <meta property="og:type" content="article">
-<meta property="og:title" content="面向对象设计指南">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/16/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E7%9A%84%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:title" content="坎坷的 PaddlePaddle 旧版本安装">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/06/10/%E5%9D%8E%E5%9D%B7%E7%9A%84%20PaddlePaddle%20%E6%97%A7%E7%89%88%E6%9C%AC%E5%AE%9E%E8%B7%B5/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="面向对象设计指南一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。 面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。  封装：通过访问权限控制，只对外暴露必要的操作，保护数据；  继承：代码复用，结构美感。不过 Java 语言不支持">
+<meta property="og:description" content="坎坷的 PaddlePaddle 旧版本安装近期接手了一个老项目，Python3.7、PaddlePaddle2.4.2、Paddlets1.1.0。 Python3.7 姑且不提，Paddlets1.1.0 的最新版本是 2022 年底的，距今已经 3.5 年没更新了；PaddlePaddle2.4.2 常见的镜像源如: 阿里云镜像源、清华镜像源 均已无对应版本，Paddle官网 提供的安装方法">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20250916170508725.png">
-<meta property="article:published_time" content="2026-05-16T00:01:55.000Z">
-<meta property="article:modified_time" content="2026-05-22T08:51:10.947Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260610113637840.png">
+<meta property="article:published_time" content="2026-06-10T05:21:33.000Z">
+<meta property="article:modified_time" content="2026-06-10T06:15:58.778Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="设计模式">
-<meta property="article:tag" content="面向对象">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="PaddlePaddle">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20250916170508725.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260610113637840.png">
   
   
   
-  <title>面向对象设计指南 - Hexo</title>
+  <title>坎坷的 PaddlePaddle 旧版本安装 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="面向对象设计指南"></span>
+            <span id="subtitle" data-typed-text="坎坷的 PaddlePaddle 旧版本安装"></span>
           
         </div>
 
@@ -323,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-16 08:01" pubdate>
-          2026年5月16日 早上
+        <time datetime="2026-06-10 13:21" pubdate>
+          2026年6月10日 下午
         </time>
       </span>
     
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          3.6k 字
         
       </span>
     
@@ -398,68 +398,77 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">面向对象设计指南</h1>
+            <h1 id="seo-header">坎坷的 PaddlePaddle 旧版本安装</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="面向对象设计指南"><a href="#面向对象设计指南" class="headerlink" title="面向对象设计指南"></a>面向对象设计指南</h1><p>一般说设计模式都是指面向对象的设计模式，因为面向对象语言可以借助封装、继承、多态等特性更好的达到复用性、可拓展性、可维护性。</p>
-<p>面向对象一般指以类、对象为组织代码的基本单元，并将封装、继承、多态、抽象四个特性（抽象有的定义里并不认为是四大特性）作为代码设计与实现的基石。</p>
-<ul>
-<li><p>封装：通过访问权限控制，只对外暴露必要的操作，保护数据；</p>
-</li>
-<li><p>继承：<strong>代码复用</strong>，结构美感。不过 Java 语言不支持多重继承，原因是如果 BC 都继承了 A 并重写了某个方法，D 同时继承 BC 会产生歧义；</p>
-</li>
-<li><p>多态：提高代码的复用性，主要通过两种方式实现：</p>
-<ul>
-<li>继承：父类引用指向子类对象；</li>
-<li>实现：接口引用指向具体实现类；</li>
-</ul>
-</li>
-<li><p>抽象：有时并不计入四大特性，用来保护实现，例如接口就是对实现的一种抽象，无需关注实现。</p>
-</li>
-</ul>
-<blockquote>
-<p>用了面向对象语言就是面向对象开发吗？</p>
-</blockquote>
-<ul>
-<li>滥用 getter、setter 方法。lombok 的注解确实很方便，但这样其实违背了面向对象的封装特性，例如 createTime 等字段其实是不需要 setter 方法的，需要在创建对象的时候就确定。</li>
-<li>滥用全局变量、全局方法（Constants、Utils）。这样会导致修改后所有引用的地方都重新编译，而且有的时候只需要其中的某几个变量（或方法）却导入了整个类。<ul>
-<li>功能拆分，不要定义一个大而全的类。例如 Constants 拆分为 DateConstants、RedisConstants、MysqlConstants</li>
-</ul>
-</li>
-<li>**<code>定义数据与方法分离的类</code>**。传统的 MVC 开发中，数据在相应的 BO、VO、PO 中，而操作却封装在对应的 Controller、Service 中，这就是典型的面向过程，也就是<code>“贫血模型”</code>的开发方法。不过这样的开发方式依然很流行，因为大部分的需求并不复杂，只是从数据库中找到一些字段，组织对应的 VO，先写 service 反推 controller。</li>
-</ul>
-<blockquote>
-<p>如何理解接口与抽象类？</p>
-</blockquote>
-<p>随着 jdk 版本的更新，接口也可以有默认实现，也可以定义变量作为常量使用。抽象类依然不允许被实例化，继承抽象类必须重写抽象类的所有方法。</p>
-<p>先说结论：<strong>抽象类的作用更多是为了代码复用，而接口的作用则更偏向与“协议”，具备什么样的功能</strong>。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BaseEntity</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">8417380540303280008L</span>;<br>    <br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;所属用户标识&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;USER_ID&quot;)</span><br>    <span class="hljs-keyword">private</span> String userId;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;记录是否有效，默认为1表示有效&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;ACTIVE&quot;)</span><br>    <span class="hljs-keyword">private</span> String active;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;创建时间，默认为当前时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;CREATED_AT&quot;, updatable = false)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime createdAt;<br><br>    <span class="hljs-meta">@ApiModelProperty(value = &quot;更新时间&quot;)</span><br>    <span class="hljs-meta">@Column(name = &quot;UPDATED_AT&quot;)</span><br>    <span class="hljs-meta">@DateTimeFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND)</span><br>    <span class="hljs-meta">@JsonFormat(pattern = Constants.PATTERN_DATE_HOUR_MINUTE_SECOND, timezone = Constants.TIMEZONE)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime updatedAt;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+                <h1 id="坎坷的-PaddlePaddle-旧版本安装"><a href="#坎坷的-PaddlePaddle-旧版本安装" class="headerlink" title="坎坷的 PaddlePaddle 旧版本安装"></a>坎坷的 PaddlePaddle 旧版本安装</h1><p>近期接手了一个老项目，Python3.7、PaddlePaddle2.4.2、Paddlets1.1.0。</p>
+<p>Python3.7 姑且不提，<a target="_blank" rel="noopener" href="https://github.com/PaddlePaddle/PaddleTS/releases">Paddlets1.1.0</a> 的最新版本是 2022 年底的，距今已经 3.5 年没更新了；PaddlePaddle2.4.2 常见的镜像源如: <a target="_blank" rel="noopener" href="https://mirrors.aliyun.com/pypi/simple/paddlepaddle/">阿里云镜像源</a>、<a target="_blank" rel="noopener" href="https://pypi.tuna.tsinghua.edu.cn/simple">清华镜像源</a> 均已无对应版本，<a target="_blank" rel="noopener" href="https://www.paddlepaddle.org.cn/install/old#old-version-anchor-29-%E7%8E%AF%E5%A2%83%E6%94%AF%E6%8C%81">Paddle官网</a> 提供的安装方法 <code>python -m pip install paddlepaddle==2.4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple</code> 实测发现也已无对应版本，所以都会安装失败。<a target="_blank" rel="noopener" href="https://mirror.baidu.com/pypi/simple">百度镜像源</a> 更是访问就报 403。</p>
+<h2 id="虚拟环境"><a href="#虚拟环境" class="headerlink" title="虚拟环境"></a>虚拟环境</h2><p>第一次正式接手生产环境的 Python 项目，所以还是先补充下基本知识。</p>
+<p>如果接触过 Docker 之类的容器技术，对虚拟环境肯定不陌生，简单来说就是为了避免资源（例如依赖的包，某项目依赖 1.1 版本，其他项目依赖 1.3 版本）冲突，通过某种技术对项目运行环境进行隔离，每一个项目运行的环境就是一个虚拟环境。Docker 采用的是逻辑虚拟化，而 Vmware 之类的虚拟机是真正的虚拟化技术。</p>
+<p>Pyhon 中常用的虚拟环境有 venv 和 conda。</p>
+<h3 id="venv"><a href="#venv" class="headerlink" title="venv"></a>venv</h3><p>venv 在使用 pycharm 时很常用：</p>
+<p><img src="/img/image-20260610113637840.png" srcset="/img/loading.gif" lazyload alt="image-20260610113637840"></p>
+<p>同时如果在项目中打开终端（Terminal），在前面会有类似 (.venv) 的字样：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">(.venv) &gt;<br></code></pre></td></tr></table></figure>
 
-<p>例如我们有一个上面的类，对于一个正常的删除来讲，一方面我们要查询这个数据是否存在（例如有些系统删除不存在的空数据会返回错误），另一方面判断当前登录用户是否具有删除权限（即资源的 USER_ID 是否为当前登录人或是否是当前登录人的下属），最后还需要记录日志。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">delete</span><span class="hljs-params">(String uuid)</span> &#123;<br>    <span class="hljs-type">Entity</span> <span class="hljs-variable">entity</span> <span class="hljs-operator">=</span> getEntityFromDB(uuid);<br>    <span class="hljs-keyword">if</span> (entity == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> ......<br>    &#125;<br>    <span class="hljs-keyword">if</span> (entity <span class="hljs-keyword">instanceof</span> BaseEntity) &#123;<br>		<span class="hljs-type">BaseEntity</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> (BaseEntity)entity;<br>        <span class="hljs-keyword">if</span> (!e.getActive.equals(<span class="hljs-string">&quot;1&quot;</span>)) &#123;<br>            <br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            e.setActive(<span class="hljs-string">&quot;0&quot;</span>);<br>            saveEntityToDB(entity);<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> T <span class="hljs-title function_">saveToDataBase</span><span class="hljs-params">(T entity)</span>;<br><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> Entity <span class="hljs-title function_">getEntityFromDB</span><span class="hljs-params">(String uuid)</span>;<br></code></pre></td></tr></table></figure>
+<p>venv 需要一个真实的 python 解释器，解释一下就是 venv 中虽然也有 python 可执行文件，但这个可执行文件链接到了物理机上一个真实的解释器，就像应用程序的快捷方式一样，虽然在桌面也能打开，但删除了快捷方式不会影响真实文件，创建快捷方式的前提也是真实文件存在。假如我想创建 python3.7 的环境那么我就真的电脑上要存在一个 python3.7 的可执行文件（用可执行文件而不是 exe 的原因是，linux、macos 上不是 exe）。</p>
+<h3 id="Conda"><a href="#Conda" class="headerlink" title="Conda"></a>Conda</h3><p>国内镜像下载地址：<a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/">清华大学 minniconda 下载源</a></p>
+<p>根据自己的环境选择合适的安装包，安装完成后在终端输入 <code>conda env list </code> 查看环境列表，如果提示 conda 命令找不到，需要把 condabin 目录添加到环境变量里，添加环境变量就是为了在任意位置都能够找到对应的可执行文件。</p>
+<p>conda 像 python 的 pip 一样，也可以配置镜像源，对应的配置文件为用户目录下（windows: C盘当前用户目录，linux&#x2F;mac 是 ~&#x2F;）的 .condarc：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">show_channel_urls: <span class="hljs-literal">true</span><br>channel_priority: flexible<br>channels:<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/<br>default_channels:<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/<br>  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/<br>custom_channels:<br>  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br>  deepmodeling: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud<br></code></pre></td></tr></table></figure>
 
-<p>借助抽象类与多态，可以提高代码的复用性，减少重复代码。</p>
-<blockquote>
-<p>如何理解基于接口而非实现编程？</p>
-</blockquote>
-<p>假如目前有一个上传图片到公有云的需求</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span> &#123;<br>    <br>    <span class="hljs-comment">// 获取合法 token</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getToken</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 如果目录不存在就创建目录</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">createDictoryIfNotExists</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>    <span class="hljs-comment">// 上传图片</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">uploadPictureToAliyun</span><span class="hljs-params">()</span> &#123;<br>        <br>    &#125;;<br>    <br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span>() &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">Main</span> <span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">uploadPictureAliyunImpl</span> <span class="hljs-variable">impl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">uploadPictureAliyunImpl</span>();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> impl.getToken();<br>        ........<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>常用指令</strong></p>
+<p>创建新的虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda create -n [env_name] python=[x.x]<br></code></pre></td></tr></table></figure>
 
-<p>如果这样实现，后期替换为其他云厂商，例如自有的私有云，就需要替换很多代码，实际上这种情况只需要定义一个上传图片的接口，由不同的存储来实现就行。</p>
-<p>基于接口编程，即进行更好的抽象设计，不暴露过多实现。</p>
-<blockquote>
-<p>为什么说多用组合少用继承？</p>
-</blockquote>
-<p>以鸟（bird）为例，可以分为是否会飞、是否会下蛋……</p>
-<p><img src="/img/image-20250916170508725.png" srcset="/img/loading.gif" lazyload alt="image-20250916170508725"></p>
-<p>当继承层次越来越深，关系会越来越复杂，会严重影响代码的稳定性与可维护性。但是当继承层次很浅且业务稳定时，依然可以利用继承和多态特性来实现特定功能。</p>
-<p>继承实际上可以替换为组合来实现，例如定义两个接口：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Eggable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">egg</span><span class="hljs-params">()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>例如我想创建一个 python3.7 的名字为 python_3.7 的虚拟环境: <code>conda create -n python_3.7 python=3.7</code> </p>
+<p>删除虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda remove -n [env_name] --all<br></code></pre></td></tr></table></figure>
 
-<p>每一种鸟类根据自己的情况来实现对应接口即可，但是这会引入新的问题，例如有 n 个鸟类实现的 fly 接口都是一样的，那代码重复会十分严重，解决方式就是“委托”：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultFlyableImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        ......<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AAABird</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Flyable</span> &#123;<br>    <span class="hljs-comment">// 一般是使用注解注入</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">DefaultFlyableImpl</span> <span class="hljs-variable">defaultFlyImpl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultFlyableImpl</span>();<br>    <br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">fly</span><span class="hljs-params">()</span> &#123;<br>        defaultFlyImpl.fly();<br>    &#125;<br>    <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>激活虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda activate [env_name]<br></code></pre></td></tr></table></figure>
+
+<p>当激活虚拟环境后，终端会在最前方展示虚拟环境的名字，提醒用户此时所处的环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ conda activate python_3.7<br><br>$ (python_3.7) &gt;<br></code></pre></td></tr></table></figure>
+
+<p>退出虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda activate [env_name]<br></code></pre></td></tr></table></figure>
+
+<p>如果在虚拟环境外想要操作某个虚拟环境内的包，可以使用 -n 指定虚拟环境。</p>
+<p>查看指定虚拟环境下已安装的包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda list -n [env_name]<br></code></pre></td></tr></table></figure>
+
+<p>指定虚拟环境安装某个包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda install -n [env_name] [package]<br></code></pre></td></tr></table></figure>
+
+<p>删除指定虚拟环境下某个包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda remove -n [env_name] [package]<br></code></pre></td></tr></table></figure>
+
+<p>更新指定虚拟环境下某个包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda update -n [env_name] [package]<br></code></pre></td></tr></table></figure>
+
+<p>如果已经执行了 conda activate 激活了某个虚拟环境，上述指令去掉 -n 即可，例如根据 requirement.txt 安装包：<code>conda install --file requirements.txt </code>。</p>
+<p>离线安装也很常用，一个原因是并非所有的包都能在所配置的镜像源中找到，另一个原因是在内网环境中很多时候配置私有仓库的成本会比较大。</p>
+<p>conda 离线安装的文件格式为 .tar.bz2，指令为：<code>conda install filename.tar.bz2</code>。但请注意，离线安装时 conda 不会处理依赖问题，如果安装的包无法工作，可能缺少需要手动解决的依赖项。就像 paddlepaddle 依赖 paddle_bfloat，离线安装时要先按照 paddle_bfloat 再安装 paddlepaddle。</p>
+<h2 id="安装-PaddlePaddle"><a href="#安装-PaddlePaddle" class="headerlink" title="安装 PaddlePaddle"></a>安装 PaddlePaddle</h2><p>回到正题，那么怎么安装 PaddlePaddle2.4.2 呢？以下为 windows 安装 PaddlePaddle 的解决方案：</p>
+<p>注意安装时使用的 pip 环境为当前所在的 venv 环境或 conda 环境！</p>
+<p><strong>venv环境</strong></p>
+<ol>
+<li>安装 paddle_bfloat, PaddlePaddle 依赖这个,一定要先装这个<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pip install paddle_bfloat-0.1.7-cp37-cp37m-win_amd64.whl<br></code></pre></td></tr></table></figure></li>
+<li>安装 PaddlePaddle<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pip install paddlepaddle-2.4.2-cp37-cp37m-win_amd64.whl<br></code></pre></td></tr></table></figure>
+<strong>conda环境</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">conda install paddlepaddle-2.4.2-py37_cpu_windows.tar.bz2<br></code></pre></td></tr></table></figure>
+
+<p>其实就是去网上找对应的安装包进行离线安装，主流的镜像网站均已很难找到对应安装包。</p>
+<p>conda 环境的可以尝试在这里找：<a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/">https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/</a></p>
+<p>venv 环境的可以尝试在这里找：</p>
+<p><a target="_blank" rel="noopener" href="https://dashboard.stablebuild.com/pypi-deleted-packages/pkg/paddlepaddle/2.4.2">https://dashboard.stablebuild.com/pypi-deleted-packages/pkg/paddlepaddle/2.4.2</a></p>
+<p><a target="_blank" rel="noopener" href="https://pypi.org/project/paddle-bfloat/#files">https://pypi.org/project/paddle-bfloat/#files</a></p>
+<p>Macos、Linux 同理。</p>
+
                 
               </div>
             
@@ -477,7 +486,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="category-chain-item">设计模式</a>
+  <a href="/categories/Agent%E4%B8%8E%E6%A8%A1%E5%9E%8B/" class="category-chain-item">Agent与模型</a>
   
   
 
@@ -492,9 +501,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#设计模式</a>
+        <a href="/tags/Python/" class="print-no-link">#Python</a>
       
-        <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" class="print-no-link">#面向对象</a>
+        <a href="/tags/PaddlePaddle/" class="print-no-link">#PaddlePaddle</a>
       
     </div>
   
@@ -506,8 +515,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>面向对象设计指南</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/16/面向对象设计的避坑指南/</div>
+      <div>坎坷的 PaddlePaddle 旧版本安装</div>
+      <div>https://zhuwenjie0716.github.io/2026/06/10/坎坷的 PaddlePaddle 旧版本实践/</div>
     </div>
     <div class="license-meta">
       
@@ -519,7 +528,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月16日</div>
+          <div>2026年6月10日</div>
         </div>
       
       
@@ -551,18 +560,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B8%AD%E7%9A%84%E7%BB%8F%E5%85%B8%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" title="设计模式中的经典设计原则">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">设计模式中的经典设计原则</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" title="Redis源码分析之ziplist篇">
-                        <span class="hidden-mobile">Redis源码分析之ziplist篇</span>
+                      <a href="/2026/05/28/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BQuickList%E7%AF%87/" title="Redis源码分析之QuickList篇">
+                        <span class="hidden-mobile">Redis源码分析之QuickList篇</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
