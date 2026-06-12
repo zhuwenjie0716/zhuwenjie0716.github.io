@@ -28,8 +28,12 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260610172341503.png">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260610172609744.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20251029151605166.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20251029152009184.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20251029153240053.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20251029153503395.png">
 <meta property="article:published_time" content="2026-06-11T00:21:33.000Z">
-<meta property="article:modified_time" content="2026-06-11T01:16:03.516Z">
+<meta property="article:modified_time" content="2026-06-12T09:35:15.687Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Mysql">
 <meta property="article:tag" content="数据库">
@@ -336,7 +340,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.2k 字
+          4.7k 字
         
       </span>
     
@@ -347,7 +351,7 @@
         
         
         
-          27 分钟
+          40 分钟
         
       </span>
     
@@ -460,8 +464,47 @@
 <li><strong>MIXED 格式</strong>：混合模式，MySQL 会判断 sql 是否安全选择使用 STATEMENT 还是 ROW 格式，但判断未必完全正确。</li>
 </ul>
 <p><strong>从 MySQL 8.0 开始，默认的 binlog 格式已从 STATEMENT 改为 ROW</strong>，毕竟大多数情况下，数据的一致性是更加重要的。</p>
-<p>update 语句也涉及到了 undo-log，在读已提交的隔离级别下，A 事务修改完成还未提交的时候，B 事务是读不到 A 事务修改的值的，这就利用了 undo-log，由于 undo-log 与事务息息相关，所以放在后续介绍。</p>
-<p>整理几个与本篇内容相关的配置项，可通过 <code>show variables like &#39;[配置项]&#39;</code> 查看：</p>
+<h2 id="undo-log-与事务"><a href="#undo-log-与事务" class="headerlink" title="undo-log 与事务"></a>undo-log 与事务</h2><p>update 语句也涉及到了 undo-log，在读已提交的隔离级别下，A 事务修改完成还未提交的时候，B 事务是读不到 A 事务修改的值的，这就利用了 undo-log。</p>
+<p>事务具有四个特性：ACID（Atomicity、Consistency、Isolation、Durability，即原子性、一致性、隔离性、持久性）。</p>
+<p>同时数据库有四个隔离级别：读未提交（Read UnCommited）、读已提交（Read Commited）、可重复读（Repeatable Read）和串行化（Serializability）。</p>
+<p><img src="/img/image-20251029151605166.png" srcset="/img/loading.gif" lazyload alt="image-20251029151605166"></p>
+<p>广义的不可重复读指的是两次相同查询读取的数据不一样，这个不一样既包括数据值不一样，也包括数据量不一样。在这里，不可重复读仅指数据值不一样，即A事务开始时读取的值，即使B事务修改并且成功提交了，A事务再读还是原始值。幻读则指的是数据量不一样。</p>
+<p>注意：【可重复读】的隔离级别在某些条件下是可以解决幻读的，涉及到 Mysql 中的锁机制~</p>
+<p>以下图为案例分析四种隔离级别下出现的情况：</p>
+<p><img src="/img/image-20251029152009184.png" srcset="/img/loading.gif" lazyload alt="image-20251029152009184"></p>
+<ul>
+<li>读未提交：A 事务中的 V1、V2、V3 分别是 2、2、 2，原因是该级别下其他事务只要修改即使不提交也能被当前事务看到；</li>
+<li>读已提交：A 事务中的 V1、V2、V3 分别是 1、2、 2，原因是在查询得到 V2 时事务 B 已经提交；</li>
+<li>可重复读：A 事务中的 V1、V2、V3 分别是 1、1、 2，原因是事务 A 在查询 V2 时值虽然已经被事务 B 修改，但根据该级别的规则（规则见下文），还是得到 1；</li>
+<li>串行化：事务 B 执行“将 1 改成 2”的时候，会被锁住。直到事务 A 提交后，事务 B 才可以继续执行。所以从 A 的角度看， V1、V2 值是 1，V3 的值是 2。</li>
+</ul>
+<h3 id="如何实现事务隔离"><a href="#如何实现事务隔离" class="headerlink" title="如何实现事务隔离"></a>如何实现事务隔离</h3><p>可重复读也被叫做快照读，含义是事务开始的一瞬间就像生成了一个快照一样，此后的操作都是基于这个快照，因此得到的结果一致；但是随便想想也知道，如果事务真的是在开始时对数据库内容生成了快照文件，那么磁盘的使用不可计量。</p>
+<p>Mysql 是基于 MVCC （Multiversion Concurrency Control，多版本并发控制）和 undo log。</p>
+<p>简单来说数据库中的一条记录是有多个版本的，而且每一条记录都有以下隐藏字段</p>
+<ul>
+<li>db_row_id 隐藏的行 ID，用来生成默认聚集索引。如果我们创建数据表的时候没有指定聚集索引，这时 InnoDB 就会用这个隐藏 ID 来创建聚集索引。</li>
+<li>db_trx_id 修改记录为当前版本的事务ID，所谓的事务ID是每次进行事务操作时生成的，唯一且递增。</li>
+<li>db_roll_ptr 回滚指针，执行该条记录对应的 undo log 信息。</li>
+</ul>
+<p><img src="/img/image-20251029153240053.png" srcset="/img/loading.gif" lazyload alt="image-20251029153240053"></p>
+<p>我们可以认为数据库在进行事务操作的开始生成了一个快照（视图，ReadView），里面有以下几个重要的属性：</p>
+<ul>
+<li>trx_ids，系统当前正在活跃的事务 ID 集合（未提交事务ID集合）。</li>
+<li>low_limit_id，活跃的事务中最大的事务 ID，即下图的高水位。</li>
+<li>up_limit_id，活跃的事务中最小的事务 ID，即下图的低水位。</li>
+<li>creator_trx_id，创建这个 Read View 的事务 ID。</li>
+</ul>
+<p><img src="/img/image-20251029153503395.png" srcset="/img/loading.gif" lazyload alt="image-20251029153503395"></p>
+<p>现在当前事务想要进行操作了，这时候它扫描到一条记录，这条记录是否应该展示呢？应该遵循以下的判断规则：</p>
+<ol>
+<li>如果落在绿色部分，表示这个版本是已提交的事务或者是当前事务自己生成的，这个数据是可见的；</li>
+<li>如果落在红色部分，表示这个版本是由将来启动的事务生成的，是肯定不可见的；</li>
+<li>如果落在黄色部分，那就包括两种情况：<br>a. 若 row_trx_id 在数组中，表示这个版本是由还没提交的事务生成的，不可见；<br>b. 若 row_trx_id 不在数组中，表示这个版本是已经提交了的事务生成的，可见。</li>
+</ol>
+<p>不过虽然判断某记录的当前版本对于当前事务不可见，还是需要回滚指针结合 undo log 判断历史版本是否可见。</p>
+<p>那么读已提交和可重复读的区别是什么呢？</p>
+<p><strong>读已提交的 ReadView 是每次执行一条 SQL 时就生成，而可重复读是在事务一开始就生成，事务期间不变。</strong></p>
+<p>最后整理几个与本篇内容相关的配置项，可通过 <code>show variables like &#39;[配置项]&#39;</code> 查看：</p>
 <ul>
 <li>innodb_buffer_pool_size：设置 innodb buffer pool 的大小，也就是文中提到的缓冲池大小；</li>
 <li>innodb_flush_log_at_trx_commit：配置 redo-log 日志的持久化频率，设置为 1 每次事务的 redo-log 都会落盘；</li>
