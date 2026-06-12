@@ -339,6 +339,46 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/05/12/Netty%E7%9A%84EventLoopGroup%E6%98%AF%E4%BB%80%E4%B9%88/" target="_self">
+          Netty的EventLoopGroup是什么
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/12/Netty%E7%9A%84EventLoopGroup%E6%98%AF%E4%BB%80%E4%B9%88/" target="_self">
+        <div>
+          Netty的EventLoopGroup是什么近期看到了一个 手写EventLoopGroup理解原理 的视频，觉得挺有意思的。 EventLoopGroup 与 EventLoop如果查看一下 Netty EventLoopGroup 的继承关系，我们会发现什么：  EventLoopGroup 继承了 ScheduledExecutorService，进而也继承了 ExecutorServic
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-12 08:06" pubdate>
+              2026-05-12
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Netty/">#Netty</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/05/11/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bsds%E7%AF%87/" target="_self">
           Redis源码分析之sds篇
         </a>
@@ -896,48 +936,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/Netty/">#Netty</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&amp;%E7%B2%98%E5%8C%85/" target="_self">
-          Netty如何处理半包和粘包（附自定义通信协议实践）
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/02/Netty%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%8D%8A%E5%8C%85&amp;%E7%B2%98%E5%8C%85/" target="_self">
-        <div>
-          Netty如何处理半包&amp;粘包TCP 传输协议是面向流的，没有数据包界限。当程序要发送一个较大的包时，由于滑动窗口以及 MTU 的影响，有可能会拆分为多个包传输；当程序要发送较小的包时，为了提高通信效率，Linux 的 Nagle 算法可能会将多个报文合并成一个大的报文进行发送。 MTU（Maxitum Transmission Unit） 是链路层一次最大传输数据的大小。 MTU 一般来说
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-05-02 22:46" pubdate>
-              2026-05-02
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Netty/">#Netty</a>
-            
-              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#计算机网络</a>
             
           </div>
         
