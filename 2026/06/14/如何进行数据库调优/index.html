@@ -19,15 +19,15 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="如何进行数据库调优平时提到数据库调优，绝大多数人都会想到建索引，但影响数据库性能的不仅仅是索引，还有一些其它的方向，例如：表的设计、缓冲池和锁。 表的设计业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表损耗。 在 数据">
+    <meta name="description" content="如何进行数据库调优平时提到数据库调优，绝大多数人都会想到建索引，但影响数据库性能的不仅仅是索引，还有一些其它的方向，例如：表的设计、缓冲池和锁。 表的设计业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表性能损耗。 在">
 <meta property="og:type" content="article">
 <meta property="og:title" content="如何进行数据库调优">
 <meta property="og:url" content="https://zhuwenjie0716.github.io/2026/06/14/%E5%A6%82%E4%BD%95%E8%BF%9B%E8%A1%8C%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B0%83%E4%BC%98/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="如何进行数据库调优平时提到数据库调优，绝大多数人都会想到建索引，但影响数据库性能的不仅仅是索引，还有一些其它的方向，例如：表的设计、缓冲池和锁。 表的设计业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表损耗。 在 数据">
+<meta property="og:description" content="如何进行数据库调优平时提到数据库调优，绝大多数人都会想到建索引，但影响数据库性能的不仅仅是索引，还有一些其它的方向，例如：表的设计、缓冲池和锁。 表的设计业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表性能损耗。 在">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-06-14T06:01:05.000Z">
-<meta property="article:modified_time" content="2026-06-14T07:25:11.294Z">
+<meta property="article:modified_time" content="2026-06-14T12:34:37.898Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Mysql">
 <meta property="article:tag" content="性能优化">
@@ -333,7 +333,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.6k 字
+          4.5k 字
         
       </span>
     
@@ -344,7 +344,7 @@
         
         
         
-          23 分钟
+          38 分钟
         
       </span>
     
@@ -402,15 +402,31 @@
               <div class="markdown-body">
                 
                 <h1 id="如何进行数据库调优"><a href="#如何进行数据库调优" class="headerlink" title="如何进行数据库调优"></a>如何进行数据库调优</h1><p>平时提到数据库调优，绝大多数人都会想到建索引，但影响数据库性能的不仅仅是索引，还有一些其它的方向，例如：表的设计、缓冲池和锁。</p>
-<h2 id="表的设计"><a href="#表的设计" class="headerlink" title="表的设计"></a>表的设计</h2><p>业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表损耗。</p>
-<p>在 <a href="https://zhuwenjie0716.github.io/2026/06/12/%E6%95%B0%E6%8D%AE%E6%A3%80%E7%B4%A2%E4%B8%8E%E7%B4%A2%E5%BC%95/">数据检索与索引中</a> 提到索引就是将 key 按照顺序排列，对于数据库来说，如果插入的数据针对某个索引是有序的并且只会进行逻辑删除，那么这个索引就可以只向后追加，显著减少页分裂和页空洞（页分裂是指当在一个满页中插入一个新数据，会导致索引页分裂为两个；页空洞是删除了部分元素，导致某个页上仅剩少量数据，有可能会与相近的页面进行合并）。</p>
+<h2 id="表的设计"><a href="#表的设计" class="headerlink" title="表的设计"></a>表的设计</h2><p>业务系统可以分为 OLTP（事务型） 和 OLAP（分析型），OLAP 的分析可能非常缓慢，执行的成本相当昂贵，在 OLTP 数据库上运行分析型 SQL 会直接影响其他用户的性能，分析型系统可以通过显著增加冗余字段减少分析时的连表性能损耗。</p>
+<p>在 <a href="https://zhuwenjie0716.github.io/2026/06/12/%E6%95%B0%E6%8D%AE%E6%A3%80%E7%B4%A2%E4%B8%8E%E7%B4%A2%E5%BC%95/">数据检索与索引</a> 提到索引就是将 key 按照顺序排列，对于数据库来说，如果插入的数据针对某个索引是有序的并且只会进行逻辑删除，那么这个索引就可以只向后追加，显著减少页分裂和页空洞（页分裂是指当在一个满页中插入一个新数据，会导致索引页分裂为两个；页空洞是删除了部分元素，导致某个页上仅剩少量数据，有可能会与相近的页面进行合并）。</p>
 <p>另外索引也是需要占用空间的，举个例子：一个 UUID 需要36字节来存储，而4字节的 int 就能存储几十亿范围的数字，如果选择 int 列作为索引项通常是要比 UUID 更节省空间的。</p>
 <p>基于此，一个优秀的表结构设计可以这么考虑：<strong>使用 int 或 bigint 作为主键</strong>，可以通过数据库设置为自增，也可以通过一些主键生成算法（通过时间戳和一些运算）生成<strong>趋势递增</strong>的主键，这就可以发挥上方提到的优势。</p>
 <p>另外：数据库的主键即使设置了自增，也未必是连续的。考虑事务的实现，如果插入数据后事务回滚，数据库为了保证自增键连续需要进行很多限制，因此数据库只保证主键趋势递增，在发生事务回滚的情况下其实主键未必是连续的，但这不妨碍上面提到的自增主键的优势。</p>
-<h2 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h2><p><code>Buffer Pool</code> 也是数据库重要的组成部分，作为 cpu 与磁盘交互的中介，其对数据库性能的影响不容忽视。</p>
-<p>这个在 <a href="https://zhuwenjie0716.github.io/2026/06/11/Mysql%E7%9A%84%E6%97%A5%E5%BF%97%E4%BD%93%E7%B3%BB/">Mysql的日志体系</a> 中提到过了，调优参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/innocenter/p/14948857.html">Mysql 优化之 innodb_buffer_pool_size 篇 </a>。</p>
-<p>另外 Mysql 的缓存淘汰策略不是简单的 LRU，想象一下用户进行了一个大 SQL 查询，基于 LRU 会把原本在缓冲池中的数据页全部替换，但这个查询可能后续很久都不会用到，Mysql 采用了分代的设计减轻了这样的影响。</p>
-<p>Buffer Pool 的命中率一般不得低于 99%。</p>
+<h2 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h2><p><code>Buffer Pool</code> 也是数据库重要的组成部分，作为 cpu 与磁盘交互的中介，其对数据库性能的影响不容忽视，在专用的数据库服务器上，该值可以设置为服务器内存的 60% ～ 80%。</p>
+<p>Buffer Pool 在 <a href="https://zhuwenjie0716.github.io/2026/06/11/Mysql%E7%9A%84%E6%97%A5%E5%BF%97%E4%BD%93%E7%B3%BB/">Mysql的日志体系</a> 中提到过了，调优可以参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/innocenter/p/14948857.html">Mysql 优化之 innodb_buffer_pool_size 篇 </a>，一个合格的数据库的 Buffer Pool 缓存命中率一般不应低于 99%。</p>
+<p>由于 Buffer Pool 的存在，一般的操作都在内存中完成，所以很快，但需要 flush 脏页到磁盘的时候速度就会变慢，flush 脏页一般有 4 种情况：</p>
+<ul>
+<li>write 指针追上了 redo-log 的 checkpoint，此时需要先刷 redo-log 到磁盘上，此时所有的更新都会阻塞；</li>
+<li>内存不够用，需要 flush 内存中的脏页到磁盘上，Mysql 的缓存淘汰策略不是简单的 LRU，想象一下用户进行了一个大 SQL 查询，基于 LRU 会把原本在缓冲池中的数据页全部替换，但这个查询可能后续很久都不会用到，Mysql 采用了分代的设计，而且只有某个页在 LRU 链表的存在时间超过了 1s，才会被移动到链表头部。</li>
+</ul>
+<p><code>innodb_io_capacity</code> 参数用来设置数据库磁盘的 IO 能力，即全力刷新磁盘时的速度，一般设置为磁盘的 IOPS，磁盘的 IOPS 可以利用以下指令测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 注意 -filename = $ filename,使用时需要自己找一个文件</span><br>fio -filename=<span class="hljs-variable">$filename</span> -direct=1 -iodepth 1 -thread -rw=randrw -ioengine=psync -bs=16k -size=500M -numjobs=10 -runtime=10 -group_reporting -name=mytest<br></code></pre></td></tr></table></figure>
+
+<p>如果这个参数配置的很低，会表现出服务器 IO 压力不大，但 TPS 很低。这个参数代表服务器磁盘 IO 的最大值，数据库并不会时刻按照这个速度刷盘。</p>
+<p><code>innodb_max_dirty_pages_pct</code> 脏页比例上限，默认值 75，代表 75%。可以通过下面的指令查询脏页比例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs sql"># 查询脏页<br><span class="hljs-comment">-- 方法一：直接查询,Mysql8 废弃</span><br><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">GLOBAL</span> STATUS <span class="hljs-keyword">LIKE</span> <span class="hljs-string">&#x27;Innodb_buffer_pool_pages_dirty&#x27;</span>;<br><span class="hljs-comment">-- 方法二：从 information_schema 查询</span><br><span class="hljs-keyword">SELECT</span> VARIABLE_VALUE <span class="hljs-keyword">into</span> <span class="hljs-variable">@a</span> <span class="hljs-keyword">FROM</span> information_schema.GLOBAL_STATUS <br><span class="hljs-keyword">WHERE</span> VARIABLE_NAME <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Innodb_buffer_pool_pages_dirty&#x27;</span>;<br><br># 查询总页<br><span class="hljs-keyword">select</span> VARIABLE_VALUE <span class="hljs-keyword">into</span> <span class="hljs-variable">@b</span> <span class="hljs-keyword">from</span> global_status <span class="hljs-keyword">where</span> VARIABLE_NAME <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Innodb_buffer_pool_pages_total&#x27;</span>;<br><br># 计算脏页比例<br><span class="hljs-keyword">select</span> <span class="hljs-variable">@a</span><span class="hljs-operator">/</span><span class="hljs-variable">@b</span>;<br></code></pre></td></tr></table></figure>
+
+<p>数据库会根据当前的脏页比例和 redo log 当前位置与 checkpoint 位置的差值计算一个值 R，按照 R% * <code>innodb_io_capacity</code> 的速度进行刷盘。</p>
+<ul>
+<li>系统认为此时负载很低比较空闲，也会进行刷盘；</li>
+<li>停止服务时，也会执行刷盘；</li>
+</ul>
+<p>在数据库进行 flush 脏页的时候，如果脏页的旁边也是脏页，会进行“连坐”，一起刷到磁盘，在机械硬盘时代能减少很多随机 IO。如果是 <a href="https://zhuwenjie0716.github.io/2026/04/27/%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E7%A3%81%E7%9B%98%E7%AF%87/">SSD</a>，则可以关闭这个选项，因为刷磁盘一般不是瓶颈，只刷自己反而能更快响应。对应参数：<code>innodb_flush_neighbors</code> 即刷新的时候是否“连坐”邻居，在 Mysql8.0 后，已经默认是 0 了。</p>
 <h2 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h2><p>假如设计一个商城系统，有支付和退款功能，考虑一下这样的实现：</p>
 <ul>
 <li>支付功能先新增统一账户的钱，再扣除用户账户的钱；</li>
@@ -420,8 +436,51 @@
 <p>由此引出一条原则：<strong>针对相同表的不同操作应按照相同的操作顺序</strong>。即使这样，由于行锁的存在，还是有可能出现性能瓶颈，那还可以通过把统一账户拆分为多个，事务操作随机选择账户来进行，减少行锁对性能的影响。</p>
 <p>在事务的执行过程中，锁是在执行时拿到的，但在事务结束后才释放。如果一个事务既有新增操作又有更新操作，那么建议<strong>先执行新增，再进行更新，这可以缩短持有更新锁的时间</strong>，减少可能的影响。</p>
 <p>如果对锁有更深入的了解，知道它的一些特性：例如等值查询与范围查询在唯一索引与非唯一索引上的影响，临键（next key lock）锁，那么还要遵循以下原则：<strong>更新请求最好能走索引</strong>，如果没有索引可能会走主键索引，锁很多不必要的数据或升级为表锁。</p>
+<p>InnoDB 中 <code>innodb_lock_wait_timeout</code> 参数设置了事务超时时间，默认 50s，如果超时则回退；参数 <code>innodb_deadlock_detect</code> 默认开启，在检测到发生死锁的时候，会主动回退其中的一个事务，但是对性能有影响，因为每个事务加锁都会检测，高并发时即使没有死锁也容易表现为 cpu 使用率很高。</p>
 <h2 id="SQL-调优"><a href="#SQL-调优" class="headerlink" title="SQL 调优"></a>SQL 调优</h2><p>优化的前提是知道哪些 sql 会有瓶颈或比较慢，可以通过 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/XpEfv0M_ArMa69fnXugWig">MySQL慢查询之慢 SQL 定位、日志分析与优化方案</a> 开启慢 sql 监控来定位。</p>
-<p>如果是开发环境，可能数据量不够导致慢 sql 统计不到，可以通过 explain 分析 sql 的执行计划。</p>
+<p>开发环境可能数据量不够导致慢 sql 统计不到，可以通过 explain 分析 sql 的执行计划。explain 可以展示数据表的读取顺序、SELECT 子句的类型、数据表的访问类型、可使用的索引、实际使用的索引、使用的索引长度、上一个表的连接匹配条件、被优化器查询的行的数量以及额外的信息（比如是否使用了外部排序，是否使用了临时表等）等。</p>
+<p>通过 explain 分析 sql 执行计划时，执行的顺序是根据 id 从大到小执行的，也就是 id 越大越先执行，当 id 相同时，从上到下执行，重点关注其中的 type 字段：</p>
+<table>
+<thead>
+<tr>
+<th>type</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>all</td>
+<td>全数据表扫描</td>
+</tr>
+<tr>
+<td>index</td>
+<td>全索引表扫描</td>
+</tr>
+<tr>
+<td>range</td>
+<td>对索引列进行范围查找</td>
+</tr>
+<tr>
+<td>index_merge</td>
+<td>合并索引，使用多个单列索引搜索</td>
+</tr>
+<tr>
+<td>ref</td>
+<td>根据索引查找一个或多个值</td>
+</tr>
+<tr>
+<td>eq_ref</td>
+<td>搜索时使用 primary key 或 unique 类型，常用于多表联查</td>
+</tr>
+<tr>
+<td>const</td>
+<td>常量，表最多有一个匹配行，因为只有一行，在这行的列值可被优化器认为是常数</td>
+</tr>
+<tr>
+<td>system</td>
+<td>系统，表只有一行（一般用于 MyISAM 或 Memory 表），是 const 连接类型的特例</td>
+</tr>
+</tbody></table>
+<p>可以大致认为 type 越向下性能越好，执行的成本越低。</p>
 <p>索引对 SQL 的调优发挥了很大的作用，SQL 调优可以分为两个大方向，物理优化与逻辑优化。</p>
 <h3 id="物理优化"><a href="#物理优化" class="headerlink" title="物理优化"></a>物理优化</h3><p>物理优化主要指的就是索引，索引不是万能的，每新增一个索引，插入数据时就要维护这个索引树的结构，所以索引并不是越多越好的。</p>
 <p>关于建立索引：</p>
@@ -442,9 +501,9 @@
 <h2 id="分库分表"><a href="#分库分表" class="headerlink" title="分库分表"></a>分库分表</h2><p>在分布式系统的优化理论中，有 “AKF” 立方体理论。</p>
 <p>在初期，系统可以通过增加节点 cpu 核数、内存等资源来提高性能；在单机拓展的性价比到了某个程度之后，可以通过服务和数据库拆分（微服务）、多副本机制（例如 k8s 的 replicaset、nginx 反向代理）分摊请求量来提高性能；当然在生产环境中一般二者是一起优化的。</p>
 <p>但是当底层服务，例如数据库的数据量确实到瓶颈了，增加上层服务数分摊请求也于事无补了，此时就可以考虑用户方向的拓展，从用户角度进行拆分。例如将数据库数据按照省进行拆分，每个省单独一个服务，通过定时上报或数据同步汇集到数据中心。这其实就是分库，虽然提高了数据库的性能，但也提高了业务的复杂性，例如需要考虑分布式事务。</p>
-<p>这里只是简单介绍，详细内容可以阅读：<a target="_blank" rel="noopener" href="https://ddia.vonng.com/toc/">DDIA</a>。</p>
+<p>这里只是简单介绍，详细内容可以阅读一本非常经典的书：<a target="_blank" rel="noopener" href="https://ddia.vonng.com/toc/">DDIA</a>。</p>
 <h2 id="外部优化"><a href="#外部优化" class="headerlink" title="外部优化"></a>外部优化</h2><p>以上几乎都是针对数据库方面的优化，在数据库之外，也有一些优化的手段。</p>
-<p>在读多写少的系统中，缓存可以大大减少数据库的访问量，也是现在系统的标配，例如 Redis 能提供秒级上万 QPS 的访问。</p>
+<p>在读多写少的系统中，缓存可以大大减少数据库的访问量，也是现在系统的标配，例如 Redis 能提供秒级数万 QPS 的访问。</p>
 
                 
               </div>

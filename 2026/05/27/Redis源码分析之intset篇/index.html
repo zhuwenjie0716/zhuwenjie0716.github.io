@@ -27,7 +27,7 @@
 <meta property="og:description" content="Redis源码分析之intset篇intset 是用于实现集合 (set) 这种对外的数据结构。它包含的元素无序，且不能重复。当插入的元素都是整形，底层使用 intset 存储，否则使用 dict。 intset 结构体定义如下： 123456&#x2F;&#x2F; intset 结构体typedef struct intset &#123;    uint32_t encoding;      &#x2F;&#x2F; 数据编码，表">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-27T07:04:42.000Z">
-<meta property="article:modified_time" content="2026-05-27T07:05:43.260Z">
+<meta property="article:modified_time" content="2026-05-27T07:05:44.000Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="Redis">
