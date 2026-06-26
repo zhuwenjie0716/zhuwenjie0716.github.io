@@ -339,6 +339,78 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/05/25/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" target="_self">
+          Java内存模型与线程模型
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/25/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" target="_self">
+        <div>
+          Java内存模型与线程模型在现代的多核架构机器中，每颗 cpu 都有自己的高速缓存，它们又共享主内存的数据，因此多 cpu 并发时需要处理缓存一致性（Cache Coherence）的问题，例如多处理器都写回时以谁的为准。为了解决这个问题，各个处理器访问缓存时都会遵循一些协议，在读写时要根据协议来进行操作，这类协议有 MSI、MESI（Illinois Protocol）、MOSI、 Synaps
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-25 08:21" pubdate>
+              2026-05-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/" class="category-chain-item">经典图书</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="category-chain-item">深入理解Java虚拟机</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/Happens-Before/">#Happens-Before</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91/">#并发</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/05/24/JVM%E7%BC%96%E8%AF%91%E4%BD%93%E7%B3%BB/" target="_self">
           JVM编译体系
         </a>
@@ -937,79 +1009,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">#面向对象</a>
-            
               <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
             
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" target="_self">
-          Redis源码分析之ziplist篇
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/15/Redis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bziplist%E7%AF%87/" target="_self">
-        <div>
-          Redis源码分析之ziplist篇如果提到双向链表，我们应该很熟悉，每一个对象都有三个字段  指向前驱节点的指针； 指向后向节点的指针； 该节点的数据。  双向链表可以在两端执行 O(1) 级别的操作，缺点是可能产生内存碎片，对空间利用率低（每个节点除了存储数据还要存指向相邻节点的指针） 而 ziplist 就是一个特殊编码的双向链表，它特殊在哪里呢？  ziplist 每个节点没有使用前后指针
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-05-15 08:07" pubdate>
-              2026-05-15
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Redis/" class="category-chain-item">Redis</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">#源码分析</a>
-            
-              <a href="/tags/Redis/">#Redis</a>
+              <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">#面向对象</a>
             
           </div>
         

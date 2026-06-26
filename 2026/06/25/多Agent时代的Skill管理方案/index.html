@@ -19,25 +19,25 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+    <meta name="description" content="多Agent时代的Skill管理方案最近处理了一些 AI 能力的需求，常用的方案就是浏览器自动化，借助张铁蕾老师团队的 bridgic-browser skill，这个 skill 的详情可以看这篇 【开源】专为「探路+编码」范式设计的全新浏览器工具集+Skills  ，很强大的一个浏览器自动化工具。 在关于浏览器自动化的需求中，通常会对某个网站进行页面探索、网络请求捕获、数据爬虫，而网站中同一类">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Netty的FastThreadLocal快在哪">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/index.html">
+<meta property="og:title" content="多Agent时代的Skill管理方案">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/06/25/%E5%A4%9AAgent%E6%97%B6%E4%BB%A3%E7%9A%84Skill%E7%AE%A1%E7%90%86%E6%96%B9%E6%A1%88/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+<meta property="og:description" content="多Agent时代的Skill管理方案最近处理了一些 AI 能力的需求，常用的方案就是浏览器自动化，借助张铁蕾老师团队的 bridgic-browser skill，这个 skill 的详情可以看这篇 【开源】专为「探路+编码」范式设计的全新浏览器工具集+Skills  ，很强大的一个浏览器自动化工具。 在关于浏览器自动化的需求中，通常会对某个网站进行页面探索、网络请求捕获、数据爬虫，而网站中同一类">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260504224251962.png">
-<meta property="article:published_time" content="2026-05-04T14:28:05.000Z">
-<meta property="article:modified_time" content="2026-05-22T08:51:12.000Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260626131700965.png">
+<meta property="article:published_time" content="2026-06-25T09:08:41.000Z">
+<meta property="article:modified_time" content="2026-06-26T08:06:53.324Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="Netty">
-<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Skill">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260504224251962.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260626131700965.png">
   
   
   
-  <title>Netty的FastThreadLocal快在哪 - Hexo</title>
+  <title>多Agent时代的Skill管理方案 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Netty的FastThreadLocal快在哪"></span>
+            <span id="subtitle" data-typed-text="多Agent时代的Skill管理方案"></span>
           
         </div>
 
@@ -323,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-04 22:28" pubdate>
-          2026年5月4日 晚上
+        <time datetime="2026-06-25 17:08" pubdate>
+          2026年6月25日 下午
         </time>
       </span>
     
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          5.1k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          29 分钟
+          43 分钟
         
       </span>
     
@@ -398,61 +398,212 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Netty的FastThreadLocal快在哪</h1>
+            <h1 id="seo-header">多Agent时代的Skill管理方案</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Netty的FastThreadLocal快在哪"><a href="#Netty的FastThreadLocal快在哪" class="headerlink" title="Netty的FastThreadLocal快在哪"></a>Netty的FastThreadLocal快在哪</h1><p>Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。</p>
-<p>FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？</p>
-<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>ThreadLocal 可以用来实现线程内单例。</p>
-<p>对于线程内单例，简单的实现可以维护一个 ConcurrentHashMap，其中 Key 是 Thread 对象，Value 是 ThreadLocal 的类型。ThreadLocal 不是这么实现的，因为在高并发的场景并发修改 Map 如果需要加锁，势必会降低性能。</p>
-<p>JDK 为了避免加锁，采用了相反的设计思路。JDK 在每个 Thread 内维护一个 Map，Map 的元素称为 Entry，Map 的 Key 是 ThreadLocal，Value 是这个 ThreadLocal 的类型的值。</p>
-<p><img src="/img/image-20260504224251962.png" srcset="/img/loading.gif" lazyload alt="image-20260504224251962"></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;Integer&gt; threadLocal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>threadLocal.set(<span class="hljs-number">1</span>);<br></code></pre></td></tr></table></figure>
-
-<p>即该线程内的 ThreadLocalMap，会有一个 Entry 元素 &lt;threadLocal, 1&gt;。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread对象<br>  └─ ThreadLocalMap (哈希表)<br>       ├─ Entry[<span class="hljs-number">16</span>] (哈希槽位，可能冲突)<br>       ├─ Entry[<span class="hljs-number">17</span>] (哈希槽位)<br>       └─ Entry[<span class="hljs-number">18</span>] (哈希槽位)<br></code></pre></td></tr></table></figure>
-
-<p>ThreadLocalMap 是一种使用线性探测法实现的哈希表，底层采用数组存储数据。当发生哈希冲突时，要向后寻找空闲的位置，当冲突频率很高时，<code>解决哈希冲突的成本很大</code>，而且在查找数据时也需要向后查找（哈希值对应的位置可能被其它节点线性探测占用了）。当容量达到阈值时，需要进行扩容，扩容后需要再哈希确定元素位置。</p>
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>提起 ThreadLocal 也不得不提内存泄漏，系统中为了避免频繁的创建销毁线程，一般都会使用线程池复用线程。想一下下面的场景：</p>
-<ol>
-<li>线程在执行过程中向某个方法内创建的 ThreadLocal 对象中设置了值；</li>
-<li>方法执行结束，线程回收到线程池；</li>
-<li>由于线程内的 ThreadLocalMap 中引用了第一步的 ThreadLocal 对象，所以即使方法执行结束，ThreadLocal 对象也无法被回收。</li>
-</ol>
-<p>JDK 为了避免这样的情况，做了以下措施：</p>
-<ol>
-<li>ThreadLocalMap 的 Key 采用弱引用类型，即当没有强引用时只要发生 gc 就会回收；但只有 Key 时弱引用，Value 依然是强引用；</li>
-<li>在执行 ThreadLocal.set()&#x2F;get() 方法时，ThreadLocal 会清除 ThreadLocalMap 中 key 为 NULL 的 Entry 对象，让它能够被 GC 回收。</li>
-</ol>
-<p>但是为了避免内存泄漏，还是要求某个 ThreadLocal 对象不再使用时，立即调用 remove() 方法删除 Entry 对象。</p>
-<h2 id="FastThreadLocal"><a href="#FastThreadLocal" class="headerlink" title="FastThreadLocal"></a>FastThreadLocal</h2><p>通过对 ThreadLocal 的介绍，它有以下缺点：</p>
+                <h1 id="多Agent时代的Skill管理方案"><a href="#多Agent时代的Skill管理方案" class="headerlink" title="多Agent时代的Skill管理方案"></a>多Agent时代的Skill管理方案</h1><p>最近处理了一些 AI 能力的需求，常用的方案就是浏览器自动化，借助张铁蕾老师团队的 <a target="_blank" rel="noopener" href="https://github.com/bitsky-tech/bridgic-browser">bridgic-browser</a> skill，这个 skill 的详情可以看这篇 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/1nstbS6EBEuZAJQL8o4ASg">【开源】专为「探路+编码」范式设计的全新浏览器工具集+Skills </a> ，很强大的一个浏览器自动化工具。</p>
+<p>在关于浏览器自动化的需求中，通常会对某个网站进行页面探索、网络请求捕获、数据爬虫，而网站中同一类型不同数据详情的结构也非常相似，将其以脚本方式实现是主流的方案。通过脚本实现爬虫，一方面具有一定的稳定性（模型在不同时间的能力有差距），另一方面也能节省 token 的消耗（在一个爬取每日 top 公告并生成日报总结的需求中，只有最后的生成日报消耗 token）。</p>
+<p>所以：浏览器自动化通常会借助脚本实现，例如 python，而 python 的运行其实是需要一些环境支持的，像 venv、pyproject.toml 等，也就是说：<strong>调试生成 skill 的工程项目相比最终交付的 skill 是有不少冗余的。</strong></p>
+<p>接着回到文章的标题，我可能一直使用 claude 在工程目录不断调试，产生 task 需求文档、CLAUDE.md 项目记忆，而最终由于自动化需求，需要在 workbuddy 里运行。多数的 Agent 都会识别 <code>~/agents/skills</code> 里的 skill，但也有 claude 这样只识别 <code>~/.claude/</code> 目录的 agent，所以汇总下来有两个问题：</p>
 <ul>
-<li>解决哈希冲突的成本大，可能会存在性能瓶颈；</li>
-<li>如果不及时 remove，可能产生内存泄漏；</li>
+<li>如何将工程项目转为 skill</li>
+<li>如何处理多 Agent 的 Skill 同步问题</li>
 </ul>
-<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>FastThreadLocalThread 是对 Thread 类的一层包装，每个线程对应一个 InternalThreadLocalMap 实例。只有 FastThreadLocal 和 FastThreadLocalThread 组合使用时，才能发挥 FastThreadLocal 的性能优势。</p>
-<p>InternalThreadLocalMap 与 ThreadLocalMap 的实现差别很大，虽然也是采用数组的方式存储元素，但它可以做到 O(1) 的访问速度，而且只存储 Value，原因就藏在源码里：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> index;<br><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FastThreadLocal</span><span class="hljs-params">()</span> &#123;<br>    index = InternalThreadLocalMap.nextVariableIndex();<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="project-to-skill"><a href="#project-to-skill" class="headerlink" title="project-to-skill"></a>project-to-skill</h2><p>工程项目转为 skill 的本质是项目到交付物的转变，在传统的项目中，交付物一般是一个 image，即编写 dockerfile，项目编译后通过 dockerfile 生成镜像。</p>
+<p>在这里，同样可以借鉴这样的思路，我的项目是这么组织的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs bash">project<br>├── CLAUDE.md<br>├── deploy-skill.sh<br>├── dist<br>│   ├── skill-name<br>│   │   ├── scripts<br>│   │   │   ├── process.py<br>│   │   └── SKILL.md<br>│   └── skill-name.zip<br>├── docs<br>│   ├── process.md<br>│   ├── project_source.md<br>│   └── tasks<br>│       └── task_process.md<br>└── scripts<br>    ├── __pycache__<br>    ├── process.py<br>    └── SKILL.md<br></code></pre></td></tr></table></figure>
 
-<p>在创建 FastThreadLocal 时，会为其中的 index 属性赋一个值，赋值的逻辑很简单：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">nextIndex</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();    <br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">nextVariableIndex</span><span class="hljs-params">()</span> &#123;<br>       <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> nextIndex.getAndIncrement();<br>       <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) &#123;<br>           nextIndex.decrementAndGet();<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;too many thread-local indexed variables&quot;</span>);<br>       &#125;<br>       <span class="hljs-keyword">return</span> index;<br>   &#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>CLAUDE.md 放置项目记忆，参考 <a target="_blank" rel="noopener" href="https://code.claude.com/docs/en/best-practices">Best practices for Claude Code</a> ，每次对话都要加载，所以100行附近最佳；</li>
+<li>docs 放需求文档，用于审计或完成某项任务，process.md 就是提示 agent 生成 process.py 完成文档中需求的；</li>
+<li>scripts 放项目需要用到的脚本，SKILL.md 不是脚本的内容，但也用于最终的 skill 构建，所以我一起放到了这个目录；</li>
+<li>deploy-skill.sh 是实现 project-to-skill 的重点；</li>
+<li>dist 存放 skill 交付物。</li>
+</ul>
+<p>我把 deploy-skill.sh 分为两部分，使用 –stage 参数，支持 build、sync、all 选项</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash">用法: ./deploy-skill.sh [选项]<br><br>选项:<br>  --stage &lt;stage&gt;   执行阶段: build, <span class="hljs-built_in">sync</span>, all (默认: all)<br>  --<span class="hljs-built_in">help</span>, -h        显示此帮助信息<br><br>示例:<br>  ./deploy-skill.sh --stage build     <span class="hljs-comment"># 只构建，生成 dist/ 目录</span><br>  ./deploy-skill.sh --stage <span class="hljs-built_in">sync</span>      <span class="hljs-comment"># 只同步，从 dist/ 同步到 skill-sync</span><br>  ./deploy-skill.sh --stage all       <span class="hljs-comment"># 构建 + 同步</span><br></code></pre></td></tr></table></figure>
 
-<p>也就是每一个 FastThreadLocal 都有唯一的一个 index，那在 Thread 中存储 FastThreadLocal值 的时候，直接存到 index 对应的位置不就直接解决哈希冲突了吗？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br>            ├─ [<span class="hljs-number">1</span>] → FastThreadLocal_1的值<br>            ├─ [<span class="hljs-number">2</span>] → FastThreadLocal_2的值<br>            ├─ [<span class="hljs-number">3</span>] → UNSET（未使用）<br>            └─ [<span class="hljs-number">4</span>] → FastThreadLocal_4的值<br></code></pre></td></tr></table></figure>
+<p>build 阶段会删除 dist&#x2F;skill-name 目录，然后按照自定义逻辑执行：</p>
+<ul>
+<li>新建 dist&#x2F;skill-name 目录；</li>
+<li>复制 scripts 文件夹下的脚本到 dist&#x2F;skill-name&#x2F; 下；</li>
+<li>复制 skill.md 到 dist&#x2F;skill-name&#x2F; 下；</li>
+<li>压缩 dist&#x2F;skill-name 目录为 skill-name.zip。</li>
+</ul>
+<p>sync 阶段会 dist&#x2F;skill-name 目录按照自定义逻辑更新到某个位置，例如 ～&#x2F;.claude&#x2F;skills&#x2F;</p>
+<ul>
+<li>在指定目录寻找是否有 skill-name 文件夹<ul>
+<li>如果不存在直接复制 skill-name 文件夹到该目录</li>
+</ul>
+</li>
+<li>删除 ~&#x2F;.claude&#x2F;skills&#x2F;skill-name&#x2F; 目录下的 scripts 目录和 SKill.md 文件</li>
+<li>复制 dist&#x2F;skill-name 里的文件到对应位置</li>
+</ul>
+<p>这里的逻辑每个项目不同，有的还需要 referances 、asserts 目录等。</p>
+<h2 id="skill-sync"><a href="#skill-sync" class="headerlink" title="skill-sync"></a>skill-sync</h2><p>经历了 project-to-skill，skill 可以输出到某个指定位置了，skill-sync 解决的是不同的 Agent 之间如何同步最新 skill 的问题。</p>
+<p>一个简单的方案是，所有其它地方的 agent 目录（如 .agents&#x2F;skills、.workbuddy&#x2F;skills）直接软链接到这个目录，实施起来需要管理链接信息，包括某个 skill 都被多少 agent 链接了，链接时如果本地以及存在 skill 了怎么解决冲突等等。</p>
+<p>在 6.24 日，阿里云云原生微信公众号发布了一篇文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/AwlzoIu4fFcZHxMQYqfeLA">别再手动复制 Skill 了：多 Agent 时代的 Skill 管理方案</a>，提出了关于 <strong>Nacos Skill Sync</strong> 的两种模式解决方案：</p>
+<ul>
+<li>本地模式，其本质是在 ～&#x2F;.nacos-cli&#x2F;skill-sync&#x2F;profiles&#x2F;{profile}&#x2F;skill-repo 目录下存所有需要同步的 skill，nacos-cli 会维护其它 agent 到这个 skill 的软链接，确保内容一致；</li>
+<li>nacos 模式，该模式需要配合 nacos 服务使用。在早期，nacos 用作微服务里的注册中心、配置中心，如今也可以用作 skill 仓库。用户生成 skill 后推送至 nacos 的 skill 仓库，本地 nacos 守护进程会定期（默认30s）同步 skill。</li>
+</ul>
+<p><img src="/img/image-20260626131700965.png" srcset="/img/loading.gif" lazyload alt="image-20260626131700965"></p>
+<p>该模式不仅是简单的固定 agents 同步，还可以自定义路径，目前默认会扫描的 agents 不包括 workbuddy，可以通过相关指令将 .workbuddy&#x2F;skills&#x2F; 也加入到需要同步的 agents 里。</p>
+<p>如果只是个人开发者为了方便管理 skill，使用本地模式即可，如果需要团队协作、skill 复用，则推荐 Nacos 模式。以下是部分操作手册：</p>
+<h3 id="安装-nacos-cli"><a href="#安装-nacos-cli" class="headerlink" title="安装 nacos-cli"></a>安装 nacos-cli</h3><p><strong>Linux &#x2F; macOS 安装：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">curl -fsSL https://nacos.io/nacos-installer.sh | bash -s -- --cli<br></code></pre></td></tr></table></figure>
 
-<p>当数组容量满时，需要根据 index 的值进行扩容（注意这里不能是简单的 2 倍关系，例如当前长度是 32，但是插入了一个 index 是 72 的 FastThreadLocal，那么扩容2倍是不够的），但这并不会浪费很多空间，那些没使用的位置只是存放了同一个缺省对象的引用。</p>
-<h3 id="内存泄漏-1"><a href="#内存泄漏-1" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>FastThreadLocalThread 对于内存泄漏又有什么改进呢？</p>
-<p>Netty 通过 DefaultThreadFactory 创建的所有线程都是 FastThreadLocalThread（Netty 的 EventLoop 就是 FastThreadLocalThread），并且所有提交的 Runnable 任务会被包装成 FastThreadLocalRunnable。</p>
-<p>当一个线程（特别是线程池中的线程）执行完任务后，其实就可以清理当前线程上绑定的所有 FastThreadLocal 变量了。在 FastThreadLocalThread 的设计中，如果一个 index 被设置了值，那么这个 FastThreadLocal 就会放到一个 Set 中，这个 Set 就存在 indexedVariables[0] 的位置。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br></code></pre></td></tr></table></figure>
+<p><strong>Windows PowerShell 安装：</strong></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-built_in">iwr</span> <span class="hljs-literal">-UseBasicParsing</span> https://nacos.io/nacos<span class="hljs-literal">-installer</span>.ps1 <span class="hljs-literal">-OutFile</span> <span class="hljs-variable">$env:TEMP</span>\nacos<span class="hljs-literal">-installer</span>.ps1; &amp; <span class="hljs-variable">$env:TEMP</span>\nacos<span class="hljs-literal">-installer</span>.ps1 <span class="hljs-literal">-cli</span>; <span class="hljs-built_in">Remove-Item</span> <span class="hljs-variable">$env:TEMP</span>\nacos<span class="hljs-literal">-installer</span>.ps1<br></code></pre></td></tr></table></figure>
 
-<p>Netty 还封装了 FastThreadLocalRunnable，FastThreadLocalRunnable 最后会执行 FastThreadLocal.removeAll() 将 Set 集合中所有 FastThreadLocal 对象都清理掉。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultRunnableDecorator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Runnable r;<br><br>    DefaultRunnableDecorator(Runnable r) &#123;<br>        <span class="hljs-built_in">this</span>.r = r;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            r.run();<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            FastThreadLocal.removeAll();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>相比 JDK 原生的 ThreadLocal，Netty 的 FastThreadLocal 一方面提高了并发情况下的性能，也优化了内存泄漏。</p>
-<p>但 FastThreadLocal 不一定比 ThreadLocal 快，只有是 FastThreadLocalThread 类型的线程才会更快，如果是普通线程反而会更慢。</p>
+<h3 id="命令速查表"><a href="#命令速查表" class="headerlink" title="命令速查表"></a>命令速查表</h3><h4 id="本地模式"><a href="#本地模式" class="headerlink" title="本地模式"></a>本地模式</h4><table>
+<thead>
+<tr>
+<th align="left">操作</th>
+<th align="left">命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">检查同步状态</td>
+<td align="left"><code>nacos-cli skill-sync status</code></td>
+</tr>
+<tr>
+<td align="left">添加技能（自动选择）</td>
+<td align="left"><code>nacos-cli skill-sync add &lt;skill&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">添加技能（指定源）</td>
+<td align="left"><code>nacos-cli skill-sync add &lt;skill&gt; --from &lt;agent&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">添加所有技能</td>
+<td align="left"><code>nacos-cli skill-sync add --all --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">启动同步</td>
+<td align="left"><code>nacos-cli skill-sync start --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">解决冲突（使用仓库）</td>
+<td align="left"><code>nacos-cli skill-sync resolve &lt;skill&gt; --use-repo --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">解决冲突（使用代理）</td>
+<td align="left"><code>nacos-cli skill-sync resolve &lt;skill&gt; --use-agent &lt;agent&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">停止同步</td>
+<td align="left"><code>nacos-cli skill-sync stop</code></td>
+</tr>
+<tr>
+<td align="left">移除技能</td>
+<td align="left"><code>nacos-cli skill-sync remove &lt;skill&gt;</code></td>
+</tr>
+</tbody></table>
+<h4 id="Nacos-模式"><a href="#Nacos-模式" class="headerlink" title="Nacos 模式"></a>Nacos 模式</h4><table>
+<thead>
+<tr>
+<th align="left">操作</th>
+<th align="left">命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">检查状态</td>
+<td align="left"><code>nacos-cli skill-sync status --profile &lt;profile&gt;</code></td>
+</tr>
+<tr>
+<td align="left">添加技能（使用 Nacos）</td>
+<td align="left"><code>nacos-cli skill-sync add &lt;skill&gt; --profile &lt;profile&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">添加技能（使用代理）</td>
+<td align="left"><code>nacos-cli skill-sync add &lt;skill&gt; --profile &lt;profile&gt; --from &lt;agent&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">添加所有技能</td>
+<td align="left"><code>nacos-cli skill-sync add --all --profile &lt;profile&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">启动守护进程</td>
+<td align="left"><code>nacos-cli skill-sync start --profile &lt;profile&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">启动（禁用自动上传）</td>
+<td align="left"><code>nacos-cli skill-sync start --profile &lt;profile&gt; --non-interactive --no-auto-upload</code></td>
+</tr>
+<tr>
+<td align="left">解决冲突（使用 Nacos）</td>
+<td align="left"><code>nacos-cli skill-sync resolve &lt;skill&gt; --use-nacos --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">解决冲突（使用代理）</td>
+<td align="left"><code>nacos-cli skill-sync resolve &lt;skill&gt; --use-agent &lt;agent&gt; --non-interactive</code></td>
+</tr>
+<tr>
+<td align="left">停止守护进程</td>
+<td align="left"><code>nacos-cli skill-sync stop</code></td>
+</tr>
+<tr>
+<td align="left">手动上传</td>
+<td align="left"><code>nacos-cli skill-upload ~/.nacos-cli/skill-sync/profiles/&lt;profile&gt;/skill-repo/&lt;skill&gt; --profile &lt;profile&gt;</code></td>
+</tr>
+<tr>
+<td align="left">设置标签</td>
+<td align="left"><code>nacos-cli skill-sync set-label &lt;label&gt; --profile &lt;profile&gt;</code></td>
+</tr>
+</tbody></table>
+<p><strong>配置文件管理</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">操作</th>
+<th align="left">命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">列出配置文件</td>
+<td align="left"><code>nacos-cli profile list</code></td>
+</tr>
+<tr>
+<td align="left">显示配置文件</td>
+<td align="left"><code>nacos-cli profile show &lt;profile&gt;</code></td>
+</tr>
+<tr>
+<td align="left">设置配置文件</td>
+<td align="left"><code>nacos-cli profile set &lt;profile&gt; host=&lt;host&gt; port=&lt;port&gt; namespace=&lt;namespace&gt; auth-type=&lt;auth-type&gt;</code></td>
+</tr>
+<tr>
+<td align="left">设置认证（用户名&#x2F;密码）</td>
+<td align="left"><code>nacos-cli profile set &lt;profile&gt; username=&lt;username&gt; password=&lt;password&gt;</code></td>
+</tr>
+<tr>
+<td align="left">设置认证（密钥）</td>
+<td align="left"><code>nacos-cli profile set &lt;profile&gt; access-key=&lt;access-key&gt; secret-key=&lt;secret-key&gt;</code></td>
+</tr>
+<tr>
+<td align="left">切换默认配置文件</td>
+<td align="left"><code>nacos-cli profile switch &lt;profile&gt;</code></td>
+</tr>
+</tbody></table>
+<h4 id="代理管理"><a href="#代理管理" class="headerlink" title="代理管理"></a>代理管理</h4><table>
+<thead>
+<tr>
+<th align="left">操作</th>
+<th align="left">命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">添加自定义代理</td>
+<td align="left"><code>nacos-cli skill-sync agent add &lt;agent-name&gt; &lt;absolute-skill-dir&gt;</code></td>
+</tr>
+<tr>
+<td align="left">列出代理</td>
+<td align="left"><code>nacos-cli skill-sync agent list</code></td>
+</tr>
+</tbody></table>
+<p>更详细的内容可以访问 <a target="_blank" rel="noopener" href="https://nacos.io/skill-sync/SKILL.md">Nacos Skill Sync 官方指南</a> 和公众号原文查看～</p>
 
                 
               </div>
@@ -471,15 +622,8 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  <a href="/categories/Agent%E4%B8%8E%E6%A8%A1%E5%9E%8B/" class="category-chain-item">Agent与模型</a>
   
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
-  
-  
-
   
 
       </span>
@@ -493,9 +637,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+        <a href="/tags/Agent/" class="print-no-link">#Agent</a>
       
-        <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="print-no-link">#源码分析</a>
+        <a href="/tags/Skill/" class="print-no-link">#Skill</a>
       
     </div>
   
@@ -507,8 +651,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Netty的FastThreadLocal快在哪</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/04/Netty的FastThreadLocal快在哪/</div>
+      <div>多Agent时代的Skill管理方案</div>
+      <div>https://zhuwenjie0716.github.io/2026/06/25/多Agent时代的Skill管理方案/</div>
     </div>
     <div class="license-meta">
       
@@ -520,7 +664,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月4日</div>
+          <div>2026年6月25日</div>
         </div>
       
       
@@ -552,18 +696,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" title="Netty的ByteBuf好用在哪">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Netty的ByteBuf好用在哪</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/" title="Netty逻辑架构与核心组件">
-                        <span class="hidden-mobile">Netty逻辑架构与核心组件</span>
+                      <a href="/2026/06/23/Tcpdump%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/" title="Tcpdump安装与使用">
+                        <span class="hidden-mobile">Tcpdump安装与使用</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
