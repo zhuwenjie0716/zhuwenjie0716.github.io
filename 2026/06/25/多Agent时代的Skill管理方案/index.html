@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260626131700965.png">
 <meta property="article:published_time" content="2026-06-25T09:08:41.000Z">
-<meta property="article:modified_time" content="2026-06-26T08:06:53.324Z">
+<meta property="article:modified_time" content="2026-06-27T00:25:08.504Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="Skill">
@@ -443,7 +443,7 @@
 </ul>
 <p>这里的逻辑每个项目不同，有的还需要 referances 、asserts 目录等。</p>
 <h2 id="skill-sync"><a href="#skill-sync" class="headerlink" title="skill-sync"></a>skill-sync</h2><p>经历了 project-to-skill，skill 可以输出到某个指定位置了，skill-sync 解决的是不同的 Agent 之间如何同步最新 skill 的问题。</p>
-<p>一个简单的方案是，所有其它地方的 agent 目录（如 .agents&#x2F;skills、.workbuddy&#x2F;skills）直接软链接到这个目录，实施起来需要管理链接信息，包括某个 skill 都被多少 agent 链接了，链接时如果本地以及存在 skill 了怎么解决冲突等等。</p>
+<p>一个简单的方案是，所有其它地方的 agent 目录（如 .agents&#x2F;skills、.workbuddy&#x2F;skills）直接软链接到这个目录，实施起来需要管理链接信息，包括某个 skill 都被多少 agent 链接了，链接时如果本地已经存在 skill 了怎么解决冲突等等。</p>
 <p>在 6.24 日，阿里云云原生微信公众号发布了一篇文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/AwlzoIu4fFcZHxMQYqfeLA">别再手动复制 Skill 了：多 Agent 时代的 Skill 管理方案</a>，提出了关于 <strong>Nacos Skill Sync</strong> 的两种模式解决方案：</p>
 <ul>
 <li>本地模式，其本质是在 ～&#x2F;.nacos-cli&#x2F;skill-sync&#x2F;profiles&#x2F;{profile}&#x2F;skill-repo 目录下存所有需要同步的 skill，nacos-cli 会维护其它 agent 到这个 skill 的软链接，确保内容一致；</li>
@@ -695,6 +695,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/06/27/Agent%E4%B8%AD%E7%9A%845%E4%B8%AA%E5%85%B3%E9%94%AE%E6%9C%AF%E8%AF%AD/" title="Agent中的5个关键术语">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Agent中的5个关键术语</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">

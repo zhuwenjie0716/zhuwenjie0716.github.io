@@ -19,25 +19,26 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+    <meta name="description" content="Agent中的5个关键术语现在市面上的 Agent 层出不穷，但它们几乎都有一些共同的特性，这些共同的特性就像中间件的协议标准或某些面向对象语言的“多态”特性一样，只要熟悉相应的术语，切换 Agent 时会容易很多。 需要提醒的一点是：虽然 Agent 的切换不算困难，但 harness 这种需要经过配置和长期完善的内容可能仍然需要重新培养。 MemoryMemory 直译是记忆，这里指 Agen">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Netty的FastThreadLocal快在哪">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/05/04/Netty%E7%9A%84FastThreadLocal%E5%BF%AB%E5%9C%A8%E5%93%AA/index.html">
+<meta property="og:title" content="Agent中的5个关键术语">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/06/27/Agent%E4%B8%AD%E7%9A%845%E4%B8%AA%E5%85%B3%E9%94%AE%E6%9C%AF%E8%AF%AD/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Netty的FastThreadLocal快在哪Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。 FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？ ThreadLocal实现ThreadLocal 可以用来实现线程内单例。 对于线程内单例，简单的实现可以维护一个 ConcurrentHa">
+<meta property="og:description" content="Agent中的5个关键术语现在市面上的 Agent 层出不穷，但它们几乎都有一些共同的特性，这些共同的特性就像中间件的协议标准或某些面向对象语言的“多态”特性一样，只要熟悉相应的术语，切换 Agent 时会容易很多。 需要提醒的一点是：虽然 Agent 的切换不算困难，但 harness 这种需要经过配置和长期完善的内容可能仍然需要重新培养。 MemoryMemory 直译是记忆，这里指 Agen">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260504224251962.png">
-<meta property="article:published_time" content="2026-05-04T14:28:05.000Z">
-<meta property="article:modified_time" content="2026-05-22T08:51:12.000Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260627193729759.png">
+<meta property="article:published_time" content="2026-06-27T10:19:45.000Z">
+<meta property="article:modified_time" content="2026-06-27T12:07:46.527Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="源码分析">
-<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Skill">
+<meta property="article:tag" content="MCP">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260504224251962.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260627193729759.png">
   
   
   
-  <title>Netty的FastThreadLocal快在哪 - Hexo</title>
+  <title>Agent中的5个关键术语 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +313,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Netty的FastThreadLocal快在哪"></span>
+            <span id="subtitle" data-typed-text="Agent中的5个关键术语"></span>
           
         </div>
 
@@ -323,8 +324,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-05-04 22:28" pubdate>
-          2026年5月4日 晚上
+        <time datetime="2026-06-27 18:19" pubdate>
+          2026年6月27日 晚上
         </time>
       </span>
     
@@ -335,7 +336,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          3k 字
         
       </span>
     
@@ -346,7 +347,7 @@
         
         
         
-          29 分钟
+          25 分钟
         
       </span>
     
@@ -398,61 +399,55 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Netty的FastThreadLocal快在哪</h1>
+            <h1 id="seo-header">Agent中的5个关键术语</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Netty的FastThreadLocal快在哪"><a href="#Netty的FastThreadLocal快在哪" class="headerlink" title="Netty的FastThreadLocal快在哪"></a>Netty的FastThreadLocal快在哪</h1><p>Netty 不仅是高性能的网络编程框架，也有很多优秀的设计，譬如本篇要介绍的 FastThreadLocal。</p>
-<p>FastThreadLocal 是相比 ThreadLocal 来讲的，那它究竟 fast 在哪？</p>
-<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>ThreadLocal 可以用来实现线程内单例。</p>
-<p>对于线程内单例，简单的实现可以维护一个 ConcurrentHashMap，其中 Key 是 Thread 对象，Value 是 ThreadLocal 的类型。ThreadLocal 不是这么实现的，因为在高并发的场景并发修改 Map 如果需要加锁，势必会降低性能。</p>
-<p>JDK 为了避免加锁，采用了相反的设计思路。JDK 在每个 Thread 内维护一个 Map，Map 的元素称为 Entry，Map 的 Key 是 ThreadLocal，Value 是这个 ThreadLocal 的类型的值。</p>
-<p><img src="/img/image-20260504224251962.png" srcset="/img/loading.gif" lazyload alt="image-20260504224251962"></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;Integer&gt; threadLocal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>threadLocal.set(<span class="hljs-number">1</span>);<br></code></pre></td></tr></table></figure>
+                <h1 id="Agent中的5个关键术语"><a href="#Agent中的5个关键术语" class="headerlink" title="Agent中的5个关键术语"></a>Agent中的5个关键术语</h1><p>现在市面上的 Agent 层出不穷，但它们几乎都有一些共同的特性，这些共同的特性就像中间件的协议标准或某些面向对象语言的“多态”特性一样，只要熟悉相应的术语，切换 Agent 时会容易很多。</p>
+<p>需要提醒的一点是：虽然 Agent 的切换不算困难，但 harness 这种需要经过配置和长期完善的内容可能仍然需要重新培养。</p>
+<h2 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h2><p>Memory 直译是记忆，这里指 Agent 的记忆系统。</p>
+<p>在大模型的早期，只能进行一问一答的对话，因为它是没有记忆的，就像服务的“无状态”那样，每次的响应都只能基于本次提问中的信息来回复。现在的模型可以进行多轮次对话，像是有了记忆，本质是每次新的提问都会把之前的对话历史也一起放入本次提问的信息中（历史对话并非完全完整的放入，可能会进行压缩）。</p>
+<p>但 Agent 上下文窗口终归是会满的，如果新开一轮对话，<strong>如何让这个纯净的 Agent 知道当前项目的情况</strong>呢？这就是 Memory 解决的问题之一。</p>
+<p>Memory 的外在表现形式是 AGENTS.md 或 CLAUDE.md（Claude Code 独立标准），也就是一份记忆文档，每次在当前项目启动 Agent 时，它就会读取当前目录下 AGENTS.md 文件，以了解当前项目的情况。它就像是公司的员工手册，新员工会读取员工手册理解公司规范。</p>
+<p>Memory 是有层级之分的，例如用户级：～&#x2F;.claude&#x2F;CLAUDE.md、项目级：.&#x2F;CLAUDE.md，如果内容有冲突后加载的会覆盖先前的，就像项目的代码规范优先级要高于个人的代码规范。在微服务项目中，建议整体有一个 CLAUDE.md 简要介绍各个微服务的信息等，每个服务再有独立的 CLAUDE.md。</p>
+<p>CLAUDE.md 文件的目标行数最好<strong>不超过 200 行</strong>，过长的文件会占用更多上下文信息，Agent 在上下文窗口占用过多时会混乱，做出一些预期外的行为。可以使用 rule 规则拆分 CLAUDE.md，例如把代码编写规范、提交规范放置在两个其它的 md 中，在 CLAUDE.md 中引用即可，这样会在用到的时候才去加载。</p>
+<p>当然 Memory 不仅能解决让新 Agent 理解项目情况的问题，还可以在 Agent 重复犯相同错误纠正完后让它把这个问题写到记忆文件中，这样就不用进行多次澄清了。</p>
+<p>想要更深入的理解 Memory，可以看 Claude Code 的官方文档：<a target="_blank" rel="noopener" href="https://code.claude.com/docs/en/memory">How Claude remembers your project</a>。</p>
+<h2 id="Skill"><a href="#Skill" class="headerlink" title="Skill"></a>Skill</h2><p>Skill 直译为技能，是针对某个特定场景的处理方案。</p>
+<p>举个例子：我希望 Agent 在执行完 A 流程后生成总结报告发送到我的邮箱，也希望它在执行完 B 流程后生成总结报告发送到我的邮箱。</p>
+<p>如果每次都在提示词里表述，Agent 需要考虑邮箱服务器、发件人账号、授权码等，但如果把发送邮件作为一个 Skill，那么最后的表述就变为：使用 send-email Skill 发送总结报告到 *** 邮箱。</p>
+<p>Skill 的结构非常简单，通常如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs bash">~/.claude/skills/send-email<br>├── assets<br>├── references<br>├── scripts<br>│   ├── send.py<br>└── SKILL.md<br></code></pre></td></tr></table></figure>
 
-<p>即该线程内的 ThreadLocalMap，会有一个 Entry 元素 &lt;threadLocal, 1&gt;。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread对象<br>  └─ ThreadLocalMap (哈希表)<br>       ├─ Entry[<span class="hljs-number">16</span>] (哈希槽位，可能冲突)<br>       ├─ Entry[<span class="hljs-number">17</span>] (哈希槽位)<br>       └─ Entry[<span class="hljs-number">18</span>] (哈希槽位)<br></code></pre></td></tr></table></figure>
-
-<p>ThreadLocalMap 是一种使用线性探测法实现的哈希表，底层采用数组存储数据。当发生哈希冲突时，要向后寻找空闲的位置，当冲突频率很高时，<code>解决哈希冲突的成本很大</code>，而且在查找数据时也需要向后查找（哈希值对应的位置可能被其它节点线性探测占用了）。当容量达到阈值时，需要进行扩容，扩容后需要再哈希确定元素位置。</p>
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>提起 ThreadLocal 也不得不提内存泄漏，系统中为了避免频繁的创建销毁线程，一般都会使用线程池复用线程。想一下下面的场景：</p>
-<ol>
-<li>线程在执行过程中向某个方法内创建的 ThreadLocal 对象中设置了值；</li>
-<li>方法执行结束，线程回收到线程池；</li>
-<li>由于线程内的 ThreadLocalMap 中引用了第一步的 ThreadLocal 对象，所以即使方法执行结束，ThreadLocal 对象也无法被回收。</li>
-</ol>
-<p>JDK 为了避免这样的情况，做了以下措施：</p>
-<ol>
-<li>ThreadLocalMap 的 Key 采用弱引用类型，即当没有强引用时只要发生 gc 就会回收；但只有 Key 时弱引用，Value 依然是强引用；</li>
-<li>在执行 ThreadLocal.set()&#x2F;get() 方法时，ThreadLocal 会清除 ThreadLocalMap 中 key 为 NULL 的 Entry 对象，让它能够被 GC 回收。</li>
-</ol>
-<p>但是为了避免内存泄漏，还是要求某个 ThreadLocal 对象不再使用时，立即调用 remove() 方法删除 Entry 对象。</p>
-<h2 id="FastThreadLocal"><a href="#FastThreadLocal" class="headerlink" title="FastThreadLocal"></a>FastThreadLocal</h2><p>通过对 ThreadLocal 的介绍，它有以下缺点：</p>
+<p>最重要的就是 <a target="_blank" rel="noopener" href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview">SKILL.md</a> 描述文件，非常重要的两个字段 name 和 description：</p>
 <ul>
-<li>解决哈希冲突的成本大，可能会存在性能瓶颈；</li>
-<li>如果不及时 remove，可能产生内存泄漏；</li>
+<li>name 是 SKILL 的名字，如果我希望指定 SKILL 处理，可以使用 &#x2F;{skill-name}；</li>
+<li>description 是对 SKILL 的描述，内容包括触发条件，Agent 会对问题进行理解，如果觉得匹配就会选择相应的 SKILL 处理。</li>
 </ul>
-<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>FastThreadLocalThread 是对 Thread 类的一层包装，每个线程对应一个 InternalThreadLocalMap 实例。只有 FastThreadLocal 和 FastThreadLocalThread 组合使用时，才能发挥 FastThreadLocal 的性能优势。</p>
-<p>InternalThreadLocalMap 与 ThreadLocalMap 的实现差别很大，虽然也是采用数组的方式存储元素，但它可以做到 O(1) 的访问速度，而且只存储 Value，原因就藏在源码里：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> index;<br><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FastThreadLocal</span><span class="hljs-params">()</span> &#123;<br>    index = InternalThreadLocalMap.nextVariableIndex();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>在创建 FastThreadLocal 时，会为其中的 index 属性赋一个值，赋值的逻辑很简单：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">nextIndex</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();    <br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">nextVariableIndex</span><span class="hljs-params">()</span> &#123;<br>       <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> nextIndex.getAndIncrement();<br>       <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) &#123;<br>           nextIndex.decrementAndGet();<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;too many thread-local indexed variables&quot;</span>);<br>       &#125;<br>       <span class="hljs-keyword">return</span> index;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<p>也就是每一个 FastThreadLocal 都有唯一的一个 index，那在 Thread 中存储 FastThreadLocal值 的时候，直接存到 index 对应的位置不就直接解决哈希冲突了吗？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br>            ├─ [<span class="hljs-number">1</span>] → FastThreadLocal_1的值<br>            ├─ [<span class="hljs-number">2</span>] → FastThreadLocal_2的值<br>            ├─ [<span class="hljs-number">3</span>] → UNSET（未使用）<br>            └─ [<span class="hljs-number">4</span>] → FastThreadLocal_4的值<br></code></pre></td></tr></table></figure>
-
-<p>当数组容量满时，需要根据 index 的值进行扩容（注意这里不能是简单的 2 倍关系，例如当前长度是 32，但是插入了一个 index 是 72 的 FastThreadLocal，那么扩容2倍是不够的），但这并不会浪费很多空间，那些没使用的位置只是存放了同一个缺省对象的引用。</p>
-<h3 id="内存泄漏-1"><a href="#内存泄漏-1" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>FastThreadLocalThread 对于内存泄漏又有什么改进呢？</p>
-<p>Netty 通过 DefaultThreadFactory 创建的所有线程都是 FastThreadLocalThread（Netty 的 EventLoop 就是 FastThreadLocalThread），并且所有提交的 Runnable 任务会被包装成 FastThreadLocalRunnable。</p>
-<p>当一个线程（特别是线程池中的线程）执行完任务后，其实就可以清理当前线程上绑定的所有 FastThreadLocal 变量了。在 FastThreadLocalThread 的设计中，如果一个 index 被设置了值，那么这个 FastThreadLocal 就会放到一个 Set 中，这个 Set 就存在 indexedVariables[0] 的位置。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">FastThreadLocalThread对象<br>  └─ InternalThreadLocalMap<br>       └─ Object[] indexedVariables (直接寻址数组)<br>            ├─ [<span class="hljs-number">0</span>] → 特殊索引（存储待清理列表）<br></code></pre></td></tr></table></figure>
-
-<p>Netty 还封装了 FastThreadLocalRunnable，FastThreadLocalRunnable 最后会执行 FastThreadLocal.removeAll() 将 Set 集合中所有 FastThreadLocal 对象都清理掉。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultRunnableDecorator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Runnable r;<br><br>    DefaultRunnableDecorator(Runnable r) &#123;<br>        <span class="hljs-built_in">this</span>.r = r;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            r.run();<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            FastThreadLocal.removeAll();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>相比 JDK 原生的 ThreadLocal，Netty 的 FastThreadLocal 一方面提高了并发情况下的性能，也优化了内存泄漏。</p>
-<p>但 FastThreadLocal 不一定比 ThreadLocal 快，只有是 FastThreadLocalThread 类型的线程才会更快，如果是普通线程反而会更慢。</p>
+<p>Agent 拥有哪些 SKILL 是需要放到上下文里的，为了避免 Skill 占用过多的上下文，Agent 采用渐进式加载的机制（一开始只存 SKILL 的 name 和 description，需要用到时再加载 SKILL.md）。</p>
+<h2 id="MCP"><a href="#MCP" class="headerlink" title="MCP"></a>MCP</h2><p>MCP（Model Context Protocol），直译为模型上下文协议，是 Agent 与外界工具进行通信的标准。</p>
+<p>Agent 依赖的模型是通过历史数据训练出来的，那么面对未来的信息，例如明天的天气怎么样它该如何处理呢？我们在面对这样的问题，会通过浏览器搜索，使用工具，Agent 也是这样。</p>
+<p>使用工具并不难，RPC 就可以实现，但在这个场景里，如果天气A是 HTTP 调用，天气B是 gRPC 调用，那么切换天气服务时就很麻烦。</p>
+<p>MCP 定义了 Agent 与 MCP 服务交互的规范，减少二者的耦合度，方便单独更换。</p>
+<h2 id="A2A"><a href="#A2A" class="headerlink" title="A2A"></a>A2A</h2><p>A2A 即 Agent To Agent，用于统一 Agent 间的通信。</p>
+<p>像微服务拆分服务一样，工程中也会有专用的 Agent，如 Code Agent、Review Agent。Code Agent 在写完代码后，需要交给 Review Agent 审查，并根据 Review Agent 的反馈进行更新或用新的 Fix Agent 修改。</p>
+<p>如果 Agent 之间通过自定义协议同步消息，会严重影响未来的可拓展性，包括但不限于更换 Agent、添加或删除 Agent。</p>
+<p>有了 A2A，Agent 在启动时会发布 <a target="_blank" rel="noopener" href="https://live.paloaltonetworks.com/t5/community-blogs/safeguarding-ai-agents-an-in-depth-look-at-a2a-protocol-risks/ba-p/1235996">Agent Card</a> 表达自己可提供的功能、认证方式、输入&#x2F;输出等，其它 Agent 会在需要时通过 Agent Card 中描述的方式与其它 Agent 交互，示例如下（图就在上一个链接的文档里）：</p>
+<p><img src="/../img/image-20260627193729759.png" srcset="/img/loading.gif" lazyload alt="image-20260627193729759"></p>
+<h2 id="Multi-Agent"><a href="#Multi-Agent" class="headerlink" title="Multi Agent"></a>Multi Agent</h2><p>Multi Agent 直译就是多 Agent 架构，是一种使用时多的架构方式，还没有正式的标准文件。</p>
+<p>在 A2A 小结中提到的 Code Agent 和 Review Agent 合作就是一种 Multi Agent 的体现，还有爬虫服务可能会爬取多个网站的数据，每个网站分配一个 Agent 来执行也是 Multi Agent。</p>
+<p>Multi Agent 不仅仅是例如通过<strong>并行提高 Agent 的运行效率、为不同 Agent 选择合适的模型，它最重要的一点是上下文隔离</strong>。</p>
+<p>思考一个这样的任务：检索每日的运行日志，找到出现错误的位置，分析错误原因并整理。在大型服务中，每日运行日志是非常大的，可能运行日志就会把上下文窗口占满，而且这些内容中，只有很少的错误部分才对后续流程有用，这就很适合 Multi Agent，后续 Agent 的执行拥有独立的上下文，运行的效率和正确性都会提高。</p>
+<p>Multi Agent 架构的实现有多种：</p>
+<ul>
+<li>SubAgent：主 Agent 作为老板，每个子 Agent 爬取一个网站的数据汇总给主 Agent；</li>
+<li>Handoffs：交接模式，如例子中的 Review Agent 把 Review 意见交给 Fix Agent 处理，推进流程的执行；</li>
+<li>Router：Route Agent 对输入进行语义分析和职责分流，将任务分发给专业领域的 Agent，最终汇总输出响应给用户。</li>
+</ul>
+<p>对于简单任务，Multi Agent 会有点大材小用并消耗更多的 token，Anthropic 在他们 <a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/multi-agent-research-system">多 Agent 研究系统的完整设计</a> 也提到了性能和成本的权衡，Multi Agent 会有数倍甚至十数倍 token 的消耗。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Memory 让 Agent 理解项目的内容和规范等信息，SKILL 是特定场景的可复用处理方案，MCP 是 Agent 与外部工具沟通的标准，A2A 规范了 Agent 间的通信，Multi Agent 提高工程的运行效率或隔离上下文，处理复杂任务。</p>
+<p>这5个术语也许不同的 Agent 表现形式会有区别，但几乎都会出现。</p>
 
                 
               </div>
@@ -471,15 +466,8 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="category-chain-item">源码分析</a>
+  <a href="/categories/Agent%E4%B8%8E%E6%A8%A1%E5%9E%8B/" class="category-chain-item">Agent与模型</a>
   
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Netty/" class="category-chain-item">Netty</a>
-  
-  
-
   
 
       </span>
@@ -493,9 +481,11 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="print-no-link">#源码分析</a>
+        <a href="/tags/Agent/" class="print-no-link">#Agent</a>
       
-        <a href="/tags/Netty/" class="print-no-link">#Netty</a>
+        <a href="/tags/Skill/" class="print-no-link">#Skill</a>
+      
+        <a href="/tags/MCP/" class="print-no-link">#MCP</a>
       
     </div>
   
@@ -507,8 +497,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Netty的FastThreadLocal快在哪</div>
-      <div>https://zhuwenjie0716.github.io/2026/05/04/Netty的FastThreadLocal快在哪/</div>
+      <div>Agent中的5个关键术语</div>
+      <div>https://zhuwenjie0716.github.io/2026/06/27/Agent中的5个关键术语/</div>
     </div>
     <div class="license-meta">
       
@@ -520,7 +510,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年5月4日</div>
+          <div>2026年6月27日</div>
         </div>
       
       
@@ -552,18 +542,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/05/Netty%E7%9A%84ByteBuf%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA/" title="Netty的ByteBuf好用在哪">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Netty的ByteBuf好用在哪</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/03/Netty%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/" title="Netty逻辑架构与核心组件">
-                        <span class="hidden-mobile">Netty逻辑架构与核心组件</span>
+                      <a href="/2026/06/25/%E5%A4%9AAgent%E6%97%B6%E4%BB%A3%E7%9A%84Skill%E7%AE%A1%E7%90%86%E6%96%B9%E6%A1%88/" title="多Agent时代的Skill管理方案">
+                        <span class="hidden-mobile">多Agent时代的Skill管理方案</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
