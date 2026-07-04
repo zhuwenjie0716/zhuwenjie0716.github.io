@@ -1,0 +1,911 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java性能优化 · 设计模式篇其实设计模式本身不直接提升性能，它是代码组织结构的最佳实践。当一种性能优化的实现途径恰好契合某种模式时，模式就成了这种优化的标准表达。 性能优化的目的是「让有限的资源（CPU&#x2F;内存&#x2F;线程&#x2F;连接）服务更多业务请求」，模式只是把这种优化沉淀为可复用、可读的设计。 单例模式单例模式解决的就是创建单一对象优化系统性能。一个类在系统中可能被多处频">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java性能优化设计模式篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/07/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%AF%87/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java性能优化 · 设计模式篇其实设计模式本身不直接提升性能，它是代码组织结构的最佳实践。当一种性能优化的实现途径恰好契合某种模式时，模式就成了这种优化的标准表达。 性能优化的目的是「让有限的资源（CPU&#x2F;内存&#x2F;线程&#x2F;连接）服务更多业务请求」，模式只是把这种优化沉淀为可复用、可读的设计。 单例模式单例模式解决的就是创建单一对象优化系统性能。一个类在系统中可能被多处频">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-07T07:04:11.000Z">
+<meta property="article:modified_time" content="2026-07-04T08:40:28.457Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java性能优化设计模式篇 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java性能优化设计模式篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-07 15:04" pubdate>
+          2026年7月7日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java性能优化设计模式篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java性能优化-·-设计模式篇"><a href="#Java性能优化-·-设计模式篇" class="headerlink" title="Java性能优化 · 设计模式篇"></a>Java性能优化 · 设计模式篇</h1><p>其实设计模式本身<strong>不直接提升性能</strong>，它是<strong>代码组织结构的最佳实践</strong>。当一种性能优化的实现途径恰好契合某种模式时，模式就成了这种优化的标准表达。</p>
+<p><strong>性能优化的目的是「让有限的资源（CPU&#x2F;内存&#x2F;线程&#x2F;连接）服务更多业务请求」</strong>，模式只是把这种优化沉淀为可复用、可读的设计。</p>
+<h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><p>单例模式解决的就是创建单一对象优化系统性能。一个类在系统中可能被多处频繁使用，如果每次都 <code>new</code>，会浪费资源；尤其在并发场景下，更需要保证「全局只有一份」。</p>
+<p>单例模式的三要点：<strong>只能有一个实例；自行创建；自行向整个系统提供</strong>。</p>
+<p>现在的主要方式就两种：</p>
+<ul>
+<li>双重检测 + volatile</li>
+<li>静态内部类（推荐）</li>
+</ul>
+<p><strong>静态内部类骨架</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Singleton</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-title function_">Singleton</span><span class="hljs-params">()</span> &#123;&#125;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">InnerSingleton</span> &#123;<br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Singleton</span> <span class="hljs-variable">INSTANCE</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Singleton</span>();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Singleton <span class="hljs-title function_">getInstance</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> InnerSingleton.INSTANCE;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>外部类加载时不会加载内部类，只有第一次调用 <code>getInstance()</code> 才会触发内部类加载与实例化，<strong>懒加载 + 线程安全 + 高性能</strong>全都要。</p>
+<hr>
+<h2 id="原型模式与享元模式"><a href="#原型模式与享元模式" class="headerlink" title="原型模式与享元模式"></a>原型模式与享元模式</h2><p>原型模式：加速对象创建，解决「创建过程太重」。</p>
+<p>享元模式：减少对象数量，解决「对象总数太多」。</p>
+<h3 id="原型模式（Prototype）"><a href="#原型模式（Prototype）" class="headerlink" title="原型模式（Prototype）"></a>原型模式（Prototype）</h3><p><strong>核心问题</strong>：构造函数做了大量初始化（大数组、复杂计算），循环中反复 <code>new</code> 浪费 CPU。</p>
+<p><strong>关键代码骨架</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Prototype</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Cloneable</span> &#123;<br>    <span class="hljs-keyword">public</span> Prototype <span class="hljs-title function_">clone</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Prototype</span> <span class="hljs-variable">prototype</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            prototype = (Prototype) <span class="hljs-built_in">super</span>.clone();<br>        &#125; <span class="hljs-keyword">catch</span> (CloneNotSupportedException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> prototype;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>Object.clone()</code> 是 native 方法，直接<strong>操作内存二进制流</strong>，比 <code>new</code> 少了「调用构造函数」这一步。</li>
+<li><strong>浅拷贝</strong>：<code>super.clone()</code> 默认只复制基本类型与引用，引用类型成员仍指向同一对象。</li>
+<li><strong>深拷贝</strong>：在 <code>clone()</code> 内对引用类型成员递归调用其 <code>clone()</code>。</li>
+</ul>
+<p><strong>典型应用</strong>：Spring 中 <code>@Scope(&quot;prototype&quot;)</code> 的 bean，避免单例 + 全局变量被多次注入时被相互污染。</p>
+<h3 id="享元模式（Flyweight）"><a href="#享元模式（Flyweight）" class="headerlink" title="享元模式（Flyweight）"></a>享元模式（Flyweight）</h3><p><strong>核心问题</strong>：大量对象其实共享同一份内部数据，反复创建浪费内存。</p>
+<p><strong>核心思想</strong>：把对象状态拆成<strong>内部状态（可共享、不随运行改变）</strong>和<strong>外部状态（运行时不同值）</strong>，内部状态相同的对象共用一份。</p>
+<p><strong>典型例子</strong>：</p>
+<ul>
+<li><code>String</code> 常量池：<code>String s1 = &quot;hi&quot;; String s2 = &quot;hi&quot;; s1 == s2</code> 为 <code>true</code>。</li>
+<li>线程池：线程不是每次都重新创建，而是优先复用线程池中已经存在的线程。</li>
+</ul>
+<h3 id="对比与选型"><a href="#对比与选型" class="headerlink" title="对比与选型"></a>对比与选型</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>原型模式</th>
+<th>享元模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目的</td>
+<td>加速单次对象创建过程</td>
+<td>减少对象总数，共享内部状态</td>
+</tr>
+<tr>
+<td>手段</td>
+<td><code>clone()</code> 替代 <code>new</code></td>
+<td>工厂 + 池化复用已有对象</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>需要重复创建<strong>不同实例</strong></td>
+<td>可以共用<strong>同一内部数据</strong>的对象</td>
+</tr>
+<tr>
+<td>内存占用</td>
+<td>多个独立对象</td>
+<td>单个共享对象 + 外部状态</td>
+</tr>
+</tbody></table>
+<p><strong>选型决策</strong>：是否需要重复创建<strong>不同实例</strong>？是 → 原型。是否能共用<strong>同一内部数据</strong>？是 → 享元。</p>
+<p>注意<strong>浅拷贝</strong>：引用类型成员只复制引用，修改克隆体对象会导致原对象也被修改！</p>
+<hr>
+<h2 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h2><p>在一些业务场景中，除关键流程外可能还有非关键流程。</p>
+<p>一个常见的例子：用户注册账号后向其邮箱里发送一份欢迎邮件，但发送欢迎邮件并不是注册账号的核心流程。如果在注册账号的流程里完成发送邮件的操作，一方面功能没有那么单一了，另一方面会拖慢接口的响应时间。</p>
+<p>一个简单的方案是：在注册完成后写消息到消息队列里，流量缓冲+业务解耦，这种方式偏向于“生产者消费者”模式。还有一种方式是在注册完成后发布事件，观察者观察到了这个事件，接着触发对应的处理，如 SpringBoot 里的 EventListener。</p>
+<p><strong>骨架代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// ========== 事件 ==========</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Event</span> &#123; &#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserRegisterEvent</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Event</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String username;<br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">UserRegisterEvent</span><span class="hljs-params">(String username)</span> &#123; <span class="hljs-built_in">this</span>.username = username; &#125;<br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getUsername</span><span class="hljs-params">()</span> &#123; <span class="hljs-keyword">return</span> username; &#125;<br>&#125;<br><br><span class="hljs-comment">// ========== 观察者 ==========</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">EventListener</span>&lt;E <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Event</span>&gt; &#123;<br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">onEvent</span><span class="hljs-params">(E event)</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailListener</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">EventListener</span>&lt;UserRegisterEvent&gt; &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onEvent</span><span class="hljs-params">(UserRegisterEvent event)</span> &#123;<br>        <span class="hljs-comment">// 发送欢迎邮件（非关键流程）</span><br>        System.out.println(<span class="hljs-string">&quot;send welcome mail to &quot;</span> + event.getUsername());<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// ========== 被观察者（事件总线） ==========</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EventBus</span> &#123;<br>    <span class="hljs-comment">// 事件类型 → 该类型下注册的观察者列表</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, List&lt;EventListener&gt;&gt; listeners = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();<br><br>    <span class="hljs-comment">// 注册观察者：按事件类型归类</span><br>    <span class="hljs-keyword">public</span> &lt;E <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Event</span>&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">register</span><span class="hljs-params">(Class&lt;E&gt; type, EventListener&lt;E&gt; listener)</span> &#123;<br>        listeners.computeIfAbsent(type, k -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">CopyOnWriteArrayList</span>&lt;&gt;()).add(listener);<br>    &#125;<br><br>    <span class="hljs-comment">// 发布事件：遍历该类型下的所有观察者，依次回调</span><br>    <span class="hljs-comment">// 实际项目中通常丢到线程池异步执行，避免拖慢主流程</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">publish</span><span class="hljs-params">(Event event)</span> &#123;<br>        List&lt;EventListener&gt; list = listeners.get(event.getClass());<br>        <span class="hljs-keyword">if</span> (list == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span>;<br>        <span class="hljs-keyword">for</span> (EventListener listener : list) &#123;<br>            listener.onEvent(event);<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// ========== 使用示例 ==========</span><br><span class="hljs-type">EventBus</span> <span class="hljs-variable">bus</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">EventBus</span>();<br>bus.register(UserRegisterEvent.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">EmailListener</span>());<br><br><span class="hljs-comment">// 主流程：只发事件，不关心谁处理</span><br>bus.publish(<span class="hljs-keyword">new</span> <span class="hljs-title class_">UserRegisterEvent</span>(<span class="hljs-string">&quot;zhangsan&quot;</span>));<br></code></pre></td></tr></table></figure>
+
+<p><strong>要点</strong>：</p>
+<ul>
+<li><strong>类型驱动</strong>：<code>Map&lt;Class&lt;?&gt;, List&lt;EventListener&gt;&gt;</code> 按事件类型归类观察者，避免遍历所有监听器做 <code>instanceof</code> 判断。</li>
+<li><strong>线程安全</strong>：用 <code>ConcurrentHashMap</code> + <code>CopyOnWriteArrayList</code>，注册&#x2F;发布互不阻塞；<code>CopyOnWriteArrayList</code> 的写时复制适合「读多写少」的监听器列表。</li>
+<li><strong>性能关键点</strong>：<code>publish()</code> 里的 <code>for</code> 循环若同步执行会拖慢主流程，<strong>实际项目应丢到独立线程池异步执行</strong>（或像 Spring 的 <code>@Async</code> &#x2F; <code>@EventListener</code> 配合 <code>@EnableAsync</code>）；若观察者较多且允许乱序，可用 <code>parallelStream()</code> 并行触发。</li>
+<li><strong>vs 生产者消费者</strong>：观察者模式是「进程内同步&#x2F;异步回调」，MQ 是「跨进程削峰」，前者更轻，后者更稳；能容忍丢失就先用观察者，要严格可靠才上 MQ。</li>
+</ul>
+<p>面向对象设计模式里有几个不太常用，剩下的都有使用的场景，如装饰器模式实现功能增强；策略模式解决 if else 多判断；责任链模式实现流式处理，新增处理只需要新增节点等。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/Java/" class="category-chain-item">Java</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java性能优化设计模式篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/07/07/Java性能优化设计模式篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月7日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/06/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96JVM%E7%AF%87/" title="Java性能优化JVM篇">
+                        <span class="hidden-mobile">Java性能优化JVM篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

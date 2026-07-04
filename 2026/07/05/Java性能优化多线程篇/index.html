@@ -1,0 +1,1345 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java性能优化 · 多线程篇多线程性能调优围绕三条主线展开：    优化维度 核心问题 主要手段    锁优化 如何降低锁竞争与持有成本 锁升级、锁分离、锁分段、CAS 乐观锁   上下文切换 减少线程被切出&#x2F;切入的开销 减少阻塞、协程、合理线程池   资源容器 不同场景选择最合适的并发容器 ConcurrentHashMap &#x2F; SkipListMap &#x2F; Cop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java性能优化多线程篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/05/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AF%87/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java性能优化 · 多线程篇多线程性能调优围绕三条主线展开：    优化维度 核心问题 主要手段    锁优化 如何降低锁竞争与持有成本 锁升级、锁分离、锁分段、CAS 乐观锁   上下文切换 减少线程被切出&#x2F;切入的开销 减少阻塞、协程、合理线程池   资源容器 不同场景选择最合适的并发容器 ConcurrentHashMap &#x2F; SkipListMap &#x2F; Cop">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-05T07:04:11.000Z">
+<meta property="article:modified_time" content="2026-07-04T08:40:47.624Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="多线程">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java性能优化多线程篇 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java性能优化多线程篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-05 15:04" pubdate>
+          2026年7月5日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          51 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java性能优化多线程篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java性能优化-·-多线程篇"><a href="#Java性能优化-·-多线程篇" class="headerlink" title="Java性能优化 · 多线程篇"></a>Java性能优化 · 多线程篇</h1><p>多线程性能调优围绕三条主线展开：</p>
+<table>
+<thead>
+<tr>
+<th>优化维度</th>
+<th>核心问题</th>
+<th>主要手段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>锁优化</strong></td>
+<td>如何降低锁竞争与持有成本</td>
+<td>锁升级、锁分离、锁分段、CAS 乐观锁</td>
+</tr>
+<tr>
+<td><strong>上下文切换</strong></td>
+<td>减少线程被切出&#x2F;切入的开销</td>
+<td>减少阻塞、协程、合理线程池</td>
+</tr>
+<tr>
+<td><strong>资源容器</strong></td>
+<td>不同场景选择最合适的并发容器</td>
+<td>ConcurrentHashMap &#x2F; SkipListMap &#x2F; CopyOnWriteArrayList &#x2F; 阻塞队列</td>
+</tr>
+</tbody></table>
+<p>支撑以上三者的基础是：<strong>线程池的合理设置</strong>与<strong>对 Java 内存模型 &#x2F; 一致性模型的理解</strong>。</p>
+<hr>
+<h2 id="锁优化"><a href="#锁优化" class="headerlink" title="锁优化"></a>锁优化</h2><h3 id="Synchronized"><a href="#Synchronized" class="headerlink" title="Synchronized"></a>Synchronized</h3><p>JDK1.5 及之前，Synchronized 性能很差，因为官方未对其实现进行相应的优化，JDK1.6 起其性能得到了明显的提升。</p>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>修饰代码块：编译为 <code>monitorenter</code> + <code>monitorexit</code> 指令，依赖对象的 Monitor（ObjectMonitor）。</li>
+<li>修饰方法：通过 <code>ACC_SYNCHRONIZED</code> 访问标志实现。</li>
+<li>每个 Java 对象都关联一个 Monitor，线程获取 Monitor 即获得锁，未获取到的进入 <code>_EntryList</code> 阻塞，调用 <code>wait()</code> 的进入 <code>_WaitSet</code>。</li>
+</ul>
+<p><strong>锁升级路径（JDK1.6 引入，核心优化）</strong></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs scss">无锁 → 偏向锁 → 轻量级锁(自旋) → 重量级锁<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>锁状态</th>
+<th>适用场景</th>
+<th>关键机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>偏向锁</strong></td>
+<td>同一线程多次获取锁</td>
+<td>对象头 Mark Word 记录线程 ID；高竞争下应关闭（<code>-XX:-UseBiasedLocking</code>），自<strong>JDK15 已经默认禁用</strong>了</td>
+</tr>
+<tr>
+<td><strong>轻量级锁</strong></td>
+<td>多线程交替执行、竞争不激烈</td>
+<td>CAS 修改 Mark Word 中的指针</td>
+</tr>
+<tr>
+<td><strong>自旋锁</strong></td>
+<td>锁占用时间极短</td>
+<td>CAS 循环重试；JDK1.7 默认开启；占用 CPU</td>
+</tr>
+<tr>
+<td><strong>重量级锁</strong></td>
+<td>竞争激烈、锁占用时间长</td>
+<td>线程挂起阻塞；用户态&#x2F;内核态切换</td>
+</tr>
+</tbody></table>
+<p><strong>编译期优化（JIT）</strong></p>
+<ul>
+<li><strong>锁消除</strong>：通过逃逸分析确认锁对象只被一个线程访问，则消除 synchronized 字节码。</li>
+<li><strong>锁粗化</strong>：相邻同步块使用同一锁时，合并为一个大的同步块，减少反复申请&#x2F;释放。</li>
+</ul>
+<p><strong>减小锁粒度</strong></p>
+<ul>
+<li>把数组&#x2F;队列拆分为多个小对象，让竞争分散。</li>
+<li>经典案例：JDK1.7 的 <code>ConcurrentHashMap</code> 通过 <code>Segment</code>（分段锁）降低锁粒度；JDK1.8 改为 <code>Synchronized + CAS</code>，结构更简单。</li>
+</ul>
+<p><strong>核心结论</strong>：减少锁竞争是优化 Synchronized 的关键。尽量让锁停留在轻量级锁，通过减小锁粒度、减少锁持有时间来达成。</p>
+<hr>
+<h3 id="Lock-同步锁"><a href="#Lock-同步锁" class="headerlink" title="Lock 同步锁"></a>Lock 同步锁</h3><p><strong>与 Synchronized 的对比</strong></p>
+<ul>
+<li>Synchronized：JVM 隐式加锁&#x2F;释放；锁升级到重量级锁后性能不稳定。</li>
+<li>Lock：Java 层显式加锁&#x2F;释放，基于乐观锁实现；但线程阻塞时仍会挂起，本质上仍属悲观锁。</li>
+</ul>
+<p><strong>AQS 框架</strong></p>
+<p><code>AbstractQueuedSynchronizer</code>（AQS）是 Lock 的实现基础：</p>
+<ul>
+<li><code>state</code> 变量：表示加锁状态（ReentrantLock 中代表重入次数）。</li>
+<li>CLH 等待队列：基于链表实现，所有阻塞线程在此排队；所有操作通过 CAS 完成。</li>
+</ul>
+<p><strong>锁分离优化 —— 读写锁</strong></p>
+<p><code>ReentrantReadWriteLock</code>（RRW）通过<strong>高低位</strong>巧妙设计 state：</p>
+<ul>
+<li>高 16 位：读锁计数</li>
+<li>低 16 位：写锁计数</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>多个读线程可并发；读读不互斥。</li>
+<li>写线程与读&#x2F;写线程都互斥。</li>
+<li>缺点：在读多写少场景下，写线程可能遭遇<strong>饥饿（Starvation）</strong>。</li>
+</ul>
+<p><strong>StampedLock（JDK1.8）</strong>是用来解决 RRW 读多写少时写线程饥饿问题的，它有三种模式：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>写锁</strong></td>
+<td>独占，返回 stamp</td>
+</tr>
+<tr>
+<td><strong>悲观读</strong></td>
+<td>共享，返回 stamp</td>
+</tr>
+<tr>
+<td><strong>乐观读</strong></td>
+<td>无锁读取获取 stamp，操作后用 <code>validate(stamp)</code> 二次校验；失败则升级为悲观读</td>
+</tr>
+</tbody></table>
+<p>优势：乐观读无 CAS 竞争（直接读取 stamp 的值），效率高于 RRW。</p>
+<p><strong>缺陷（导致未被广泛使用）</strong>：</p>
+<ul>
+<li>不支持<strong>重入</strong>（嵌套调用易死锁）</li>
+<li>不支持<strong>条件变量</strong> Condition</li>
+<li>写多读少场景下性能无优势</li>
+</ul>
+<hr>
+<h3 id="乐观锁（CAS）"><a href="#乐观锁（CAS）" class="headerlink" title="乐观锁（CAS）"></a>乐观锁（CAS）</h3><p><strong>核心算法 CAS</strong></p>
+<p>三个参数：V（变量当前值）、E（预期值）、N（新值）。仅当 <code>V == E</code> 时才将 V 置为 N，否则返回 V 的真实值。</p>
+<p>底层基于 CPU 指令，由处理器提供<strong>总线锁定</strong>与<strong>缓存锁定</strong>两种机制保证原子性。</p>
+<p><strong>JDK 中的实现</strong></p>
+<ul>
+<li><code>java.util.concurrent.atomic.*</code> 全部基于 CAS（<code>AtomicInteger</code>、<code>AtomicLong</code>）。</li>
+<li><code>Unsafe</code> 类调用 CPU 底层指令完成原子操作。</li>
+</ul>
+<p><strong>CAS 的问题与优化</strong></p>
+<ul>
+<li><strong>ABA 问题</strong>：值从 A 变 B 又变回 A，CAS 误判为未变。解决：引入版本号（<code>AtomicStampedReference</code>）。</li>
+<li><strong>高并发写竞争激烈</strong>：大量线程 CAS 失败并循环重试，占用大量 CPU。</li>
+</ul>
+<p><strong>LongAdder（JDK1.8）的解决思路</strong></p>
+<ul>
+<li>空间换时间：将单一共享变量的写压力分散到 <code>Cell[]</code> 数组的不同槽上。</li>
+<li>读时：合并 <code>base + 各 cell</code>，可能为近似值，但最终值准确。</li>
+<li>适合：高并发写场景、统计型业务（如全局计数）。</li>
+<li>不适合：对实时性要求极高的场景（仍用 <code>AtomicLong</code>）。</li>
+</ul>
+<p><strong>三种锁性能对比结论</strong></p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>最优选择</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读 &gt;&gt; 写</td>
+<td>ReentrantReadWriteLock &#x2F; StampedLock &#x2F; 乐观锁</td>
+</tr>
+<tr>
+<td>写 &gt;&gt; 读</td>
+<td>乐观锁（LongAdder）性能最佳，其它四者差不多</td>
+</tr>
+<tr>
+<td>读 ≈ 写</td>
+<td>两种读写锁 + 乐观锁优于 Synchronized &#x2F; ReentrantLock</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="上下文切换调优"><a href="#上下文切换调优" class="headerlink" title="上下文切换调优"></a>上下文切换调优</h2><h3 id="上下文切换基础"><a href="#上下文切换基础" class="headerlink" title="上下文切换基础"></a>上下文切换基础</h3><p><strong>定义</strong>：线程由 RUNNING 转为 BLOCKED，再回到 RUNNABLE 被调度执行的过程。需保存&#x2F;恢复：</p>
+<ul>
+<li>CPU <strong>寄存器</strong>内容（已执行&#x2F;正在执行&#x2F;即将执行的任务）</li>
+<li><strong>程序计数器</strong>内容（当前指令位置 + 下一条指令位置）</li>
+</ul>
+<p><strong>诱因分类</strong></p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>触发操作&#x2F;原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>自发性</strong></td>
+<td><code>sleep()</code>、<code>wait()</code>、<code>yield()</code>、<code>join()</code>、<code>park()</code>、<code>synchronized</code>、<code>lock</code></td>
+</tr>
+<tr>
+<td><strong>非自发性</strong></td>
+<td>时间片用完、GC（Stop-The-World）、线程优先级</td>
+</tr>
+</tbody></table>
+<p><strong>监控工具</strong></p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>适用平台</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>vmstat 1 3</code></td>
+<td>Linux</td>
+<td>查看系统整体 cs（context switch）次数</td>
+</tr>
+<tr>
+<td><code>pidstat -w -p &lt;pid&gt; -t</code></td>
+<td>Linux</td>
+<td>查看指定进程每个线程的 cswch&#x2F;s、nvcswch&#x2F;s</td>
+</tr>
+<tr>
+<td>Process Explorer</td>
+<td>Windows</td>
+<td>图形化查看线程上下文切换</td>
+</tr>
+<tr>
+<td><code>jstack &lt;pid&gt;</code></td>
+<td>跨平台</td>
+<td>导出线程堆栈信息，定位 BLOCKED 死锁</td>
+</tr>
+</tbody></table>
+<h3 id="优化上下文切换"><a href="#优化上下文切换" class="headerlink" title="优化上下文切换"></a>优化上下文切换</h3><p><strong>核心观点</strong>：在多线程编程中，<strong>锁不是性能开销的根源，竞争锁才是</strong>。</p>
+<h4 id="优化方向一：减少竞争锁"><a href="#优化方向一：减少竞争锁" class="headerlink" title="优化方向一：减少竞争锁"></a>优化方向一：减少竞争锁</h4><ol>
+<li><strong>减少锁持有时间</strong>：将无关代码移出同步块，特别是 I&#x2F;O 与阻塞操作。</li>
+<li><strong>降低锁粒度</strong>：<ul>
+<li><strong>锁分离</strong>：读写锁。</li>
+<li><strong>锁分段</strong>：ConcurrentHashMap（JDK1.7）。</li>
+</ul>
+</li>
+<li><strong>CAS 替代锁</strong>：<code>Atomic*</code> 与 <code>volatile</code> 读写不会引起上下文切换。</li>
+</ol>
+<h4 id="优化方向二：wait-notify-优化"><a href="#优化方向二：wait-notify-优化" class="headerlink" title="优化方向二：wait&#x2F;notify 优化"></a>优化方向二：wait&#x2F;notify 优化</h4><p><code>wait/notify</code> 至少引起 3 次上下文切换，且 <code>notifyAll()</code> 易过早唤醒导致线程再次阻塞。</p>
+<p>优化策略：</p>
+<ul>
+<li>**优先用 <code>notify()</code> 替代 <code>notifyAll()</code>**，避免唤醒无关线程。</li>
+<li>通知后<strong>尽快释放锁</strong>，减少被唤醒线程的等待。</li>
+<li>使用 <strong><code>Lock + Condition</code></strong> 替代 <code>synchronized + wait/notify</code>：<ul>
+<li>可解决 <code>wait(long)</code> 无法区分”超时 vs 被通知”的问题。</li>
+<li>可解决过早唤醒的问题。</li>
+</ul>
+</li>
+</ul>
+<h4 id="优化方向三：合理线程池大小"><a href="#优化方向三：合理线程池大小" class="headerlink" title="优化方向三：合理线程池大小"></a>优化方向三：合理线程池大小</h4><p>避免 <code>Executors.newCachedThreadPool()</code> 等会无限创建线程的池——大量长任务时会产生数百个线程，引发频繁上下文切换。</p>
+<h4 id="优化方向四：轻量级线程"><a href="#优化方向四：轻量级线程" class="headerlink" title="优化方向四：轻量级线程"></a>优化方向四：轻量级线程</h4><p>核心就是轻量级线程，第六节有介绍。</p>
+<h4 id="优化方向五：减少-GC-频率"><a href="#优化方向五：减少-GC-频率" class="headerlink" title="优化方向五：减少 GC 频率"></a>优化方向五：减少 GC 频率</h4><p>GC（特别是 Full GC）会触发 Stop-The-World。减少对象分配、合理设置堆分区可降低上下文切换。</p>
+<p><strong>监控建议</strong>：把上下文切换（cs）作为服务性能指标纳入监控，及时发现异常。</p>
+<hr>
+<h2 id="并发容器的选择"><a href="#并发容器的选择" class="headerlink" title="并发容器的选择"></a>并发容器的选择</h2><h3 id="Map-容器"><a href="#Map-容器" class="headerlink" title="Map 容器"></a>Map 容器</h3><table>
+<thead>
+<tr>
+<th>容器</th>
+<th>一致性</th>
+<th>数据结构</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Hashtable</strong></td>
+<td>强一致</td>
+<td>数组+链表</td>
+<td>强一致需求，但并发性能差（方法全用 synchronized 修饰）</td>
+</tr>
+<tr>
+<td><strong>ConcurrentHashMap</strong></td>
+<td>弱一致</td>
+<td>数组+链表&#x2F;红黑树</td>
+<td><strong>首选</strong>；JDK1.7 分段锁 → JDK1.8 <code>Synchronized + CAS</code></td>
+</tr>
+<tr>
+<td><strong>ConcurrentSkipListMap</strong></td>
+<td>弱一致</td>
+<td>跳表</td>
+<td><strong>大数据量、写多读少</strong>；按 key 排序；O(log n) 平均复杂度</td>
+</tr>
+</tbody></table>
+<p><strong>跳跃表（SkipList）要点</strong>：</p>
+<ul>
+<li>通过多层索引实现”空间换时间”。</li>
+<li>增删基于 CAS，并发性能优于红黑树（树的操作涉及大量节点）。</li>
+<li>在非线程安全的 Map 中，TreeMap（红黑树）与 SkipListMap 单线程性能相当。</li>
+</ul>
+<h3 id="List-容器"><a href="#List-容器" class="headerlink" title="List 容器"></a>List 容器</h3><table>
+<thead>
+<tr>
+<th>容器</th>
+<th>机制</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Vector</strong></td>
+<td><code>synchronized</code> 修饰所有方法</td>
+<td>读写都加锁，性能差；读远大于写时不推荐</td>
+</tr>
+<tr>
+<td><strong>CopyOnWriteArrayList</strong></td>
+<td>读无锁，写时复制新数组</td>
+<td><strong>读远大于写、写少</strong>；如黑名单、配置中心；数据一致性要求最终一致即可</td>
+</tr>
+</tbody></table>
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p><strong>阻塞队列</strong>（用于线程池、生产者-消费者模型）</p>
+<table>
+<thead>
+<tr>
+<th>队列</th>
+<th>数据结构</th>
+<th>特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ArrayBlockingQueue</strong></td>
+<td>数组</td>
+<td>有界，FIFO，<code>ReentrantLock + Condition</code></td>
+</tr>
+<tr>
+<td><strong>LinkedBlockingQueue</strong></td>
+<td>链表</td>
+<td>有界，FIFO，吞吐量通常高于 Array</td>
+</tr>
+<tr>
+<td><strong>PriorityBlockingQueue</strong></td>
+<td>二叉堆</td>
+<td>无界（MAX_VALUE - 8），按优先级</td>
+</tr>
+<tr>
+<td><strong>DelayQueue</strong></td>
+<td>基于 PriorityBlockingQueue</td>
+<td>支持延时获取元素</td>
+</tr>
+<tr>
+<td><strong>SynchronousQueue</strong></td>
+<td>不存储元素</td>
+<td>每次 put 必须等 take；可指定 FIFO 或 LIFO</td>
+</tr>
+</tbody></table>
+<p><strong>非阻塞队列</strong></p>
+<ul>
+<li><code>ConcurrentLinkedQueue</code>：基于链表 + CAS 实现的<strong>无界</strong>线程安全队列，适合<strong>高并发排队</strong>（如抢购）；注意内存溢出风险。</li>
+</ul>
+<hr>
+<h2 id="线程池调优"><a href="#线程池调优" class="headerlink" title="线程池调优"></a>线程池调优</h2><h3 id="线程池原理"><a href="#线程池原理" class="headerlink" title="线程池原理"></a>线程池原理</h3><p>Java 线程（JDK21之前）采用 <strong>1:1 线程模型</strong>：每个 Java 线程映射到一个内核线程（通过 <code>pthread_create</code> → <code>clone()</code> 创建）。线程的创建&#x2F;销毁有系统开销，线程池通过复用减少开销。</p>
+<h3 id="Executor-框架"><a href="#Executor-框架" class="headerlink" title="Executor 框架"></a>Executor 框架</h3><p>推荐使用 <strong><code>ThreadPoolExecutor</code></strong> 自定义线程池，而非 <code>Executors</code> 工厂类（默认参数不利于调优）。</p>
+<p><strong>核心参数</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">ThreadPoolExecutor</span><span class="hljs-params">(</span><br><span class="hljs-params">    <span class="hljs-type">int</span> corePoolSize,         // 核心线程数</span><br><span class="hljs-params">    <span class="hljs-type">int</span> maximumPoolSize,      // 最大线程数</span><br><span class="hljs-params">    <span class="hljs-type">long</span> keepAliveTime,       // 空闲线程存活时间</span><br><span class="hljs-params">    TimeUnit unit,            // 时间单位</span><br><span class="hljs-params">    BlockingQueue&lt;Runnable&gt; workQueue,    // 任务队列</span><br><span class="hljs-params">    ThreadFactory threadFactory,          // 线程工厂</span><br><span class="hljs-params">    RejectedExecutionHandler handler      // 拒绝策略</span><br><span class="hljs-params">)</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>默认工作流程</strong></p>
+<ol>
+<li>线程数 &lt; corePoolSize → 创建新线程执行。</li>
+<li>线程数 ≥ corePoolSize → 任务进入队列。</li>
+<li>队列满 → 创建非核心线程，直到达到 maximumPoolSize。</li>
+<li>已达 maximumPoolSize 且队列满 → 触发拒绝策略（默认抛 <code>RejectedExecutionException</code>）。</li>
+</ol>
+<p><strong>注意点</strong>：</p>
+<ul>
+<li>预热：<code>prestartAllCoreThreads()</code> 提前创建核心线程（抢购场景常用）。</li>
+<li>核心线程也可回收：通过 <code>allowCoreThreadTimeOut(true)</code>。</li>
+</ul>
+<h3 id="线程数计算公式"><a href="#线程数计算公式" class="headerlink" title="线程数计算公式"></a>线程数计算公式</h3><table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>推荐公式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CPU 密集型</strong></td>
+<td><code>N + 1</code>（N 为 CPU 核数；+1 应对偶发缺页中断）</td>
+</tr>
+<tr>
+<td><strong>I&#x2F;O 密集型</strong></td>
+<td><code>2N</code></td>
+</tr>
+<tr>
+<td><strong>混合型（通用）</strong></td>
+<td><code>N * (1 + WT/ST)</code>，其中 WT &#x3D; 线程等待时间，ST &#x3D; 线程运行时间</td>
+</tr>
+</tbody></table>
+<p>注意这只是理论推荐值，生产环境要根据压测结果配置。</p>
+<p><strong>核心原则</strong>：</p>
+<ol>
+<li>先保证合理线程数使 CPU 利用最大化。</li>
+<li>再通过<strong>有界队列</strong>（防止 OOM）缓存来不及处理的任务。</li>
+<li><strong>不同任务类型使用不同线程池</strong>，避免相互影响；核心业务应单独部署。</li>
+</ol>
+<h3 id="Amdahl-定律"><a href="#Amdahl-定律" class="headerlink" title="Amdahl 定律"></a>Amdahl 定律</h3><blockquote>
+<p>S &#x3D; 1 &#x2F; (1 - a + a&#x2F;n)</p>
+</blockquote>
+<p>系统性能提升的瓶颈在于<strong>串行部分</strong>。优化并行段只是缩短 a&#x2F;n 这一项；优化串行部分（如减少锁持有时间、避免阻塞 I&#x2F;O）才能真正提升整体性能。</p>
+<hr>
+<h2 id="轻量级线程"><a href="#轻量级线程" class="headerlink" title="轻量级线程"></a>轻量级线程</h2><h3 id="线程实现模型"><a href="#线程实现模型" class="headerlink" title="线程实现模型"></a>线程实现模型</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>关系</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1:1</strong>（Java）</td>
+<td>用户线程 : 内核线程 &#x3D; 1 : 1</td>
+<td>简单，但创建&#x2F;切换有用户态&#x2F;内核态切换开销</td>
+</tr>
+<tr>
+<td><strong>N:1</strong></td>
+<td>多用户线程对应 1 内核线程</td>
+<td>切换快，但一个线程系统调用会阻塞整个进程</td>
+</tr>
+<tr>
+<td><strong>N:M</strong>（Go）</td>
+<td>N 用户线程映射到 M 内核线程</td>
+<td>灵活，兼顾性能与并发能力</td>
+</tr>
+</tbody></table>
+<p><strong>Java</strong> 早期在 Linux 下基于 <code>pthread_create</code> → <code>clone()</code> 实现 → <strong>1:1 模型</strong>，JDK21 引入了轻量级用户线程（fibers），并行能力有了极大的提升。</p>
+<h3 id="协程的本质"><a href="#协程的本质" class="headerlink" title="协程的本质"></a>协程的本质</h3><ul>
+<li>比线程更轻量，由程序（用户态）调度，不进入内核。</li>
+<li>可看作”可暂停的函数”或”线程上的代码块”。</li>
+<li>挂起时让出执行权，唤醒后从挂起点继续。</li>
+<li>同一线程上可运行成千上万个协程。</li>
+</ul>
+<hr>
+<h2 id="数据一致性"><a href="#数据一致性" class="headerlink" title="数据一致性"></a>数据一致性</h2><p>分布式系统的很多问题和多线程领域非常类似，一个经典的例子就是 Happens-Before。</p>
+<h3 id="Java-内存模型（JMM）核心"><a href="#Java-内存模型（JMM）核心" class="headerlink" title="Java 内存模型（JMM）核心"></a>Java 内存模型（JMM）核心</h3><ul>
+<li>局部变量 → 线程栈（线程私有，无需关心一致性）。</li>
+<li>共享变量 → 堆&#x2F;方法区（线程共享）。</li>
+<li>工作内存：CPU 高速缓存（L1&#x2F;L2&#x2F;L3），每核一份。</li>
+</ul>
+<p><strong>多核问题</strong>：两个 CPU 核心同时缓存同一共享变量时，各自修改后写回主存可能产生数据不一致。</p>
+<h3 id="重排序"><a href="#重排序" class="headerlink" title="重排序"></a>重排序</h3><p>编译器&#x2F;CPU 为优化性能可能改变指令执行顺序。在单线程下不影响结果，但在并发下可能引发问题。</p>
+<h3 id="Happens-Before-规则"><a href="#Happens-Before-规则" class="headerlink" title="Happens-Before 规则"></a>Happens-Before 规则</h3><p>为约束线程执行顺序，JMM 定义了 8 条 Happens-Before 规则：</p>
+<table>
+<thead>
+<tr>
+<th>规则</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>程序次序规则</td>
+<td>单线程内执行结果与顺序执行一致</td>
+</tr>
+<tr>
+<td>锁定规则</td>
+<td>unlock 先于后续对同一锁的 lock</td>
+</tr>
+<tr>
+<td>volatile 变量规则</td>
+<td>volatile 写先于后续读</td>
+</tr>
+<tr>
+<td>线程启动规则</td>
+<td><code>start()</code> 先于线程内任何动作</td>
+</tr>
+<tr>
+<td>线程终结规则</td>
+<td>线程内所有操作先于 <code>terminate()</code> 检测</td>
+</tr>
+<tr>
+<td>对象终结规则</td>
+<td>对象初始化完成先于 <code>finalize()</code></td>
+</tr>
+<tr>
+<td>传递性</td>
+<td>A hb B，B hb C ⇒ A hb C</td>
+</tr>
+<tr>
+<td>线程中断规则</td>
+<td><code>interrupt()</code> 调用先于中断事件检测</td>
+</tr>
+</tbody></table>
+<h3 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h3><table>
+<thead>
+<tr>
+<th>级别</th>
+<th>含义</th>
+<th>典型实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>严格一致性（强一致）</strong></td>
+<td>任何时刻各线程读到的缓存数据完全一致；全局时钟序</td>
+<td><code>Hashtable</code>、<code>synchronized</code></td>
+</tr>
+<tr>
+<td><strong>顺序一致性</strong></td>
+<td>单线程内执行有序；保证读到最近一次写入</td>
+<td><code>volatile</code>（阻止重排序）</td>
+</tr>
+<tr>
+<td><strong>弱一致性</strong></td>
+<td>不保证立刻读到最近写入，但能保证最终读到</td>
+<td>单写锁 + 无锁读、<code>ConcurrentHashMap</code></td>
+</tr>
+</tbody></table>
+<p><strong>ConcurrentHashMap 为什么是弱一致？</strong></p>
+<ul>
+<li><code>get()</code> 不加锁，可能读到尚未刷新到主存的数据。</li>
+<li><code>size()</code>、<code>clear()</code>、<code>foreach</code> 等方法也都未完全加锁，存在数据不确定性。</li>
+</ul>
+<p>关于一致性，在分布式系统中有线性一致性、顺序一致性、因果一致性等说法。</p>
+<p><strong>多线程优化的本质是减少竞争、减少切换、减少等待</strong>。锁要选对、粒度要小、容器要匹配场景、线程池要合理，最终都要靠<strong>压测数据</strong>而非经验值来落地。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/Java/" class="category-chain-item">Java</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+        <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" class="print-no-link">#多线程</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java性能优化多线程篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/07/05/Java性能优化多线程篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/06/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96JVM%E7%AF%87/" title="Java性能优化JVM篇">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java性能优化JVM篇</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/04/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87/" title="Java性能优化基础篇">
+                        <span class="hidden-mobile">Java性能优化基础篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

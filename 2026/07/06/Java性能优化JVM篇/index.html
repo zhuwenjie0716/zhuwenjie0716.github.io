@@ -1,0 +1,1160 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java性能优化 · JVM篇关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，经典图书-深入理解Java虚拟机。 本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。  因此这里不再重复，只介绍下 Java 内存问题的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java性能优化JVM篇">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/06/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96JVM%E7%AF%87/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java性能优化 · JVM篇关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，经典图书-深入理解Java虚拟机。 本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。  因此这里不再重复，只介绍下 Java 内存问题的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260704164830311.png">
+<meta property="article:published_time" content="2026-07-06T07:04:11.000Z">
+<meta property="article:modified_time" content="2026-07-04T09:00:23.476Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260704164830311.png">
+  
+  
+  
+  <title>Java性能优化JVM篇 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java性能优化JVM篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-06 15:04" pubdate>
+          2026年7月6日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          31 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java性能优化JVM篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java性能优化-·-JVM篇"><a href="#Java性能优化-·-JVM篇" class="headerlink" title="Java性能优化 · JVM篇"></a>Java性能优化 · JVM篇</h1><p>关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，<a href="https://zhuwenjie0716.github.io/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/">经典图书-深入理解Java虚拟机</a>。</p>
+<p>本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。</p>
+<p><img src="/../img/image-20260704164830311.png" srcset="/img/loading.gif" lazyload alt="image-20260704164830311"></p>
+<p>因此这里不再重复，只介绍下 Java 内存问题的排查路径，当然还是要先介绍一些前置知识。</p>
+<p><strong>对象生存周期</strong></p>
+<ul>
+<li>新建对象<strong>优先分配到 Eden 区</strong></li>
+<li>对象有<strong>对象年龄计数器</strong>（<code>-XX:MaxTenuringThreshold</code> 设置）</li>
+<li>Eden 空间不足时，JVM 执行 <strong>Minor GC</strong>，将存活对象转移到 Survivor 中，年龄 +1</li>
+<li>对象在 Survivor 中经历 Minor GC，每经过一次 Minor GC，年龄 +1</li>
+<li>可通过 <code>-XX:PetenureSizeThreshold</code> 设置<strong>直接被分配到老年代的最大对象</strong>阈值</li>
+</ul>
+<p><strong>JVM 堆内存分配默认值</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">java -XX:+PrintFlagsFinal -version | grep HeapSize<br>jmap -heap &lt;pid&gt;<br></code></pre></td></tr></table></figure>
+
+<p><strong>JDK 1.7 默认比例</strong>：</p>
+<ul>
+<li><strong>年轻代 : 老年代 &#x3D; 1 : 2</strong>（可通过 <code>-XX:NewRatio</code> 重置）</li>
+<li><strong>Eden : To Survivor : From Survivor &#x3D; 8 : 1 : 1</strong>（可通过 <code>-XX:SurvivorRatio</code> 重置）</li>
+</ul>
+<p><strong>JDK 1.8</strong>：</p>
+<ul>
+<li>默认开启 <code>-XX:+UseAdaptiveSizePolicy</code>，JVM 动态调整 Java 堆各区域大小以及进入老年代的年龄</li>
+<li>开启自适应策略后，<code>-XX:NewRatio</code> 和 <code>-XX:SurvivorRatio</code> 将会<strong>失效</strong></li>
+<li>**不要随便关闭 <code>UseAdaptiveSizePolicy</code>**，除非已对堆内存&#x2F;年轻代&#x2F;老年代&#x2F;Eden&#x2F;Survivor 有非常明确的规划，否则 JVM 将分配最小堆内存，默认比例分配未必是最佳配置</li>
+</ul>
+<p>JVM 内存分配不合理最直接的表现是<strong>频繁的 GC</strong>，导致上下文切换等性能问题，降低系统吞吐量、增加响应时间。在线上或性能测试时发现频繁 GC（且是正常的对象创建和回收），就需要考虑调整 JVM 内存分配。</p>
+<h2 id="Linux-命令行工具"><a href="#Linux-命令行工具" class="headerlink" title="Linux 命令行工具"></a>Linux 命令行工具</h2><p><strong>top 命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">top<br>top -Hp &lt;pid&gt;    <span class="hljs-comment"># 查看具体线程使用系统资源情况</span><br></code></pre></td></tr></table></figure>
+
+<p>实时显示 CPU 使用率、内存使用率、系统负载等信息。</p>
+<p><strong>vmstat 命令</strong>：</p>
+<ul>
+<li>指定采样周期和次数的功能性监测工具</li>
+<li>不仅统计内存使用，还可观测 CPU 使用率、swap 使用情况</li>
+<li>经常被用来观察<strong>进程的上下文切换</strong></li>
+</ul>
+<p><strong>关键字段</strong>：<code>r</code>（等待运行进程数）、<code>b</code>（非中断睡眠进程数）、<code>swpd</code>（虚拟内存）、<code>free</code>（空闲内存）、<code>si/so</code>（交换页数量）、<code>bi/bo</code>（块设备块数）、<code>in</code>（每秒中断数）、<code>cs</code>（每秒上下文切换次数）、<code>us</code>&#x2F;<code>sy</code>&#x2F;<code>id</code>&#x2F;<code>wa</code>&#x2F;<code>st</code>（CPU 时间）</p>
+<p><strong>pidstat 命令</strong>（Sysstat 组件，<code>yum install sysstat</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">pidstat -p &lt;pid&gt; -r 1 3       <span class="hljs-comment"># 监控内存</span><br>pidstat -p &lt;pid&gt; -t            <span class="hljs-comment"># 查看线程级内存使用率</span><br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-u</code></td>
+<td>默认参数，显示各进程 CPU 使用情况</td>
+</tr>
+<tr>
+<td><code>-r</code></td>
+<td>显示各进程内存使用情况</td>
+</tr>
+<tr>
+<td><code>-d</code></td>
+<td>显示各进程 I&#x2F;O 使用情况</td>
+</tr>
+<tr>
+<td><code>-w</code></td>
+<td>显示每个进程的上下文切换情况</td>
+</tr>
+<tr>
+<td><code>-p</code></td>
+<td>指定进程号</td>
+</tr>
+<tr>
+<td><code>-t</code></td>
+<td>显示进程中线程的统计信息</td>
+</tr>
+</tbody></table>
+<p><strong>关键指标</strong>：<code>Minflt/s</code>（次要错误）、<code>Majflt/s</code>（主要错误）、<code>VSZ</code>（虚拟地址大小）、<code>RSS</code>（常驻集合大小）</p>
+<h2 id="JDK-工具"><a href="#JDK-工具" class="headerlink" title="JDK 工具"></a>JDK 工具</h2><p><strong>jstat 命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstat -gc &lt;pid&gt;                <span class="hljs-comment"># 查看堆内存使用情况</span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-class</code>：显示 ClassLoad 信息</li>
+<li><code>-compiler</code>：显示 JIT 编译信息</li>
+<li><code>-gc</code>：显示和 gc 相关的堆信息</li>
+<li><code>-gccapacity</code>：显示各代容量及使用情况</li>
+<li><code>-gcmetacapacity</code>：显示 Metaspace 大小</li>
+<li><code>-gcnew</code>：显示新生代信息</li>
+<li><code>-gcnewcapacity</code>：显示新生代大小和使用情况</li>
+<li><code>-gcold</code>：显示老年代和永久代信息</li>
+<li><code>-gcoldcapacity</code>：显示老年代大小</li>
+<li><code>-gcutil</code>：显示垃圾收集信息</li>
+<li><code>-gccause</code>：显示 GC 相关信息和诱因</li>
+<li><code>-printcompilation</code>：输出 JIT 编译方法信息</li>
+</ul>
+<p><strong><code>jstat -gc</code> 输出字段</strong>：</p>
+<ul>
+<li><code>S0C/S1C</code>：年轻代 To&#x2F;From Survivor 容量</li>
+<li><code>S0U/S1U</code>：年轻代 To&#x2F;From Survivor 已使用空间</li>
+<li><code>EC/EU</code>：年轻代 Eden 容量&#x2F;已使用空间</li>
+<li><code>OC/OU</code>：Old 代容量&#x2F;已使用空间</li>
+<li><code>MC/MU</code>：Metaspace 容量&#x2F;已使用空间</li>
+<li><code>YGC/YGCT</code>：年轻代 GC 次数&#x2F;总时间</li>
+<li><code>FGC/FGCT</code>：Full GC 次数&#x2F;总时间</li>
+<li><code>GCT</code>：GC 用的总时间</li>
+</ul>
+<p><strong>jstack 命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstack &lt;pid&gt;<br></code></pre></td></tr></table></figure>
+
+<p>线程堆栈分析工具，查看线程堆栈信息、线程 ID、状态（wait&#x2F;sleep&#x2F;running）、是否持有锁，常与 <code>top -Hp</code> 或 <code>pidstat -p -t</code> 结合使用，<strong>常用于排查死锁异常</strong>。</p>
+<p><strong>jmap 命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">jmap -heap &lt;pid&gt;                       <span class="hljs-comment"># 查看堆内存初始化配置及使用情况</span><br>jmap -histo[:live] &lt;pid&gt;               <span class="hljs-comment"># 查看堆内存中对象数目、大小统计直方图</span><br>jmap -dump:format=b,file=heap.hprof &lt;pid&gt;   <span class="hljs-comment"># dump 堆内存到文件</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：dump 出的文件用 <strong>MAT（Memory Analyzer Tool）</strong> 工具分析。</p>
+<p>内存溢出 vs 内存泄漏</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>内存泄漏</strong></td>
+<td>不再使用的对象<strong>无法及时回收</strong>，持续占用内存空间，造成浪费（如 Java 6 <code>substring</code> 复用原 char 数组导致大字符串无法回收）</td>
+</tr>
+<tr>
+<td><strong>内存溢出（OOM）</strong></td>
+<td>发生 <code>OutOfMemoryException</code>，堆内存、栈、方法区空间不足时发生</td>
+</tr>
+<tr>
+<td><strong>关系</strong></td>
+<td><strong>内存泄漏很容易导致内存溢出</strong>，但内存溢出不一定是内存泄漏导致</td>
+</tr>
+</tbody></table>
+<h2 id="关键调优参数"><a href="#关键调优参数" class="headerlink" title="关键调优参数"></a>关键调优参数</h2><p>内存相关</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-Xms</code></td>
+<td>堆初始大小</td>
+</tr>
+<tr>
+<td><code>-Xmx</code></td>
+<td>堆最大值</td>
+</tr>
+<tr>
+<td><code>-Xmn</code></td>
+<td>年轻代大小</td>
+</tr>
+<tr>
+<td><code>-XX:NewRatio</code></td>
+<td>年轻代与老年代比例</td>
+</tr>
+<tr>
+<td><code>-XX:SurvivorRatio</code></td>
+<td>Eden 与 Survivor 区比例</td>
+</tr>
+<tr>
+<td><code>-XX:MaxTenuringThreshold</code></td>
+<td>对象年龄计数器阈值</td>
+</tr>
+<tr>
+<td><code>-XX:PetenureSizeThreshold</code></td>
+<td>直接分配到老年代的最大对象阈值</td>
+</tr>
+<tr>
+<td><code>-XX:MetaspaceSize</code></td>
+<td>元空间大小</td>
+</tr>
+<tr>
+<td><code>-XX:+UseAdaptiveSizePolicy</code></td>
+<td>开启自适应大小策略（JDK 1.8 默认开启）</td>
+</tr>
+</tbody></table>
+<p>JIT 编译相关</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-client</code> &#x2F; <code>-server</code></td>
+<td>强制指定 JIT 模式（Java 8 后无效）</td>
+</tr>
+<tr>
+<td><code>-XX:+TieredCompilation</code></td>
+<td>开启分层编译（默认）</td>
+</tr>
+<tr>
+<td><code>-XX:-TieredCompilation</code></td>
+<td>关闭分层编译，只用 C2</td>
+</tr>
+<tr>
+<td><code>-XX:TieredStopAtLevel=1</code></td>
+<td>分层编译时只用 C1</td>
+</tr>
+<tr>
+<td><code>-Xint</code></td>
+<td>强制只有解释器</td>
+</tr>
+<tr>
+<td><code>-Xcomp</code></td>
+<td>强制只有 JIT</td>
+</tr>
+<tr>
+<td><code>-XX:CompileThreshold=N</code></td>
+<td>方法调用计数器阈值</td>
+</tr>
+<tr>
+<td><code>-XX:OnStackReplacePercentage=N</code></td>
+<td>回边计数器阈值</td>
+</tr>
+<tr>
+<td><code>-XX:MaxFreqInlineSize=N</code></td>
+<td>经常执行方法的内联大小（默认 325 字节）</td>
+</tr>
+<tr>
+<td><code>-XX:MaxInlineSize=N</code></td>
+<td>非经常执行方法的内联大小（默认 35 字节）</td>
+</tr>
+</tbody></table>
+<p>JIT 优化相关</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-XX:+DoEscapeAnalysis</code></td>
+<td>开启逃逸分析（默认）</td>
+</tr>
+<tr>
+<td><code>-XX:+EliminateLocks</code></td>
+<td>开启锁消除（默认）</td>
+</tr>
+<tr>
+<td><code>-XX:+EliminateAllocations</code></td>
+<td>开启标量替换（默认）</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintCompilation</code></td>
+<td>打印编译过程信息</td>
+</tr>
+<tr>
+<td><code>-XX:+UnlockDiagnosticVMOptions</code></td>
+<td>解锁 JVM 诊断选项</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintInlining</code></td>
+<td>打印内联方法</td>
+</tr>
+</tbody></table>
+<p>GC 相关</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-XX:+PrintGC</code></td>
+<td>输出 GC 日志</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintGCDetails</code></td>
+<td>输出 GC 详细日志</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintGCTimeStamps</code></td>
+<td>输出 GC 时间戳（基准时间）</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintGCDateStamps</code></td>
+<td>输出 GC 时间戳（日期形式）</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintHeapAtGC</code></td>
+<td>GC 前后打印堆信息</td>
+</tr>
+<tr>
+<td><code>-Xloggc:./gclogs</code></td>
+<td>日志文件输出路径</td>
+</tr>
+<tr>
+<td><code>-XX:InitiatingHeapOccupancyPercent=N</code></td>
+<td>G1 触发 Mix GC 的堆占用阈值（默认 45）</td>
+</tr>
+<tr>
+<td><code>-XX:MaxGCPauseMillis=N</code></td>
+<td>G1 目标停顿时间（默认 200ms）</td>
+</tr>
+</tbody></table>
+<p>OOM Dump 相关</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-XX:+HeapDumpOnOutOfMemoryError</code></td>
+<td>堆内存异常时 dump</td>
+</tr>
+<tr>
+<td><code>-XX:HeapDumpPath=/tmp/heapdump.hprof</code></td>
+<td>dump 文件路径</td>
+</tr>
+</tbody></table>
+<p>一定要注意：JVM 调优先观察后动手，默认配置在大部分场景下效果都不错，一定要基于监控数据（top、vmstat、pidstat、jstat、jstack、jmap）和 GC 日志调整。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/Java/" class="category-chain-item">Java</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java性能优化JVM篇</div>
+      <div>https://zhuwenjie0716.github.io/2026/07/06/Java性能优化JVM篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/07/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%AF%87/" title="Java性能优化设计模式篇">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java性能优化设计模式篇</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/05/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AF%87/" title="Java性能优化多线程篇">
+                        <span class="hidden-mobile">Java性能优化多线程篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
