@@ -19,26 +19,25 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Java性能优化 · JVM篇关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，经典图书-深入理解Java虚拟机。 本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。  因此这里不再重复，只介绍下 Java 内存问题的">
+    <meta name="description" content="异步状态更新里的并发回退陷阱最近有一个数据对接的需求，背景是这样的：该项目用来收集其它系统的已有的监控数据，使用一些聚类算法或机器学习算法试试能不能对未发生问题的设备进行预测，预测其生命周期、健康度等。数据获取无非两种形式，要么 pull 要么 push，基于项目目前的结构，最终决定提供 rest api 由其它平台 push 给我们分钟级的监控数据。 设计这样的系统需要考虑什么？  性能：tom">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Java性能优化JVM篇">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/06/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96JVM%E7%AF%87/index.html">
+<meta property="og:title" content="当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/28/%E5%BD%93-finally-%E8%B7%91%E5%BE%97%E6%AF%94%E6%B6%88%E8%B4%B9%E8%80%85%E6%85%A2%EF%BC%9A%E5%BC%82%E6%AD%A5%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0%E9%87%8C%E7%9A%84%E5%B9%B6%E5%8F%91%E5%9B%9E%E9%80%80%E9%99%B7%E9%98%B1/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Java性能优化 · JVM篇关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，经典图书-深入理解Java虚拟机。 本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。  因此这里不再重复，只介绍下 Java 内存问题的">
+<meta property="og:description" content="异步状态更新里的并发回退陷阱最近有一个数据对接的需求，背景是这样的：该项目用来收集其它系统的已有的监控数据，使用一些聚类算法或机器学习算法试试能不能对未发生问题的设备进行预测，预测其生命周期、健康度等。数据获取无非两种形式，要么 pull 要么 push，基于项目目前的结构，最终决定提供 rest api 由其它平台 push 给我们分钟级的监控数据。 设计这样的系统需要考虑什么？  性能：tom">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260704164830311.png">
-<meta property="article:published_time" content="2026-07-06T07:04:11.000Z">
-<meta property="article:modified_time" content="2026-07-04T09:00:23.476Z">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/flow.drawio.png">
+<meta property="article:published_time" content="2026-07-28T05:31:56.000Z">
+<meta property="article:modified_time" content="2026-07-28T05:53:33.133Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="Java">
-<meta property="article:tag" content="JVM">
-<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="并发">
+<meta property="article:tag" content="异步">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260704164830311.png">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/flow.drawio.png">
   
   
   
-  <title>Java性能优化JVM篇 - Hexo</title>
+  <title>当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -313,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Java性能优化JVM篇"></span>
+            <span id="subtitle" data-typed-text="当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱"></span>
           
         </div>
 
@@ -324,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-06 15:04" pubdate>
-          2026年7月6日 下午
+        <time datetime="2026-07-28 13:31" pubdate>
+          2026年7月28日 下午
         </time>
       </span>
     
@@ -336,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          5.1k 字
         
       </span>
     
@@ -347,7 +346,7 @@
         
         
         
-          31 分钟
+          43 分钟
         
       </span>
     
@@ -399,328 +398,66 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Java性能优化JVM篇</h1>
+            <h1 id="seo-header">当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Java性能优化-·-JVM篇"><a href="#Java性能优化-·-JVM篇" class="headerlink" title="Java性能优化 · JVM篇"></a>Java性能优化 · JVM篇</h1><p>关于 JVM 有一本非常经典的书籍，周志明老师的《深入理解 Java 虚拟机》，本篇的内容在该书中几乎都能找到，我也写了关于本书的读书笔记，<a href="https://zhuwenjie0716.github.io/categories/%E7%BB%8F%E5%85%B8%E5%9B%BE%E4%B9%A6/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/">经典图书-深入理解Java虚拟机</a>。</p>
-<p>本来想重新整理一下，想了想还是 Don’t repeat yourself，关于内存模型、即时编译、垃圾回收和 GC，在读书笔记中都整理过了。</p>
-<p><img src="/../img/image-20260704164830311.png" srcset="/img/loading.gif" lazyload alt="image-20260704164830311"></p>
-<p>因此这里不再重复，只介绍下 Java 内存问题的排查路径，当然还是要先介绍一些前置知识。</p>
-<p><strong>对象生存周期</strong></p>
-<ul>
-<li>新建对象<strong>优先分配到 Eden 区</strong></li>
-<li>对象有<strong>对象年龄计数器</strong>（<code>-XX:MaxTenuringThreshold</code> 设置）</li>
-<li>Eden 空间不足时，JVM 执行 <strong>Minor GC</strong>，将存活对象转移到 Survivor 中，年龄 +1</li>
-<li>对象在 Survivor 中经历 Minor GC，每经过一次 Minor GC，年龄 +1</li>
-<li>可通过 <code>-XX:PetenureSizeThreshold</code> 设置<strong>直接被分配到老年代的最大对象</strong>阈值</li>
-</ul>
-<p><strong>JVM 堆内存分配默认值</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">java -XX:+PrintFlagsFinal -version | grep HeapSize<br>jmap -heap &lt;pid&gt;<br></code></pre></td></tr></table></figure>
+                <h1 id="异步状态更新里的并发回退陷阱"><a href="#异步状态更新里的并发回退陷阱" class="headerlink" title="异步状态更新里的并发回退陷阱"></a>异步状态更新里的并发回退陷阱</h1><p>最近有一个数据对接的需求，背景是这样的：该项目用来收集其它系统的已有的监控数据，使用一些聚类算法或机器学习算法试试能不能对未发生问题的设备进行预测，预测其生命周期、健康度等。数据获取无非两种形式，要么 pull 要么 push，基于项目目前的结构，最终决定提供 rest api 由其它平台 push 给我们分钟级的监控数据。</p>
+<p>设计这样的系统需要考虑什么？</p>
+<ol>
+<li>性能：tomcat 默认 200 线程，如果对方大并发来推，一方面系统可能承受不住，另一方面对方的线程迟迟拿不到响应，可能会导致服务崩溃。</li>
+<li>可靠性：对方的数据在到来之后，需要经过清洗、转换、拼 sql、写时序库，每一步都可能出问题。网络可能有波动，连接池也可能等待超时，系统要能应对这些非正常情况。</li>
+</ol>
+<p>消息队列在这种场景下太合适了，tomcat 线程收到监控数据后推送到消息队列里，消费者根据自身情况慢慢消费，如果消费失败还可以重试，线程在消息发送到 mq 后就能返回，也不会拖垮对方平台。</p>
+<p>当然事情要是这么简单也不会有这篇文章了～</p>
+<p>问题1: 监控数据每一条都可能是几百个指标项，如果直接发数据到 mq 消息体太大，mq 的磁盘占用和吞吐都会有影响。</p>
+<p>问题2: 收到对方的数据就发 mq，如果发 mq 失败了怎么办（网络波动、mq 宕机），该给对方返回什么信息？如何补推？</p>
+<p>基于此，我完善了系统的设计：</p>
+<ol>
+<li>收到请求体后直接存关系数据库，状态置为 PENDING；</li>
+<li>提交任务到线程池，然后直接返回成功；任务内容为：<ol>
+<li>把监控数据在关系库的主键发送到 MQ；</li>
+<li>根据发送结果，更新状态为 MQ_SEND 或 MQ_SEND_FAILED；</li>
+</ol>
+</li>
+<li>消费者消费消息时，根据 id 找到对应的监控数据，进行反序列化、转换、拼 sql、写时序库的逻辑；</li>
+<li>根据写时序库的结果，更新状态为 PARSED 或 PARSED_FAILED；</li>
+<li>在 xxl-job 中添加任务，定时处理发送 MQ 失败的记录；</li>
+</ol>
+<p>整体逻辑就是这样，当然其中也包含了很多细节，如反序列化失败、写时序库失败等。项目使用了 RabbitMQ、SpringCloudStream。</p>
+<p>服务器的内存资源还可以，但 cpu 资源不太行，而想要分钟级入库，当然需要并发执行了。众所周知 jdk21 的两大特性：虚拟线程与ZGC。虚拟线程作为用户级线程，数量可以轻松上千；ZGC 的垃圾回收毫秒级停顿，处理大堆比较好用。项目就充分的使用了虚拟线程池来提高处理能力，因为写时序库、发 MQ 都是 IO型任务。</p>
+<ol>
+<li>接收数据，不做处理直接入库，提交发送 mq 的任务到虚拟线程池</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">acceptTsData</span><span class="hljs-params">(String body)</span> &#123;<br>    <span class="hljs-type">long</span> <span class="hljs-variable">nextId</span> <span class="hljs-operator">=</span> uidSegmentHolder.nextId();<br>    <span class="hljs-type">SyncRecord</span> <span class="hljs-variable">record</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SyncRecord</span>();<br>    record.setData(body)<br>            .setStatus(SyncStatus.PENDING.code())<br>            .setRetryCount(<span class="hljs-number">0</span>)<br>            .setId(nextId)<br>            .setDeleted(GeneralConsts.NOT_DELETED);<br>    syncRecordDao.save(record);<br>    generalExecutor.submit(() -&gt; sendToMq(nextId));<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p><strong>JDK 1.7 默认比例</strong>：</p>
-<ul>
-<li><strong>年轻代 : 老年代 &#x3D; 1 : 2</strong>（可通过 <code>-XX:NewRatio</code> 重置）</li>
-<li><strong>Eden : To Survivor : From Survivor &#x3D; 8 : 1 : 1</strong>（可通过 <code>-XX:SurvivorRatio</code> 重置）</li>
-</ul>
-<p><strong>JDK 1.8</strong>：</p>
-<ul>
-<li>默认开启 <code>-XX:+UseAdaptiveSizePolicy</code>，JVM 动态调整 Java 堆各区域大小以及进入老年代的年龄</li>
-<li>开启自适应策略后，<code>-XX:NewRatio</code> 和 <code>-XX:SurvivorRatio</code> 将会<strong>失效</strong></li>
-<li>**不要随便关闭 <code>UseAdaptiveSizePolicy</code>**，除非已对堆内存&#x2F;年轻代&#x2F;老年代&#x2F;Eden&#x2F;Survivor 有非常明确的规划，否则 JVM 将分配最小堆内存，默认比例分配未必是最佳配置</li>
-</ul>
-<p>JVM 内存分配不合理最直接的表现是<strong>频繁的 GC</strong>，导致上下文切换等性能问题，降低系统吞吐量、增加响应时间。在线上或性能测试时发现频繁 GC（且是正常的对象创建和回收），就需要考虑调整 JVM 内存分配。</p>
-<h2 id="Linux-命令行工具"><a href="#Linux-命令行工具" class="headerlink" title="Linux 命令行工具"></a>Linux 命令行工具</h2><p><strong>top 命令</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">top<br>top -Hp &lt;pid&gt;    <span class="hljs-comment"># 查看具体线程使用系统资源情况</span><br></code></pre></td></tr></table></figure>
+<ol start="2">
+<li>发送消息到 mq 并更新数据库状态</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendToMq</span><span class="hljs-params">(Long id)</span> &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">code</span> <span class="hljs-operator">=</span> SyncStatus.MQ_SENT_FAILED.code();<br>    <span class="hljs-type">String</span> <span class="hljs-variable">msg</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-type">boolean</span> success;<br>    <span class="hljs-keyword">try</span> &#123;<br>        success = tsDataProducer.produce(id);<br>        <span class="hljs-keyword">if</span> (success) &#123;<br>            code = SyncStatus.MQ_SENT.code();<br>            msg = <span class="hljs-string">&quot;发送消息到MQ成功&quot;</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            log.error(<span class="hljs-string">&quot;发送解析消息到 MQ 失败 id=&#123;&#125;&quot;</span>, id);<br>            msg = <span class="hljs-string">&quot;发送消息到MQ失败,程序无异常&quot;</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        log.error(<span class="hljs-string">&quot;发送解析消息到 MQ 失败 id=&#123;&#125;, err=&#123;&#125;&quot;</span>, id, e.getMessage(), e);<br>        msg = <span class="hljs-string">&quot;发送消息到MQ失败,有异常&quot;</span>;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        syncTransactionService.updateStatus(id, code, msg);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>实时显示 CPU 使用率、内存使用率、系统负载等信息。</p>
-<p><strong>vmstat 命令</strong>：</p>
+<ol start="3">
+<li>消费者消费数据</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Consumer&lt;Long&gt; <span class="hljs-title function_">tsData</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> messageId -&gt; &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">body</span> <span class="hljs-operator">=</span> syncRecordDao.readDataOnly(messageId);<br>        <span class="hljs-keyword">if</span> (StrUtil.isBlank(body)) &#123;<br>            log.error(<span class="hljs-string">&quot;id=&#123;&#125;的记录请求体为空,无需解析&quot;</span>, messageId);<br>            syncTransactionService.updateStatus(messageId, SyncStatus.PARSED.code(), <span class="hljs-string">&quot;请求体为空,无需解析&quot;</span>);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        TsDataRequest dataRequest;<br>        <span class="hljs-keyword">try</span> &#123;<br>            dataRequest = JSON.parseObject(body, TsDataRequest.class);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            log.error(<span class="hljs-string">&quot;id=&#123;&#125;的记录请求体转 json 失败!&quot;</span>, messageId);<br>            syncTransactionService.updateStatus(messageId, SyncStatus.PARSE_FAILED.code(), <span class="hljs-string">&quot;转json失败&quot;</span>);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-type">TsDataParseResult</span> <span class="hljs-variable">parseResult</span> <span class="hljs-operator">=</span> tsDataParser.parse(dataRequest);<br>        List&lt;String&gt; sqls = parseResult.sqls();<br>        <span class="hljs-keyword">if</span> (sqls.isEmpty()) &#123;<br>            log.error(<span class="hljs-string">&quot;id=&#123;&#125;的记录请求体中无有效数据,没有可对应的指标项!&quot;</span>, messageId);<br>            syncTransactionService.updateStatus(messageId, SyncStatus.PARSED.code(), <span class="hljs-string">&quot;请求体无有效数据&quot;</span>);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-type">AtomicBoolean</span> <span class="hljs-variable">flag</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicBoolean</span>(<span class="hljs-literal">true</span>);<br>        <span class="hljs-comment">// 每条 SQL 一个虚拟线程</span><br>        List&lt;CompletableFuture&lt;Void&gt;&gt; futures = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(sqls.size());<br>        <span class="hljs-keyword">for</span> (String sql : sqls) &#123;<br>            futures.add(CompletableFuture.runAsync(() -&gt; &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    tsJdbcTemplate.update(sql);<br>                &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;<br>                    log.error(<span class="hljs-string">&quot;处理[messageId:&#123;&#125;,sql:&#123;&#125;]时出现异常&quot;</span>, messageId, sql, t);<br>                    flag.set(<span class="hljs-literal">false</span>);<br>                &#125;<br>            &#125;, tsSqlExecutor));<br>        &#125;<br>        <span class="hljs-comment">// 聚合等待</span><br>        CompletableFuture.allOf(futures.toArray(<span class="hljs-keyword">new</span> <span class="hljs-title class_">CompletableFuture</span>[<span class="hljs-number">0</span>])).exceptionally(ex -&gt; &#123;<br>            log.error(<span class="hljs-string">&quot;等待异步任务时发生异常&quot;</span>, ex);<br>            flag.set(<span class="hljs-literal">false</span>); <span class="hljs-comment">// 如果 join 异常，也标记为失败</span><br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;).thenRun(() -&gt; &#123;<br>            <span class="hljs-comment">// 无论成功、失败还是异常，都会执行这里</span><br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-keyword">if</span> (flag.get()) &#123;<br>                    syncTransactionService.updateStatus(messageId, SyncStatus.PARSED.code(), <span class="hljs-string">&quot;&quot;</span>);<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    syncTransactionService.updateStatus(messageId, SyncStatus.PARSE_FAILED.code(),<br>                            <span class="hljs-string">&quot;sql 插入时序库时失败!&quot;</span>);<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                log.error(<span class="hljs-string">&quot;最终更新状态失败, messageId:&#123;&#125;&quot;</span>, messageId, e);<br>            &#125;<br>        &#125;).join();<br>    &#125;;<br></code></pre></td></tr></table></figure>
+
+<p>定时任务的逻辑就不放了，无非是查询一段时间前 状态为发送MQ失败 且 重试次数&lt;最大重试次数 的记录，一段时间前是避免和其它线程重复执行；最大重试次数是避免无限重试。</p>
+<p>整体流程顺畅，关键流程异步并行处理，主线程迅速返回，消息队列解耦合。然后就出现了一个折磨我好几天的问题：</p>
+<p>每隔一段时间就会出现状态是 MQ_SENT 即发送到 MQ 成功但一直没有被更新为消费成功或消费失败的记录，于是我在消费者的方法第一行打印了 收到id&#x3D;{}的消息，最后一行打印了 id&#x3D;{}的消息处理完成。</p>
+<p>然而并没有什么用，我甚至看到了 id 为某个值的记录打印出了这两行日志但状态依然是 MQ_SENT 的，而且 MQ 中消息无积压，死信队列里也没数据。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs txt">2026-07-28 08:46:06.658  WARN [TID:N/A] 1 --- c.e.bhws.tsdb.mq.TsDataMqConsumer        : 收到了 id=214806855055587554 的消费消息<br>2026-07-28 08:46:06.753  WARN [TID:N/A] 1 --- c.e.bhws.tsdb.mq.TsDataMqConsumer        : id=214806855055587554 的消费消息处理完成,处理结果:true,影响行数:1<br></code></pre></td></tr></table></figure>
 <ul>
-<li>指定采样周期和次数的功能性监测工具</li>
-<li>不仅统计内存使用，还可观测 CPU 使用率、swap 使用情况</li>
-<li>经常被用来观察<strong>进程的上下文切换</strong></li>
+<li>如果是事务回滚，那么应该所有的记录都是 MQ_SENT，为什么只有少量是 MQ_SENT？</li>
+<li>如果是消费者根本没有收到消息，那么为什么会有处理日志？</li>
+<li>如果是发送MQ失败，那么为什么状态是 MQ_SENT？</li>
 </ul>
-<p><strong>关键字段</strong>：<code>r</code>（等待运行进程数）、<code>b</code>（非中断睡眠进程数）、<code>swpd</code>（虚拟内存）、<code>free</code>（空闲内存）、<code>si/so</code>（交换页数量）、<code>bi/bo</code>（块设备块数）、<code>in</code>（每秒中断数）、<code>cs</code>（每秒上下文切换次数）、<code>us</code>&#x2F;<code>sy</code>&#x2F;<code>id</code>&#x2F;<code>wa</code>&#x2F;<code>st</code>（CPU 时间）</p>
-<p><strong>pidstat 命令</strong>（Sysstat 组件，<code>yum install sysstat</code>）：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">pidstat -p &lt;pid&gt; -r 1 3       <span class="hljs-comment"># 监控内存</span><br>pidstat -p &lt;pid&gt; -t            <span class="hljs-comment"># 查看线程级内存使用率</span><br></code></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-u</code></td>
-<td>默认参数，显示各进程 CPU 使用情况</td>
-</tr>
-<tr>
-<td><code>-r</code></td>
-<td>显示各进程内存使用情况</td>
-</tr>
-<tr>
-<td><code>-d</code></td>
-<td>显示各进程 I&#x2F;O 使用情况</td>
-</tr>
-<tr>
-<td><code>-w</code></td>
-<td>显示每个进程的上下文切换情况</td>
-</tr>
-<tr>
-<td><code>-p</code></td>
-<td>指定进程号</td>
-</tr>
-<tr>
-<td><code>-t</code></td>
-<td>显示进程中线程的统计信息</td>
-</tr>
-</tbody></table>
-<p><strong>关键指标</strong>：<code>Minflt/s</code>（次要错误）、<code>Majflt/s</code>（主要错误）、<code>VSZ</code>（虚拟地址大小）、<code>RSS</code>（常驻集合大小）</p>
-<h2 id="JDK-工具"><a href="#JDK-工具" class="headerlink" title="JDK 工具"></a>JDK 工具</h2><p><strong>jstat 命令</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstat -gc &lt;pid&gt;                <span class="hljs-comment"># 查看堆内存使用情况</span><br></code></pre></td></tr></table></figure>
-
-<ul>
-<li><code>-class</code>：显示 ClassLoad 信息</li>
-<li><code>-compiler</code>：显示 JIT 编译信息</li>
-<li><code>-gc</code>：显示和 gc 相关的堆信息</li>
-<li><code>-gccapacity</code>：显示各代容量及使用情况</li>
-<li><code>-gcmetacapacity</code>：显示 Metaspace 大小</li>
-<li><code>-gcnew</code>：显示新生代信息</li>
-<li><code>-gcnewcapacity</code>：显示新生代大小和使用情况</li>
-<li><code>-gcold</code>：显示老年代和永久代信息</li>
-<li><code>-gcoldcapacity</code>：显示老年代大小</li>
-<li><code>-gcutil</code>：显示垃圾收集信息</li>
-<li><code>-gccause</code>：显示 GC 相关信息和诱因</li>
-<li><code>-printcompilation</code>：输出 JIT 编译方法信息</li>
-</ul>
-<p><strong><code>jstat -gc</code> 输出字段</strong>：</p>
-<ul>
-<li><code>S0C/S1C</code>：年轻代 To&#x2F;From Survivor 容量</li>
-<li><code>S0U/S1U</code>：年轻代 To&#x2F;From Survivor 已使用空间</li>
-<li><code>EC/EU</code>：年轻代 Eden 容量&#x2F;已使用空间</li>
-<li><code>OC/OU</code>：Old 代容量&#x2F;已使用空间</li>
-<li><code>MC/MU</code>：Metaspace 容量&#x2F;已使用空间</li>
-<li><code>YGC/YGCT</code>：年轻代 GC 次数&#x2F;总时间</li>
-<li><code>FGC/FGCT</code>：Full GC 次数&#x2F;总时间</li>
-<li><code>GCT</code>：GC 用的总时间</li>
-</ul>
-<p><strong>jstack 命令</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstack &lt;pid&gt;<br></code></pre></td></tr></table></figure>
-
-<p>线程堆栈分析工具，查看线程堆栈信息、线程 ID、状态（wait&#x2F;sleep&#x2F;running）、是否持有锁，常与 <code>top -Hp</code> 或 <code>pidstat -p -t</code> 结合使用，<strong>常用于排查死锁异常</strong>。</p>
-<p><strong>jmap 命令</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">jmap -heap &lt;pid&gt;                       <span class="hljs-comment"># 查看堆内存初始化配置及使用情况</span><br>jmap -histo[:live] &lt;pid&gt;               <span class="hljs-comment"># 查看堆内存中对象数目、大小统计直方图</span><br>jmap -dump:format=b,file=heap.hprof &lt;pid&gt;   <span class="hljs-comment"># dump 堆内存到文件</span><br></code></pre></td></tr></table></figure>
-
-<p><strong>注意</strong>：dump 出的文件用 <strong>MAT（Memory Analyzer Tool）</strong> 工具分析。</p>
-<p>内存溢出 vs 内存泄漏</p>
-<table>
-<thead>
-<tr>
-<th>概念</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>内存泄漏</strong></td>
-<td>不再使用的对象<strong>无法及时回收</strong>，持续占用内存空间，造成浪费（如 Java 6 <code>substring</code> 复用原 char 数组导致大字符串无法回收）</td>
-</tr>
-<tr>
-<td><strong>内存溢出（OOM）</strong></td>
-<td>发生 <code>OutOfMemoryException</code>，堆内存、栈、方法区空间不足时发生</td>
-</tr>
-<tr>
-<td><strong>关系</strong></td>
-<td><strong>内存泄漏很容易导致内存溢出</strong>，但内存溢出不一定是内存泄漏导致</td>
-</tr>
-</tbody></table>
-<h2 id="关键调优参数"><a href="#关键调优参数" class="headerlink" title="关键调优参数"></a>关键调优参数</h2><p>内存相关</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-Xms</code></td>
-<td>堆初始大小</td>
-</tr>
-<tr>
-<td><code>-Xmx</code></td>
-<td>堆最大值</td>
-</tr>
-<tr>
-<td><code>-Xmn</code></td>
-<td>年轻代大小</td>
-</tr>
-<tr>
-<td><code>-XX:NewRatio</code></td>
-<td>年轻代与老年代比例</td>
-</tr>
-<tr>
-<td><code>-XX:SurvivorRatio</code></td>
-<td>Eden 与 Survivor 区比例</td>
-</tr>
-<tr>
-<td><code>-XX:MaxTenuringThreshold</code></td>
-<td>对象年龄计数器阈值</td>
-</tr>
-<tr>
-<td><code>-XX:PetenureSizeThreshold</code></td>
-<td>直接分配到老年代的最大对象阈值</td>
-</tr>
-<tr>
-<td><code>-XX:MetaspaceSize</code></td>
-<td>元空间大小</td>
-</tr>
-<tr>
-<td><code>-XX:+UseAdaptiveSizePolicy</code></td>
-<td>开启自适应大小策略（JDK 1.8 默认开启）</td>
-</tr>
-</tbody></table>
-<p>JIT 编译相关</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-client</code> &#x2F; <code>-server</code></td>
-<td>强制指定 JIT 模式（Java 8 后无效）</td>
-</tr>
-<tr>
-<td><code>-XX:+TieredCompilation</code></td>
-<td>开启分层编译（默认）</td>
-</tr>
-<tr>
-<td><code>-XX:-TieredCompilation</code></td>
-<td>关闭分层编译，只用 C2</td>
-</tr>
-<tr>
-<td><code>-XX:TieredStopAtLevel=1</code></td>
-<td>分层编译时只用 C1</td>
-</tr>
-<tr>
-<td><code>-Xint</code></td>
-<td>强制只有解释器</td>
-</tr>
-<tr>
-<td><code>-Xcomp</code></td>
-<td>强制只有 JIT</td>
-</tr>
-<tr>
-<td><code>-XX:CompileThreshold=N</code></td>
-<td>方法调用计数器阈值</td>
-</tr>
-<tr>
-<td><code>-XX:OnStackReplacePercentage=N</code></td>
-<td>回边计数器阈值</td>
-</tr>
-<tr>
-<td><code>-XX:MaxFreqInlineSize=N</code></td>
-<td>经常执行方法的内联大小（默认 325 字节）</td>
-</tr>
-<tr>
-<td><code>-XX:MaxInlineSize=N</code></td>
-<td>非经常执行方法的内联大小（默认 35 字节）</td>
-</tr>
-</tbody></table>
-<p>JIT 优化相关</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-XX:+DoEscapeAnalysis</code></td>
-<td>开启逃逸分析（默认）</td>
-</tr>
-<tr>
-<td><code>-XX:+EliminateLocks</code></td>
-<td>开启锁消除（默认）</td>
-</tr>
-<tr>
-<td><code>-XX:+EliminateAllocations</code></td>
-<td>开启标量替换（默认）</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintCompilation</code></td>
-<td>打印编译过程信息</td>
-</tr>
-<tr>
-<td><code>-XX:+UnlockDiagnosticVMOptions</code></td>
-<td>解锁 JVM 诊断选项</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintInlining</code></td>
-<td>打印内联方法</td>
-</tr>
-</tbody></table>
-<p>GC 相关</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-XX:+PrintGC</code></td>
-<td>输出 GC 日志</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintGCDetails</code></td>
-<td>输出 GC 详细日志</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintGCTimeStamps</code></td>
-<td>输出 GC 时间戳（基准时间）</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintGCDateStamps</code></td>
-<td>输出 GC 时间戳（日期形式）</td>
-</tr>
-<tr>
-<td><code>-XX:+PrintHeapAtGC</code></td>
-<td>GC 前后打印堆信息</td>
-</tr>
-<tr>
-<td><code>-Xloggc:./gclogs</code></td>
-<td>日志文件输出路径</td>
-</tr>
-<tr>
-<td><code>-XX:InitiatingHeapOccupancyPercent=N</code></td>
-<td>G1 触发 Mix GC 的堆占用阈值（默认 45）</td>
-</tr>
-<tr>
-<td><code>-XX:MaxGCPauseMillis=N</code></td>
-<td>G1 目标停顿时间（默认 200ms）</td>
-</tr>
-</tbody></table>
-<p>OOM Dump 相关</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>-XX:+HeapDumpOnOutOfMemoryError</code></td>
-<td>堆内存异常时 dump</td>
-</tr>
-<tr>
-<td><code>-XX:HeapDumpPath=/tmp/heapdump.hprof</code></td>
-<td>dump 文件路径</td>
-</tr>
-</tbody></table>
-<p>一定要注意：JVM 调优先观察后动手，默认配置在大部分场景下效果都不错，一定要基于监控数据（top、vmstat、pidstat、jstat、jstack、jmap）和 GC 日志调整。</p>
+<p>我最开始认为是发送MQ失败，由于异步等原因返回了成功，但随后打印出的消费者日志否定了这个可能。</p>
+<p>随后我猜测是不是消费者配置的原因，消费失败了，但MQ的配置是拉取了消息就算消费成功，于是事务回滚+消息队列无积压，然而绝大多数数据又是正常的，也没办法解释。</p>
+<p>最后发现事情的真相是：消费者消费完数据立刻更新状态为 PARSED，而代码段2的第18行，finnally 更新状态为 MQ_SENT 执行可能会在消费者更新之后，导致数据被重新更新为 MQ_SENT。</p>
+<p><img src="/img/flow.drawio.png" srcset="/img/loading.gif" lazyload alt="监控数据对接流程"></p>
+<p>既然根因是”发送 MQ 成功后，消费者比 finally 更快更新状态”，核心是需要给状态更新加上单调性约束——允许向前推进，禁止回退。一个简单的解决方案就是，在发送到MQ后的更新 sql 里，加上 where status not in (PARSED, PARSED_FAILED)。这也像是常说的分布式协同里的内容，当多个请求同时到达数据库时，如何决定到底谁先谁后？</p>
+<p>顺便一提，虚拟线程的并发果然强大，该服务 pod 只分配了 1 个 cpu，数据处理起来几乎没有任何压力，但是注意如果用户线程数量不进行任何限制，有可能会等待数据库连接池超时。</p>
 
                 
               </div>
@@ -729,43 +466,13 @@
             <div>
               <div class="post-metas my-3">
   
-    <div class="post-meta mr-3 d-flex align-items-center">
-      <i class="iconfont icon-category"></i>
-      
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="category-chain-item">性能优化</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/Java/" class="category-chain-item">Java</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-    </div>
-  
   
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Java/" class="print-no-link">#Java</a>
+        <a href="/tags/%E5%B9%B6%E5%8F%91/" class="print-no-link">#并发</a>
       
-        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
-      
-        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+        <a href="/tags/%E5%BC%82%E6%AD%A5/" class="print-no-link">#异步</a>
       
     </div>
   
@@ -777,8 +484,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Java性能优化JVM篇</div>
-      <div>https://zhuwenjie0716.github.io/2026/07/06/Java性能优化JVM篇/</div>
+      <div>当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱</div>
+      <div>https://zhuwenjie0716.github.io/2026/07/28/当-finally-跑得比消费者慢：异步状态更新里的并发回退陷阱/</div>
     </div>
     <div class="license-meta">
       
@@ -790,7 +497,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年7月6日</div>
+          <div>2026年7月28日</div>
         </div>
       
       
@@ -822,18 +529,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/07/07/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%AF%87/" title="Java性能优化设计模式篇">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Java性能优化设计模式篇</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/07/05/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AF%87/" title="Java性能优化多线程篇">
-                        <span class="hidden-mobile">Java性能优化多线程篇</span>
+                      <a href="/2026/07/09/%E5%88%86%E5%B8%83%E5%BC%8F%E9%80%9A%E4%BF%A1/" title="分布式通信">
+                        <span class="hidden-mobile">分布式通信</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

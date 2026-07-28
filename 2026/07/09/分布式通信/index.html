@@ -1,0 +1,1109 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="分布式通信分布式系统的本质是多进程协作，共同完成任务。要协作，自然免不了通信，这也是分布式通信技术要解决的核心问题。 概述按照”请求从外到内、从大到小”的层次，分布式通信涉及以下关键技术：  负载均衡：把外部请求合理分配到集群内部的多个服务器 API 网关：作为系统入口聚合多个微服务调用 服务注册与发现：解决分布式系统内部服务如何感知彼此的问题 **服务间的远程调用(RPC)**：让不同机器上的服">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式通信">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/07/09/%E5%88%86%E5%B8%83%E5%BC%8F%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="分布式通信分布式系统的本质是多进程协作，共同完成任务。要协作，自然免不了通信，这也是分布式通信技术要解决的核心问题。 概述按照”请求从外到内、从大到小”的层次，分布式通信涉及以下关键技术：  负载均衡：把外部请求合理分配到集群内部的多个服务器 API 网关：作为系统入口聚合多个微服务调用 服务注册与发现：解决分布式系统内部服务如何感知彼此的问题 **服务间的远程调用(RPC)**：让不同机器上的服">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260708100819040.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260708101404981.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260708101727317.png">
+<meta property="article:published_time" content="2026-07-09T12:35:50.000Z">
+<meta property="article:modified_time" content="2026-07-09T12:38:52.113Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="RPC">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/image-20260708100819040.png">
+  
+  
+  
+  <title>分布式通信 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="分布式通信"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-09 20:35" pubdate>
+          2026年7月9日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          45 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">分布式通信</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="分布式通信"><a href="#分布式通信" class="headerlink" title="分布式通信"></a>分布式通信</h1><p>分布式系统的本质是多进程协作，共同完成任务。要协作，自然免不了通信，这也是分布式通信技术要解决的核心问题。</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>按照”请求从外到内、从大到小”的层次，分布式通信涉及以下关键技术：</p>
+<ul>
+<li><strong>负载均衡</strong>：把外部请求合理分配到集群内部的多个服务器</li>
+<li><strong>API 网关</strong>：作为系统入口聚合多个微服务调用</li>
+<li><strong>服务注册与发现</strong>：解决分布式系统内部服务如何感知彼此的问题</li>
+<li>**服务间的远程调用(RPC)**：让不同机器上的服务像本地调用一样通信</li>
+<li><strong>异步通信模式</strong>：当同步直接通信难以承载时，使用发布订阅或消息队列解耦</li>
+</ul>
+<p>而从通信模式上看，主要分为三大类：</p>
+<table>
+<thead>
+<tr>
+<th>通信方式</th>
+<th>思想</th>
+<th>典型实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>远程调用(RPC)</td>
+<td>千里眼:直接调用远程方法</td>
+<td>Dubbo、gRPC、RMI、Netty</td>
+</tr>
+<tr>
+<td>发布订阅</td>
+<td>送货上门:消息中心主动推送</td>
+<td>Kafka</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td>货物自取:消费者按需拉取</td>
+<td>RocketMQ、RabbitMQ、Kafka</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><h3 id="什么是负载均衡"><a href="#什么是负载均衡" class="headerlink" title="什么是负载均衡"></a>什么是负载均衡</h3><p>分布式系统通过”服务器集群”提升整体处理性能——把同一个服务扩展到不同的机器上，每次请求该服务时选其中一台服务器响应，无论在哪台服务器上执行，都能得到相同的响应。<strong>高性能集群的设计主要体现在请求分配上</strong>，这种将请求按一定规则分配到不同服务器执行的过程叫作<strong>负载均衡</strong>，完成负载均衡的组件叫作<strong>负载均衡器</strong>。</p>
+<p>负载均衡并非”平均”分配，需要根据业务考虑策略(服务器负载、性能、业务类型)，具体的分配规则就是<strong>负载均衡算法</strong>。</p>
+<h3 id="负载均衡的分类"><a href="#负载均衡的分类" class="headerlink" title="负载均衡的分类"></a>负载均衡的分类</h3><p>以客户端请求应用服务器为例，典型的负载均衡分为三层：</p>
+<ol>
+<li><strong>DNS 负载均衡</strong>：DNS 服务器根据用户所在网络区域，返回最近机房的 IP，实现区域级别的负载均衡。优点是成本低、用户就近访问；缺点是依赖 DNS 缓存，刷新不及时，且支持算法较少。</li>
+<li><strong>硬件负载均衡</strong>：如 F5 BIG-IP、NetScaler、Radware、Array。优点是支持算法多、并发高(百万级)、经过严格测试更稳定，还具备防火墙、防 DoS 等安全功能；缺点是贵，业务发展到一定规模才会用到。</li>
+<li><strong>软件负载均衡</strong>：如 LVS、HAProxy、Nginx。配置简单、使用灵活、成本低，可满足一般负载均衡需求。</li>
+</ol>
+<p>硬件负载均衡器 F5 的三大类功能：</p>
+<ul>
+<li><strong>多链路负载均衡</strong>：同时接入多家 ISP(网络服务供应商)，通过 INBOUND 解析请求、OUTBOUND 配合 NAT 源地址转换，保证网络高可用。</li>
+<li><strong>防火墙负载均衡</strong>：通过”交换机—防火墙—交换机”的”三明治”架构，在完成流量分发的同时维持用户会话完整性，避免多防火墙拆分会话。</li>
+<li><strong>服务器负载均衡</strong>：对挂接的多个应用服务器做负载均衡，支持健康检查、虚拟 IP(VIP)、按服务类型&#x2F;端口&#x2F;内容分流等。</li>
+</ul>
+<h3 id="软件负载均衡"><a href="#软件负载均衡" class="headerlink" title="软件负载均衡"></a>软件负载均衡</h3><p>软件负载均衡所在的代理层”上连接入层(硬件负载均衡)，下接应用服务器”，可实现<strong>反向代理、负载均衡、动态缓存、过滤</strong>等功能。</p>
+<p><strong>反向代理与负载均衡</strong>：Nginx 等反向代理可对外隔离、对内路由，当某个服务(如订单服务)需要水平扩展时，通过负载均衡在多个实例间分配请求。</p>
+<p>Nginx 的并发量计算示例：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">worker_processes</span> <span class="hljs-number">2</span>；          <span class="hljs-comment"># 双核 CPU</span><br>worker_cpu_affinity <span class="hljs-number">01</span> <span class="hljs-number">10</span>；<br>events &#123;<br>    <span class="hljs-attribute">use</span> <span class="hljs-literal">epoll</span>；<br>    worker_connections <span class="hljs-number">15000</span>； <span class="hljs-comment"># 单进程最大连接数</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最大并发量 ≈ <code>worker_processes × worker_connections = 2 × 15000 = 30000</code>。</p>
+<p><strong>百万级并发的方案</strong>：在代理层之上加入接入层(硬件 F5)，由 F5 抗大流量，再转给 Nginx。</p>
+<p><strong>动态缓存与过滤</strong>：把变化不频繁的数据放到代理层作为缓存，降低回源频率。例如使用 Nginx + Lua 脚本从 Redis 校验一些信息。</p>
+<h3 id="负载均衡算法"><a href="#负载均衡算法" class="headerlink" title="负载均衡算法"></a>负载均衡算法</h3><table>
+<thead>
+<tr>
+<th>算法</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>round-robin(轮询)</strong></td>
+<td>默认算法,挨个请求上游服务器</td>
+<td>日常系统,服务器配置均匀</td>
+</tr>
+<tr>
+<td><strong>weight(权重)</strong></td>
+<td>按权重分配,资源好的机器承担更多</td>
+<td>服务器配置不均(如秒杀核心服务)</td>
+</tr>
+<tr>
+<td><strong>IP-hash</strong></td>
+<td>同一 IP 始终路由到同一上游</td>
+<td>需要 session 一致</td>
+</tr>
+<tr>
+<td><strong>hash key</strong></td>
+<td>对 key 取模路由，服务器增减时 key 仍能找到原机器</td>
+<td>解决 IP-hash 在扩缩容时失准</td>
+</tr>
+<tr>
+<td><strong>least_conn</strong></td>
+<td>把请求转发给连接数较少的服务器</td>
+<td>请求处理时长差异较大</td>
+</tr>
+</tbody></table>
+<p>round-robin 算法确实可以把请求均匀的分发给服务器，但特殊场景下有可能某服务器分配的全是执行耗时长、任务量大的请求，这时采用 least_conn 算法效果会更好。</p>
+<hr>
+<h2 id="API-网关"><a href="#API-网关" class="headerlink" title="API 网关"></a>API 网关</h2><h3 id="API-网关的定义"><a href="#API-网关的定义" class="headerlink" title="API 网关的定义"></a>API 网关的定义</h3><p>网关(Gateway)最早用于描述网络设备——两个相互独立的局域网通过路由器通信，中间的路由器就叫网关。在分布式系统中，网关存在于<strong>客户端与微服务系统之间</strong>。</p>
+<p>API 网关在三个层面解决了”门面”问题：</p>
+<ul>
+<li><strong>业务层面</strong>：客户端完成某个业务需要调用多个微服务，网关把多个调用聚合成一个统一入口(类似门面模式 Facade)。</li>
+<li><strong>系统层面</strong>：系统 A 和系统 B 之间的 API 互调，可由网关作为中介者。</li>
+<li><strong>客户端层面</strong>：根据不同客户端(iOS、Android、PC、小程序)提供不同的 API 网关，屏蔽调用差异。</li>
+</ul>
+<p>由于 API 网关处在客户端与微服务系统的交界，因此<strong>包括路由、负载均衡、限流、缓存、日志、发布</strong>等功能。</p>
+<h3 id="API-网关的服务定位"><a href="#API-网关的服务定位" class="headerlink" title="API 网关的服务定位"></a>API 网关的服务定位</h3><p>按服务对象可分为 5 类：</p>
+<ul>
+<li>面向 <strong>WebAPP</strong> 的 API 网关(H5&#x2F;网站，前后端分离)</li>
+<li>面向 <strong>MobileAPP</strong> 的 API 网关(iOS&#x2F;Android，需做移动设备管理 MDM)</li>
+<li>面向<strong>合作伙伴</strong>的 <strong>OpenAPI</strong>(考虑流量、安全、协议转换)</li>
+<li>企业内部可扩展 API(中台输出，需关注边界划分、认证授权)</li>
+<li>(隐含)按客户端类型分层的多个 API 网关</li>
+</ul>
+<h3 id="API-网关的技术原理"><a href="#API-网关的技术原理" class="headerlink" title="API 网关的技术原理"></a>API 网关的技术原理</h3><ol>
+<li><strong>协议转换</strong>：不同协议通过”通用协议”(如 JSON)中转，API 网关负责两端协议的翻译。</li>
+<li><strong>链式处理</strong>：采用责任链模式，消息流过一系列过滤器。Netflix Zuul 就是。</li>
+<li><strong>异步请求</strong>：Zuul 1.x 一个线程处理一个请求，IO 阻塞；Zuul 2 引入异步，把每个请求包装为事件，由 CPU 内核维护监听器轮询，通知时再处理，提升吞吐量。</li>
+</ol>
+<p>API 网关和负载均衡器在”路由”层面是相通的，在功能上可以互换。</p>
+<hr>
+<h2 id="服务间的远程调用"><a href="#服务间的远程调用" class="headerlink" title="服务间的远程调用"></a>服务间的远程调用</h2><p>本地调用指同一进程内的函数调用；<strong>远程调用</strong>是<strong>进程间函数调用</strong>，是进程间通信(IPC)的一种方式。</p>
+<p>按进程是否部署在同一台机器，可分两类：</p>
+<ul>
+<li><strong>本地过程调用 LPC</strong>：同一台机器上的进程之间</li>
+<li><strong>远程过程调用 RPC</strong>：不同机器上的进程之间</li>
+</ul>
+<p>在分布式领域中，远程调用主要指 <strong>RPC</strong>，关于 RPC 的内容，<a href="https://zhuwenjie0716.github.io/2026/04/29/%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84RPC/">选择合适的 RPC</a> 已经总结过了，包括 RPC 的组成（WSDL、UDDI、注册中心等）和历史，Java 生态里 Netty 是最流行的网络通信框架。</p>
+<h2 id="发布订阅模式"><a href="#发布订阅模式" class="headerlink" title="发布订阅模式"></a>发布订阅模式</h2><h3 id="什么是发布订阅"><a href="#什么是发布订阅" class="headerlink" title="什么是发布订阅"></a>什么是发布订阅</h3><p>发布订阅的思想随处可见：报纸订阅，作者将文章发布到报社(消息中心)，用户向报社订阅自己感兴趣的报纸类型，报社根据订阅信息送报纸。</p>
+<p>发布订阅三要素：</p>
+<ul>
+<li>**生产者(发布者)**：负责产生数据</li>
+<li>**消费者(订阅者)**：向消息中心订阅感兴趣的消息</li>
+<li><strong>消息中心</strong>：存储发布数据并按订阅关系推送</li>
+</ul>
+<p>这种”将数据送到消费者手里”的行为，就是”<strong>送货上门</strong>“。</p>
+<h3 id="发布订阅-vs-点对点"><a href="#发布订阅-vs-点对点" class="headerlink" title="发布订阅 vs 点对点"></a>发布订阅 vs 点对点</h3><p>消息系统的两种典型模式：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>一条消息能被多少消费者消费</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>点对点 P2P</strong></td>
+<td>仅一个消费者消费，消费后消息中心不再存储</td>
+</tr>
+<tr>
+<td><strong>发布订阅 Pub&#x2F;Sub</strong></td>
+<td>可被多个订阅同一主题的消费者消费</td>
+</tr>
+</tbody></table>
+<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Kafka 是经典的发布订阅消息系统系统架构，包括 <strong>Producer、Broker、Consumer</strong> 三部分（新版本已无 Zookeeper）：</p>
+<ul>
+<li><strong>Producer</strong>：发布消息到 Broker</li>
+<li><strong>Broker</strong>：消息中心，本质是 Kafka 集群，负责存储消息、管理订阅、推送数据</li>
+<li><strong>Consumer</strong>：订阅并消费消息</li>
+</ul>
+<p>关键概念</p>
+<ul>
+<li>**主题(Topic)**：逻辑概念，表示消息类型&#x2F;数据类型</li>
+<li>**分区(Partition)**：一个主题可划分成多个集合，分布在不同 Broker 上</li>
+<li>**消费组(Consumer Group)**：多个消费者的集合，组内共同消费主题，每个消息仅由组内一个消费者消费</li>
+</ul>
+<p>分区的两大好处：</p>
+<ul>
+<li><strong>实现负载均衡</strong>：同一个主题的消息分布到多个分区&#x2F;多个 Broker，避免单点压力过大</li>
+<li><strong>实现消息备份</strong>：同一分区的内容可存储在多个 Broker，保证系统高可靠</li>
+</ul>
+<p>消息过多时，单个 Consumer 消费能力有限，会导致 Broker 存储溢出而丢消息。Kafka 引入<strong>消费组</strong>解决这个问题——多个 Consumer 并行消费。</p>
+<h3 id="发布订阅的关键特征"><a href="#发布订阅的关键特征" class="headerlink" title="发布订阅的关键特征"></a>发布订阅的关键特征</h3><ul>
+<li><strong>系统解耦，易于维护</strong>：生产者只管发，不知道订阅者数量订阅者只管订阅，不知道生产者何时发布。两者互相独立，单独维护。</li>
+<li><strong>异步执行，避免高负载</strong>：消息超过消息中心容量时，中心丢弃多余消息，系统不会因消息过多而故障。</li>
+</ul>
+<h3 id="负载均衡消费"><a href="#负载均衡消费" class="headerlink" title="负载均衡消费"></a>负载均衡消费</h3><p>发布者消息量大、单个订阅者处理能力有限时，可通过<strong>多分区 + 多个消费者</strong>实现负载均衡。Kafka 中：</p>
+<ul>
+<li>分区数 ≥ 消费者数，组内消费者才能均衡消费</li>
+<li>一般让一个消费组的消费者数 ≤ 该主题的分区数(或与之成倍数)，避免消费者空负载或超载</li>
+<li>消费者增减、分区增减时，会触发**重平衡(rebalance)**，重新映射消费者与分区的对应关系，尽量不要人为误操作导致重平衡</li>
+</ul>
+<hr>
+<h2 id="消息队列模式"><a href="#消息队列模式" class="headerlink" title="消息队列模式"></a>消息队列模式</h2><h3 id="什么是消息队列"><a href="#什么是消息队列" class="headerlink" title="什么是消息队列"></a>什么是消息队列</h3><p>相比发布订阅的”送货上门”，消息队列是”<strong>货物自取</strong>“：消息或数据放到队列里，谁需要谁就去取。</p>
+<p>以”用户注册”为例：</p>
+<ul>
+<li>写数据库 400ms + 发邮件 600ms &#x3D; <strong>同步通信 1000ms</strong></li>
+<li>引入消息队列后：写数据库 100ms 后即可返回响应(发邮件异步执行)，<strong>响应时间缩短到 500ms</strong>，速度提升一倍</li>
+</ul>
+<p><strong>消息队列的定义</strong>：基于具有先进先出(FIFO)特点的数据结构，存储具有特定格式的消息数据(如包含消息类型、唯一 ID、消息内容的结构体)。消息以特定格式放入队尾后可直接返回，后续由消费者进程从队头依次取出处理。</p>
+<p><strong>好处</strong>：削峰填谷，异步通信、实现组件间解耦。</p>
+<h3 id="消息队列的工作原理"><a href="#消息队列的工作原理" class="headerlink" title="消息队列的工作原理"></a>消息队列的工作原理</h3><p>核心结构三部分：</p>
+<ul>
+<li><strong>生产者</strong>：产生消息&#x2F;数据，插入到消息队列(入队)</li>
+<li><strong>消息队列</strong>：FIFO 数据结构，存储消息</li>
+<li><strong>消费者</strong>：从队列取出消息处理(出队)</li>
+</ul>
+<h3 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h3><p>架构</p>
+<ul>
+<li><strong>NameServer Cluster</strong>：服务器集群，管理 Broker 信息(地址、状态)，供 Producer 和 Consumer 发现 Broker。</li>
+<li><strong>Producer Cluster</strong>：生产者集群，多 Producer 并发接收用户数据，提升处理效率；且单点故障不影响整体业务。</li>
+<li><strong>Broker Cluster</strong>：Broker 集群，负责存储消息，每个 Broker 采用<strong>主从设计</strong>：Master 可写可读，Slave 只读，Master 同步数据给 Slave 做备份，Master 故障切换到 Slave。</li>
+<li><strong>Consumer Cluster</strong>：消费者集群，提升消费能力，避免 Broker 存储溢出。</li>
+</ul>
+<p>Broker 存储方式：Topic + Queue</p>
+<ul>
+<li>主题是逻辑概念，一个主题可分区，分布在不同 Broker</li>
+<li>每个主题分区中<strong>队列数量可由用户指定</strong></li>
+<li>队列是<strong>资源分配的基本单元</strong></li>
+</ul>
+<p>工作流程</p>
+<ol>
+<li>启动 NameServer</li>
+<li>启动 Broker，主动向 NameServer 注册并定期发送心跳(默认 1s 一次)，可携带存储数据信息</li>
+<li>创建主题，确定主题数据放入哪些 Broker</li>
+<li>Producer 发消息：先到 NameServer 查询主题对应的 Broker，再发送存储</li>
+<li>Consumer 消费消息：先到 NameServer 查询 Broker，再去拉取消息</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><p>消息队列模式中，消费者按需去消息队列获取数据消费，消息队列中心<strong>无需提前知道消费者信息</strong>，因此适合<strong>消费者为临时用户</strong>的场景。</p>
+<h3 id="发布订阅-vs-消息队列"><a href="#发布订阅-vs-消息队列" class="headerlink" title="发布订阅 vs 消息队列"></a>发布订阅 vs 消息队列</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>发布订阅</th>
+<th>消息队列</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>存储结构</td>
+<td>消息中心(map&#x2F;数组等)</td>
+<td>队列(FIFO)</td>
+</tr>
+<tr>
+<td>触发方式</td>
+<td>消息中心<strong>主动推送</strong>给订阅者</td>
+<td>消费者<strong>主动拉取</strong></td>
+</tr>
+<tr>
+<td>消费者要求</td>
+<td>需提前订阅(适合长驻进程)</td>
+<td>无需提前订阅(适合临时用户)</td>
+</tr>
+<tr>
+<td>一条消息消费次数</td>
+<td>可被多个订阅者消费</td>
+<td>一般一个消费者消费一次</td>
+</tr>
+</tbody></table>
+<h3 id="重复消费"><a href="#重复消费" class="headerlink" title="重复消费"></a>重复消费</h3><p>这是<strong>幂等性</strong>问题。常见方案：</p>
+<ul>
+<li><strong>消息端控制</strong>：Kafka 用 <strong>offset</strong>(消息序号)记录消费位置，Consumer 定期提交 offset 表示已消费；重启后从 offset 继续。</li>
+<li><strong>业务幂等</strong>：以订单号等唯一标识为去重键，数据库加唯一索引，或在内存中用 set 去重。</li>
+<li><strong>Consumer 记录 offset</strong>：Broker 返回当前消费的偏移量，Consumer 记录，下次从该位置开始</li>
+</ul>
+<p>重复消费本身不可怕，关键是要保证<strong>业务幂等性</strong>。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="场景对照"><a href="#场景对照" class="headerlink" title="场景对照"></a>场景对照</h3><ul>
+<li>远程调用 RPC</li>
+</ul>
+<p><img src="/../img/image-20260708100819040.png" srcset="/img/loading.gif" lazyload alt="image-20260708100819040"></p>
+<ul>
+<li>发布订阅</li>
+</ul>
+<p><img src="/../img/image-20260708101404981.png" srcset="/img/loading.gif" lazyload alt="image-20260708101404981"></p>
+<ul>
+<li>消息队列</li>
+</ul>
+<p><img src="/../img/image-20260708101727317.png" srcset="/img/loading.gif" lazyload alt="image-20260708101727317"></p>
+<h3 id="完整链路"><a href="#完整链路" class="headerlink" title="完整链路"></a>完整链路</h3><ol>
+<li><strong>外部请求进入</strong>：客户端 → <strong>DNS 负载均衡</strong>(区域级)→ <strong>硬件负载均衡</strong>(F5，接入层)→ <strong>软件负载均衡</strong>(Nginx，代理层)→ 应用服务器</li>
+<li><strong>API 网关聚合</strong>：在客户端与微服务之间，API 网关做<strong>协议转换、链式处理、异步请求</strong>，聚合多个微服务调用</li>
+<li><strong>服务注册与发现</strong>：微服务间通过<strong>服务注册中心</strong>感知彼此，<strong>心跳保活</strong>，本地维护路由表</li>
+<li><strong>服务间通信</strong>：根据业务场景选型——同步直接通信用 <strong>RPC</strong>(Netty)，异步间接通信用<strong>发布订阅</strong>(Kafka)或<strong>消息队列</strong>(RocketMQ)</li>
+</ol>
+<h3 id="选型原则"><a href="#选型原则" class="headerlink" title="选型原则"></a>选型原则</h3><ul>
+<li><strong>同步 vs 异步</strong>：需直接结果(查询、下单)用同步 RPC；耗时任务(发邮件、推送)用异步消息中间件</li>
+<li><strong>临时 vs 长驻消费者</strong>：长驻进程适合发布订阅(消息中心推送)；临时用户&#x2F;任务型适合消息队列(拉取模式)</li>
+<li><strong>强解耦 vs 高一致性</strong>：发布订阅和消息队列都能解耦；要求强一致性的链路仍需 RPC 直接调用</li>
+<li><strong>容量与吞吐</strong>：百万级并发在代理层之上加 F5；RPC 通信采用多路复用 IO；消息中间件采用多分区+消费组提升吞吐</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" class="category-chain-item">分布式</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="print-no-link">#分布式</a>
+      
+        <a href="/tags/RPC/" class="print-no-link">#RPC</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>分布式通信</div>
+      <div>https://zhuwenjie0716.github.io/2026/07/09/分布式通信/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/28/%E5%BD%93-finally-%E8%B7%91%E5%BE%97%E6%AF%94%E6%B6%88%E8%B4%B9%E8%80%85%E6%85%A2%EF%BC%9A%E5%BC%82%E6%AD%A5%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0%E9%87%8C%E7%9A%84%E5%B9%B6%E5%8F%91%E5%9B%9E%E9%80%80%E9%99%B7%E9%98%B1/" title="当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">当 finally 跑得比消费者慢：异步状态更新里的并发回退陷阱</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/07/Java%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%AF%87/" title="Java性能优化设计模式篇">
+                        <span class="hidden-mobile">Java性能优化设计模式篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
