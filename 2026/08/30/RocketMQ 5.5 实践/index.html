@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://zhuwenjie0716.github.io/img/image-20260902161441404.png">
 <meta property="og:image" content="https://zhuwenjie0716.github.io/img/transflow-0b07236d124ddb814aeaf5f6b5f3f72c.png">
 <meta property="article:published_time" content="2026-08-30T02:15:24.000Z">
-<meta property="article:modified_time" content="2026-09-03T06:52:25.315Z">
+<meta property="article:modified_time" content="2026-09-08T03:37:40.799Z">
 <meta property="article:author" content="Wenjie Zhu">
 <meta property="article:tag" content="RocketMQ">
 <meta property="article:tag" content="SpringCloudStream">
@@ -473,7 +473,7 @@
 </li>
 </ul>
 <p>可以总结为下面的流程：</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs txt">Java bean 名              binding 名（SCS 派生）           destination（真正的 topic）<br>──────────────────────────────────────────────────────────────────────<br>Consumer emsTsData()  →   emsTsData-in-0   ──bindings 配置──→  ems-ts-data<br>send(&quot;emsTsData-out-0&quot;) → emsTsData-out-0  ──bindings 配置──→  ems-ts-data<br></code></pre></td></tr></table></figure>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs txt">Java bean 名              		binding 名（SCS 派生）           			destination（真正的 topic）<br>─────────────────────────────────────────────────────────────────────────────────────────────<br>Consumer scsDemoConsumer()  →   scsDemoConsumer-in-0   ──bindings 配置──→  scs-demo-topic<br>send(&quot;scsDemoConsumer-out-0&quot;) → scsDemoConsumer-out-0  ──bindings 配置──→  scs-demo-topic<br></code></pre></td></tr></table></figure>
 
 <p>SCS 的派生换来了 MQ 无关性，代价是 MQ 专属能力受限（顺序消息、延迟消息、事务消息），如果业务真的需要 MQ 的特色功能，官方 starter 才是首选。</p>
 <p>虽然我在文章开始提了 MQ5.x 对于 Agent 系统的支持，奈何最近主要精力在系统业务，没有深入探索，后续学习～</p>
@@ -547,6 +547,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/09/09/Kubernetes-%E9%9B%86%E7%BE%A4%E5%BF%83%E8%84%8F%E6%8F%AD%E7%A7%98/" title="Kubernetes 集群心脏揭秘">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Kubernetes 集群心脏揭秘</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
