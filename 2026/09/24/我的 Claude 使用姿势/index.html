@@ -19,23 +19,22 @@
   <meta name="author" content="Wenjie Zhu">
   <meta name="keywords" content="">
   
-    <meta name="description" content="实现一个分布式锁到底有多难一个服务里多线程操作某共享资源时，我们会使用锁来保证并发安全，但是在分布式系统中操作共享资源，实现一个分布式锁却异常困难。 网上关于分布式锁的文章非常多，Redis 作为 Web 服务中最常用的中间件之一，也有关于实现分布式锁的方案，想知道 Redis 分布式锁为什么这么设计，要从单机 Redis 实现分布式锁说起。 设置分布式锁需要这么一条指令： 1set share_">
+    <meta name="description" content="我的 Claude 使用姿势Agent 发展到现在，早已不只是最初给一段对话让它一次执行完成的样子了（那时候每次要写一堆啰嗦的话，项目规范、个人喜好等等）。 如今我们应该有共识，Agent 的能力已经很强了，配合记忆机制、各种好用的 skill 配合起来的使用体验真的很好，以下是我日常开发的配置。 1claude --dangerously-skip-permissions  这是以无需确认的方式">
 <meta property="og:type" content="article">
-<meta property="og:title" content="实现一个分布式锁到底有多难">
-<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/09/19/%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%88%B0%E5%BA%95%E6%9C%89%E5%A4%9A%E9%9A%BE/index.html">
+<meta property="og:title" content="我的 Claude 使用姿势">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/09/24/%E6%88%91%E7%9A%84%20Claude%20%E4%BD%BF%E7%94%A8%E5%A7%BF%E5%8A%BF/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="实现一个分布式锁到底有多难一个服务里多线程操作某共享资源时，我们会使用锁来保证并发安全，但是在分布式系统中操作共享资源，实现一个分布式锁却异常困难。 网上关于分布式锁的文章非常多，Redis 作为 Web 服务中最常用的中间件之一，也有关于实现分布式锁的方案，想知道 Redis 分布式锁为什么这么设计，要从单机 Redis 实现分布式锁说起。 设置分布式锁需要这么一条指令： 1set share_">
+<meta property="og:description" content="我的 Claude 使用姿势Agent 发展到现在，早已不只是最初给一段对话让它一次执行完成的样子了（那时候每次要写一堆啰嗦的话，项目规范、个人喜好等等）。 如今我们应该有共识，Agent 的能力已经很强了，配合记忆机制、各种好用的 skill 配合起来的使用体验真的很好，以下是我日常开发的配置。 1claude --dangerously-skip-permissions  这是以无需确认的方式">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-09-19T00:35:50.000Z">
-<meta property="article:modified_time" content="2026-09-19T00:36:29.365Z">
+<meta property="article:published_time" content="2026-09-24T11:11:22.000Z">
+<meta property="article:modified_time" content="2026-09-24T23:05:52.096Z">
 <meta property="article:author" content="Wenjie Zhu">
-<meta property="article:tag" content="Redis">
-<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="Agent">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>实现一个分布式锁到底有多难 - Hexo</title>
+  <title>我的 Claude 使用姿势 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -310,7 +309,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="实现一个分布式锁到底有多难"></span>
+            <span id="subtitle" data-typed-text="我的 Claude 使用姿势"></span>
           
         </div>
 
@@ -321,8 +320,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-09-19 08:35" pubdate>
-          2026年9月19日 早上
+        <time datetime="2026-09-24 19:11" pubdate>
+          2026年9月24日 晚上
         </time>
       </span>
     
@@ -333,7 +332,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.2k 字
+          6.2k 字
         
       </span>
     
@@ -344,7 +343,7 @@
         
         
         
-          27 分钟
+          52 分钟
         
       </span>
     
@@ -396,96 +395,42 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">实现一个分布式锁到底有多难</h1>
+            <h1 id="seo-header">我的 Claude 使用姿势</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="实现一个分布式锁到底有多难"><a href="#实现一个分布式锁到底有多难" class="headerlink" title="实现一个分布式锁到底有多难"></a>实现一个分布式锁到底有多难</h1><p>一个服务里多线程操作某共享资源时，我们会使用锁来保证并发安全，但是在分布式系统中操作共享资源，实现一个分布式锁却异常困难。</p>
-<p>网上关于分布式锁的文章非常多，Redis 作为 Web 服务中最常用的中间件之一，也有关于实现分布式锁的方案，想知道 Redis 分布式锁为什么这么设计，要从单机 Redis 实现分布式锁说起。</p>
-<p>设置分布式锁需要这么一条指令：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">set</span> share_resourse_id uuid NX PX 30000<br></code></pre></td></tr></table></figure>
+                <h1 id="我的-Claude-使用姿势"><a href="#我的-Claude-使用姿势" class="headerlink" title="我的 Claude 使用姿势"></a>我的 Claude 使用姿势</h1><p>Agent 发展到现在，早已不只是最初给一段对话让它一次执行完成的样子了（那时候每次要写一堆啰嗦的话，项目规范、个人喜好等等）。</p>
+<p>如今我们应该有共识，Agent 的能力已经很强了，配合记忆机制、各种好用的 skill 配合起来的使用体验真的很好，以下是我日常开发的配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">claude --dangerously-skip-permissions<br></code></pre></td></tr></table></figure>
 
-<p>逻辑很简单, 给一个叫 <code>share_resourse_id</code> 的 key, 值是一个随机的  <code>uuid</code>, 过期时间 30s。</p>
+<p>这是以无需确认的方式启动 claude, 执行过程中 claude 不再会因为 tool 调用、文件读写这样的事情暂停等待审批，如果担心安全问题，mac&#x2F;win 可以通过配置 hook 的方式，在 claude 发起审批时发出弹窗提醒。</p>
+<h2 id="CLAUDE-md"><a href="#CLAUDE-md" class="headerlink" title="CLAUDE.md"></a>CLAUDE.md</h2><p>CLAUDE.md 等价于其它 Agent 通用的 AGENT.md, Claude 每次启动时都会加载其内容到上下文里，适合放一些所有场景通用的内容：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section"># CLAUDE.md</span><br><br>Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.<br><br><span class="hljs-strong">**Tradeoff:**</span> These guidelines bias toward caution over speed. For trivial tasks, use judgment.<br><br><span class="hljs-section">## 1. Think Before Coding</span><br><br><span class="hljs-strong">**Don&#x27;t assume. Don&#x27;t hide confusion. Surface tradeoffs.**</span><br><br>Before implementing:<br><span class="hljs-bullet">-</span> State your assumptions explicitly. If uncertain, ask.<br><span class="hljs-bullet">-</span> If multiple interpretations exist, present them - don&#x27;t pick silently.<br><span class="hljs-bullet">-</span> If a simpler approach exists, say so. Push back when warranted.<br><span class="hljs-bullet">-</span> If something is unclear, stop. Name what&#x27;s confusing. Ask.<br><br><span class="hljs-section">## 2. Simplicity First</span><br><br><span class="hljs-strong">**Minimum code that solves the problem. Nothing speculative.**</span><br><br><span class="hljs-bullet">-</span> No features beyond what was asked.<br><span class="hljs-bullet">-</span> No abstractions for single-use code.<br><span class="hljs-bullet">-</span> No &quot;flexibility&quot; or &quot;configurability&quot; that wasn&#x27;t requested.<br><span class="hljs-bullet">-</span> No error handling for impossible scenarios.<br><span class="hljs-bullet">-</span> If you write 200 lines and it could be 50, rewrite it.<br><br>Ask yourself: &quot;Would a senior engineer say this is overcomplicated?&quot; If yes, simplify.<br><br><span class="hljs-section">## 3. Surgical Changes</span><br><br><span class="hljs-strong">**Touch only what you must. Clean up only your own mess.**</span><br><br>When editing existing code:<br><span class="hljs-bullet">-</span> Don&#x27;t &quot;improve&quot; adjacent code, comments, or formatting.<br><span class="hljs-bullet">-</span> Don&#x27;t refactor things that aren&#x27;t broken.<br><span class="hljs-bullet">-</span> Match existing style, even if you&#x27;d do it differently.<br><span class="hljs-bullet">-</span> If you notice unrelated dead code, mention it - don&#x27;t delete it.<br><br>When your changes create orphans:<br><span class="hljs-bullet">-</span> Remove imports/variables/functions that YOUR changes made unused.<br><span class="hljs-bullet">-</span> Don&#x27;t remove pre-existing dead code unless asked.<br><br>The test: Every changed line should trace directly to the user&#x27;s request.<br><br><span class="hljs-section">## 4. Goal-Driven Execution</span><br><br><span class="hljs-strong">**Define success criteria. Loop until verified.**</span><br><br>Transform tasks into verifiable goals:<br><span class="hljs-bullet">-</span> &quot;Add validation&quot; → &quot;Write tests for invalid inputs, then make them pass&quot;<br><span class="hljs-bullet">-</span> &quot;Fix the bug&quot; → &quot;Write a test that reproduces it, then make it pass&quot;<br><span class="hljs-bullet">-</span> &quot;Refactor X&quot; → &quot;Ensure tests pass before and after&quot;<br><br>For multi-step tasks, state a brief plan:<br>​<span class="hljs-code">```</span><br><span class="hljs-code">1. [Step] → verify: [check]</span><br><span class="hljs-code">2. [Step] → verify: [check]</span><br><span class="hljs-code">3. [Step] → verify: [check]</span><br><span class="hljs-code">​```</span><br><br>Strong success criteria let you loop independently. Weak criteria (&quot;make it work&quot;) require constant clarification.<br><br><span class="hljs-section">## 5. My Personal Preferences</span><br><br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Global instruction**</span>: Your response needs to be in Chinese. (Keep this as the first rule.)<br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Code line width**</span>: Do not exceed 120 characters per line (use the editor’s margin as a visual guide).<br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Function/method length**</span>: Do not exceed 100 lines (excluding blank lines and comments). If it does, refactor into smaller, single‑responsibility functions.<br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Commit &amp; MR policy**</span>: Each Merge Request (MR) must correspond to exactly <span class="hljs-strong">**one**</span> final commit, and one MR must equal exactly one requirement/feature (一个 MR = 一个需求). For long‑running tasks with multiple local saves, use <span class="hljs-code">`git commit --amend`</span> to squash them into a single commit before pushing to the MR branch. <span class="hljs-strong">**Concretely when using `superpowers` skills (brainstorming → writing‑plans → executing‑plans → test‑driven‑development, etc.): one spec = one commit.**</span> Within a single spec, the intermediate checkpoints — spec written, plan written, each task finished, tests pass, prompt tuned, docs updated — are NOT commit boundaries. Keep accumulating with <span class="hljs-code">`git commit --amend`</span>; do not run <span class="hljs-code">`git commit`</span> again until the spec is fully done. Only when switching to a new spec / new requirement is a fresh <span class="hljs-code">`git commit`</span> (and thus a new MR) allowed. Claude must not preset commit nodes inside a spec&#x27;s lifecycle.<br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Interaction mode**</span>: When I choose to need a chat, you must wait for my reply before proceeding to the next option or action. Do not automatically jump to the next selection.<br><span class="hljs-bullet">*</span> <span class="hljs-strong">**Parallel subAgent execution**</span>: If a task can be broken down into sub‑tasks that can be executed in parallel by subAgents, you must proactively ask the user whether they prefer parallel execution. Do not decide autonomously; the user may not care about token cost and may instead prioritize finishing the task as quickly as possible.<br><br>---<br><br><span class="hljs-strong">**These guidelines are working if:**</span> fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.<br></code></pre></td></tr></table></figure>
+
+<p>前四部分来源于 github 上一个非常火的配置，当时好像有 200k+ 的 star，也有人写一些第一性原理的内容。</p>
+<p>第五部分是我使用过程的一些个人喜好，解释如下：</p>
 <ul>
-<li><p>必须使用1条指令来实现，如果客户端先 <code>set</code> 再 <code>expire</code>，<code>set</code> 后崩溃了这个锁就无法释放了；</p>
-</li>
-<li><p><code>uuid</code> 的值需要保证一段时间是唯一的, 具体原因后面会分析；</p>
-</li>
-<li><p><code>NX</code>表示只有当<code>share_resourse_id</code>对应的 key 不存在的时候才能<code>SET</code>成功。这保证了只有第一个请求的客户端才能获得锁，而其它客户端在锁被释放之前都无法获得锁；</p>
-</li>
-<li><p><code>PX 30000</code>表示这个锁有一个30秒的自动过期时间。这里只是一个例子，客户端根据需要设置合适的过期时间。</p>
-</li>
+<li>用中文回复；</li>
+<li>coding 时代码不要越过 IDE 的分界线（120列的位置，超出了我经常要向右拖动看代码）；</li>
+<li>方法和函数的长度（除去空行和注释）不要超过 100 行（一个很长的函数通常被认为功能不够单一）；</li>
+<li>commit 规范，我更喜欢一次 commit 对应一个需求，不喜欢每次 mr 很多 commit，也是一些企业的规范（这里我着重强调了 superpowers skill, 因为它默认把写 spec、写 plan 做分别 commit）；</li>
+<li>superpowers skill 中间会有澄清问题的流程，当我选择我要回复时它会等不及自动执行下一步，导致我只能 Esc 中断；</li>
+<li>有的时候 plan 是可以并行执行的，着急的情况下用户不在乎 token 消耗，更希望尽快完成，因此我要求 claude 把并行执行的选择交给用户（注意这里是并行而不是 subAgent 迭代）。</li>
 </ul>
-<p>释放的时候要做到类似 <code>CAS</code> 的效果, 先比较 <code>share_resourse_id</code>  对应 key 的值还是不是当前客户端设置的 <code>uuid</code>，如果是就释放，如果不是就不释放，那为什么要这么做呢？</p>
-<ul>
-<li>key 一定要设置过期时间，因为客户端可能出现设置锁后崩溃、宕机等任何情况，如果不设置过期时间会导致所有客户端都无法设置锁；</li>
-<li><code>uuid</code> 的值必须是一段时间内唯一的，如果客户端A设置锁后发生 GC，锁过期了，被客户端B设置上了相同的 value，而A在 GC 完成操作后发起了释放锁的操作，会把客户端B的锁释放掉；</li>
-<li>释放锁要使用 lua 脚本, 这样才能保证 <code>CAS</code> 的原子性。</li>
-</ul>
-<p>然而为了避免系统出现单点故障，Redis 一般是以集群的方式部署的，这就可能产生新的问题：</p>
-<ul>
-<li>客户端A设置了锁后 <code>redis master</code> 崩溃了, 由于异步复制的原因, <code>slave</code> 上还没有这个锁。随后客户端B在新的<code>redis master</code> 上设置了锁，两个客户端并发访问了；</li>
-</ul>
-<p>除此之外，给锁设置过期时间还需要面对和“延时双删”一样的问题，这个过期时间多久合适？到时间了没完成怎么办？</p>
-<p>Redis 的作者 antirez 基于 N 个 Redis 节点给出了一个 Redlock 的实现，算是 Redis 官方对于实现分布式锁的指导规范。</p>
-<p>获取锁时客户端依次执行下面各个步骤，来完成获取锁的操作：</p>
-<ol>
-<li><p>获取当前时间（毫秒数）。</p>
-</li>
-<li><p>按顺序依次向 N 个 Redis 节点执行获取锁的操作，跟前面基于单 Redis 节点的获取锁的过程相同。</p>
-<ul>
-<li><p>为了保证在某个 Redis 节点不可用的时候算法能够继续运行，这个获取锁的操作还有一个超时时间(time out)，它要远小于锁的有效时间（几十毫秒量级）。</p>
-</li>
-<li><p>客户端在向某个 Redis 节点获取锁失败以后，应该立即尝试下一个 Redis 节点。这里的失败，应该包含任何类型的失败，比如该 Redis 节点不可用，或者该 Redis 节点上的锁已经被其它客户端持有。</p>
-</li>
-</ul>
-</li>
-<li><p>计算整个获取锁的过程总共消耗了多长时间，计算方法是用当前时间减去第1步记录的时间。如果客户端从大多数 Redis 节点（&gt;&#x3D; N&#x2F;2+1）成功获取到了锁，并且获取锁总共消耗的时间没有超过锁的有效时间(lock validity time)，那么这时客户端才认为最终获取锁成功；否则，认为最终获取锁失败。</p>
-</li>
-<li><p>如果最终获取锁成功了，那么这个锁的有效时间应该重新计算，它等于最初的锁的有效时间减去第3步计算出来的获取锁消耗的时间。</p>
-</li>
-<li><p>如果最终获取锁失败了（可能由于获取到锁的 Redis 节点个数少于N&#x2F;2+1，或者整个获取锁的过程消耗的时间超过了锁的最初有效时间），那么客户端应该立即向所有 Redis 节点发起释放锁的操作。</p>
-</li>
-</ol>
-<p>释放锁和之前的流程一样，都需要 lua 脚本实现，但注意是需要<strong>向所有 Redis 节点发起</strong>，因为 Redis 节点可能返回的响应丢失了，但本身已经在获取锁流程时设置上了。</p>
-<p>这种方案解决了 Redis 单节点 failover 时锁失效的问题，但真的天衣无缝了吗？</p>
-<ul>
-<li>获取到锁后如何计算剩余时间是否足够完成操作？如果计算完剩余时间但发生 GC 了，锁实际上已经到期了被其它客户端强占了，依然存在并发问题，这是业务需要考虑的；</li>
-<li>Redis ABCDE 5个节点，客户端1 拿到了 ABC 节点的响应，成功设置了锁，C 节点恰好宕机重启了，由于 fsync 或其它原因没有保存之前的锁，客户端2拿到了 CDE 节点的响应也认为成功持有了锁。这点作者在后续提出了<strong>延时重启</strong>的想法，一个节点崩溃后应该在超过 <code>expire_time</code> 后重启，避免对已持有锁的节点造成影响。</li>
-</ul>
-<p>除此之外，分布式系统中的时钟情况也会有影响，如果某节点的时钟发生了跳跃，导致锁快速失效，也会产生上面 ABC、CDE 这样多客户端同时持有锁的问题。antirez 承认所有的分布式锁的实现，包括 Redlock，是没有什么好办法来应对的，只能通过基础设施和良好的运维方式来尽可能避免，好在分布式锁对于时间的精度要求也不是非常苛刻。</p>
-<p>Kubernetes 依赖的底层存储 etcd 也能提供分布式锁的实现，etcd 是一个分布式 kv 存储，有事务、watch、全局version、lease 等多个重要特性，它的实现思路如下：</p>
-<ul>
-<li><p>每个客户端创建固定前缀的 key, 比如<code>/share_resourse_id/&#123;uuid&#125;</code> , 具体的实现是基于事务提供的原子性保证，先判断是否存在以 <code>/share_resourse_id</code> 为前缀且 <code>create_version</code> 比自己小的：</p>
-<ul>
-<li>如果不存在，就新建自己的 key</li>
-<li>如果存在，新建自己的 key, watch <code>create_version</code> 离自己最近的 key</li>
-<li>这个 key 需要绑定到一个 lease 下，客户端会不断续约 lease 代表自己还存活（类似心跳机制），如果 lease 过期这个 key 会被删除，不会由于客户端崩溃而锁永久存在。</li>
-</ul>
-</li>
-</ul>
-<p>首先解释一下为什么用 固定前缀key 的方式而不是抢占同一个 key，多个节点抢占同一个 key 并 watch 这个 key 的删除会产生“惊群”，key 删除时所有的客户端都被惊醒继续抢占。</p>
-<p>这种实现方式相比 Redis 有什么好处？</p>
-<ul>
-<li>客户端可以实现阻塞直到获取锁的行为：Redis 如果取不到锁想阻塞需要业务自行 <code>while</code> 循环实现，etcd 可以阻塞等待 watch 主动通知；</li>
-<li>公平： <code>create_version</code> 是按照客户端创建 key 的顺序递增的，近似于按照请求到达的顺序获取锁；</li>
-<li>业务简单：不再需要考虑客户端宕机和 key 的过期时间，lease 续约失败自动删 key；</li>
-<li>避免惊群：每个客户端在获取不到锁时 watch 前一个 key，也就是锁被删除的时候只会唤醒下一个等待者，性能更好。</li>
-</ul>
-<p>那 etcd 的实现就完美吗？</p>
-<ul>
-<li>lease 续约就像心跳机制一样，当客户端繁忙或者发生意外时，可能会续约失败，这时 etcd 误认为客户端宕机了，会删除锁并通知下一个客户端。</li>
-</ul>
-<p>作为经典的分布式协调组件，Zookeeper 自然也提供了分布式锁的实现，和 etcd 比较类似，详细的逻辑这里就不分析了。</p>
-<p>相信经过上面的分析，即使出现新的协调组件实现分布式锁，只要能够对所能提供的安全性的程度有充分的了解，那么我们就能做出自己的选择了。这里顺便附上 DDIA 作者对于 Redis实现分布式锁 的结论：</p>
-<ul>
-<li>如果是为了效率 (efficiency) 而使用分布式锁，允许锁的偶尔失效，那么使用单 Redis 节点的锁方案就足够了，简单而且效率高。Redlock 则是个过重的实现(heavyweight)。</li>
-<li>如果是为了正确性(correctness)在很严肃的场合使用分布式锁，那么不要使用 Redlock。它对于系统模型的假设中包含很多危险的成分(例如timing)，不是建立在异步模型上的一个足够强的算法。</li>
-</ul>
-<p>参考：</p>
-<p>【1】<a target="_blank" rel="noopener" href="https://zhangtielei.com/posts/blog-redlock-reasoning.html">基于Redis的分布式锁到底安全吗（上）？</a></p>
-<p>【2】<a target="_blank" rel="noopener" href="https://zhangtielei.com/posts/blog-redlock-reasoning-part2.html">基于Redis的分布式锁到底安全吗（下）？</a></p>
+<p>其实 CLAUDE.md 的原则只有一个：把它写入 CLAUDE.md 对你日常的使用体验比需要写到 prompt 里的体验要更好。出于每次启动 CLAUDE 都会加载的缘故，CLAUDE.md 长度 200 行以内为佳。</p>
+<p>顺便一提，superpowers 的一些流程是比较重的，小需求其实不需要上 superpowers，有的人更推荐 grill-me，关于二者的使用对比可以参考: <a target="_blank" rel="noopener" href="https://juejin.cn/post/7670111026742525962">Vibe Coding 神器对比：superpowers 和 grill-me 怎么选？一个架构师的实测框架</a>。</p>
+<h2 id="task-md"><a href="#task-md" class="headerlink" title="task.md"></a>task.md</h2><p>一般来讲，我写任务喜欢写到 md 里，可以充分的描述背景和需求，也可以引用很多文件、路径。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs markdown">这是我临时写需求的 md 文档, 不要提交到 git, 也不要在需求中提及关于 Task.md 的字样, 因为随时会修改和删除<br><br><br>代码编写遵循我在 ~/.claude/CLAUDE.md 的规范<br><br><br>我不确定这个任务的工作量, 你根据自己的理解决定是否使用 superpowers skill(大的任务使用 superpowers,<br>小的任务使用内置的 plan 模型即可 ), docs/superpowers 的文档也不需要提交到 git<br></code></pre></td></tr></table></figure>
+
+<p>使用的时候：完成 @task.md 的任务即可~</p>
+<p>至于项目级的约束、规范，可以写到项目的 CLAUDE.md 或本地的 rule 里(java-rule) 等，这是我一个项目里的一些规则示例：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section">### 3.5 Form / VO 继承规范（仅新代码生效，不回溯重构存量）</span><br><br>Form 与 VO 是对外契约对象，字段&quot;重复&quot;成本低于&quot;错误抽象&quot;成本，<span class="hljs-strong">**契约清晰优先于代码复用**</span>。继承仅在满足前提时使用：<br><br><span class="hljs-strong">**SaveForm / UpdateForm（中性基类方案）**</span><br><br><span class="hljs-bullet">-</span> 共享可变字段抽中性基类 <span class="hljs-code">`XxxForm`</span>；<span class="hljs-code">`XxxAddForm extends XxxForm`</span>（+ save 后锁定的不可变字段），<span class="hljs-code">`XxxUpdateForm extends XxxForm`</span>（无额外字段，或 + version 等更新专属字段）。禁止 <span class="hljs-code">`XxxAddForm extends XxxUpdateForm`</span> 的直接继承（&quot;新增是一种更新&quot;语义倒置）<br><span class="hljs-bullet">-</span> <span class="hljs-strong">**前提：update 为全量替换（PUT）语义，共享字段在 save/update 校验注解完全一致**</span>。存在任何&quot;save 必填、update 可选&quot;的字段时，放弃继承，写两个独立 Form<br><span class="hljs-bullet">-</span> id 不放 Form：save 由后端生成，update 走路径 <span class="hljs-code">`PUT /update/&#123;id&#125;`</span>（呼应 3.1 接口动词规范）；<br><span class="hljs-bullet">-</span> 复用同一 Form 类同时当 save/update 入参时，命名必须中性（<span class="hljs-code">`XxxForm`</span>），禁止 <span class="hljs-code">`POST /save`</span> 收 <span class="hljs-code">`XxxUpdateForm`</span><br><span class="hljs-bullet">-</span> 子类 Lombok 加 <span class="hljs-code">`@EqualsAndHashCode(callSuper = true)`</span><br><br><span class="hljs-strong">**DetailVO / ListVO**</span><br><br><span class="hljs-bullet">-</span> 仅当 detail 字段集<span class="hljs-strong">**严格超集**</span>且共享字段<span class="hljs-strong">**形状完全相同**</span>（类型/含义一致，非 list 用 <span class="hljs-code">`roleName: String`</span>、detail 用 <span class="hljs-code">`roleList: List&lt;Role&gt;`</span> 这类形异字段）时，允许 <span class="hljs-code">`XxxDetailVO extends XxxListVO`</span><br><span class="hljs-bullet">-</span> 不满足时写独立 VO；list 专用标记字段（操作列/脱敏差异）与 detail 结构化字段不强塞进继承链<br></code></pre></td></tr></table></figure>
+
+
+
+<p>其实还有一些好用的 skill，像 context7、draw.io，可以在 youtube 一些地方关注流行的 skill，能流行起来的都有其值得使用的地方。</p>
+<p>当然，随着 llm 越来越强，这些 harness 的能力未来也许全都不再需要，GPT-6 推出以后微信公众号已经看到很多抛弃 superpowers 的帖子了~</p>
 
                 
               </div>
@@ -494,34 +439,11 @@
             <div>
               <div class="post-metas my-3">
   
-    <div class="post-meta mr-3 d-flex align-items-center">
-      <i class="iconfont icon-category"></i>
-      
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" class="category-chain-item">分布式</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-    </div>
-  
   
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
-      
-        <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="print-no-link">#分布式</a>
+        <a href="/tags/Agent/" class="print-no-link">#Agent</a>
       
     </div>
   
@@ -533,8 +455,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>实现一个分布式锁到底有多难</div>
-      <div>https://zhuwenjie0716.github.io/2026/09/19/实现一个分布式锁到底有多难/</div>
+      <div>我的 Claude 使用姿势</div>
+      <div>https://zhuwenjie0716.github.io/2026/09/24/我的 Claude 使用姿势/</div>
     </div>
     <div class="license-meta">
       
@@ -546,7 +468,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年9月19日</div>
+          <div>2026年9月24日</div>
         </div>
       
       
@@ -578,18 +500,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/09/24/%E6%88%91%E7%9A%84%20Claude%20%E4%BD%BF%E7%94%A8%E5%A7%BF%E5%8A%BF/" title="我的 Claude 使用姿势">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">我的 Claude 使用姿势</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/09/09/Kubernetes-%E9%9B%86%E7%BE%A4%E5%BF%83%E8%84%8F%E6%8F%AD%E7%A7%98/" title="Kubernetes 集群心脏揭秘">
-                        <span class="hidden-mobile">Kubernetes 集群心脏揭秘</span>
+                      <a href="/2026/09/19/%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%88%B0%E5%BA%95%E6%9C%89%E5%A4%9A%E9%9A%BE/" title="实现一个分布式锁到底有多难">
+                        <span class="hidden-mobile">实现一个分布式锁到底有多难</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
