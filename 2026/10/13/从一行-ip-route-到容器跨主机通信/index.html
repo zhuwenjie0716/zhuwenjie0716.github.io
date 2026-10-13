@@ -1,0 +1,999 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Wenjie Zhu">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="从一行 ip route 到容器跨主机通信我使用 docker、k8s 已经有一些时间了，业务也几乎都使用容器部署，但对容器网络一直知之甚少，网络本身也是个较为复杂的内容。 从云计算转 Java 开发近三年，近日发现现在的实践和之前的记忆已经有些偏差了，如 Endpoint-&gt; EndpointSlice、ingress-nginx 停止维护等等等等，于是新搭建了个 k8s 环境顺便学习下容">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从一行 ip route 到容器跨主机通信">
+<meta property="og:url" content="https://zhuwenjie0716.github.io/2026/10/13/%E4%BB%8E%E4%B8%80%E8%A1%8C-ip-route-%E5%88%B0%E5%AE%B9%E5%99%A8%E8%B7%A8%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="从一行 ip route 到容器跨主机通信我使用 docker、k8s 已经有一些时间了，业务也几乎都使用容器部署，但对容器网络一直知之甚少，网络本身也是个较为复杂的内容。 从云计算转 Java 开发近三年，近日发现现在的实践和之前的记忆已经有些偏差了，如 Endpoint-&gt; EndpointSlice、ingress-nginx 停止维护等等等等，于是新搭建了个 k8s 环境顺便学习下容">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/20261013-route-judge-1791873733438.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/20261013-veth-pair-netns.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/20261013-bridge-topology.png">
+<meta property="og:image" content="https://zhuwenjie0716.github.io/img/20261013-container-to-internet.png">
+<meta property="article:published_time" content="2026-10-13T12:57:57.000Z">
+<meta property="article:modified_time" content="2026-10-13T13:02:42.004Z">
+<meta property="article:author" content="Wenjie Zhu">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="容器">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhuwenjie0716.github.io/img/20261013-route-judge-1791873733438.png">
+  
+  
+  
+  <title>从一行 ip route 到容器跨主机通信 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/gradient.css">
+<link rel="stylesheet" href="//cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css">
+<link rel="stylesheet" href="/css/my_markdown.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhuwenjie0716.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"left","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从一行 ip route 到容器跨主机通信"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-10-13 20:57" pubdate>
+          2026年10月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          94 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="padding-left: 2rem; margin-right: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从一行 ip route 到容器跨主机通信</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="从一行-ip-route-到容器跨主机通信"><a href="#从一行-ip-route-到容器跨主机通信" class="headerlink" title="从一行 ip route 到容器跨主机通信"></a>从一行 ip route 到容器跨主机通信</h1><p>我使用 docker、k8s 已经有一些时间了，业务也几乎都使用容器部署，但对容器网络一直知之甚少，网络本身也是个较为复杂的内容。</p>
+<p>从云计算转 Java 开发近三年，近日发现现在的实践和之前的记忆已经有些偏差了，如 Endpoint-&gt; EndpointSlice、ingress-nginx 停止维护等等等等，于是新搭建了个 k8s 环境顺便学习下容器网络的知识。</p>
+<h2 id="ip-rule"><a href="#ip-rule" class="headerlink" title="ip rule"></a>ip rule</h2><p><code>ip rule</code> 按照优先级决定包去哪个 table 里找路由信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip rule<br>0:      from all lookup <span class="hljs-built_in">local</span><br>32766:  from all lookup main<br>32767:  from all lookup default<br></code></pre></td></tr></table></figure>
+
+<p>格式为：[优先级]:	[匹配条件]	[动作]</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一列数字</td>
+<td><strong>优先级</strong>，数字越小越优先(0 最先看)</td>
+</tr>
+<tr>
+<td><code>from all</code></td>
+<td>匹配条件：所有包</td>
+</tr>
+<tr>
+<td><code>lookup local</code></td>
+<td>动作，查 <code>local</code> 表(本机 IP、广播地址专用)</td>
+</tr>
+<tr>
+<td><code>lookup main</code></td>
+<td>动作，查 <code>main</code> 表(平时 <code>ip route</code> 看到的就是它)</td>
+</tr>
+<tr>
+<td><code>lookup default</code></td>
+<td>动作，查 <code>default</code> 表(一般为空,保底用)</td>
+</tr>
+</tbody></table>
+<p>操作系统决定一个包发往的下一个地址的流程大致如下：</p>
+<ol>
+<li>按 rule 优先级从小到大遍历 <code>ip rule</code>。</li>
+<li>对每条 rule，先看选择器是否匹配，比如 <code>from all</code>、<code>from 10.0.0.0/8</code>、<code>fwmark 1</code> 等。</li>
+<li>如果匹配，就执行动作。最常见动作是 <code>lookup &lt;table&gt;</code>。</li>
+<li>去指定 table 里做路由查找：<ul>
+<li>先最长前缀匹配；</li>
+<li>同前缀再比 metric 等。</li>
+</ul>
+</li>
+<li>如果在这张表里<strong>找到了路由</strong>，就用它，<strong>停止继续查后面的 rule</strong>。</li>
+<li>如果在这张表里<strong>没找到路由</strong>，就继续下一条 rule。</li>
+<li>如果动作是 <code>blackhole</code>、<code>unreachable</code>、<code>prohibit</code>，则直接返回对应结果，不再继续。</li>
+<li>所有 rule 都走完还没找到，就返回网络不可达。</li>
+</ol>
+<p>默认情况下 linux 上只有这 3 个规则，与有多少个网卡无关。自定义规则通常会落在 0～32766 之间，从而覆盖默认行为。</p>
+<h2 id="ip-route"><a href="#ip-route" class="headerlink" title="ip route"></a>ip route</h2><p><code>ip rule</code> 的返回结果是按照优先级去哪个表里查, 如动作里的 <code>lookup main</code> 代表去查询 main 表：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip route show table main<br>default via 192.168.176.1 dev eth0 proto kernel<br>172.17.0.0/16 dev docker0 proto kernel scope <span class="hljs-built_in">link</span> src 172.17.0.1<br>192.168.176.0/20 dev eth0 proto kernel scope <span class="hljs-built_in">link</span> src 192.168.187.60<br></code></pre></td></tr></table></figure>
+
+<p>main 表是 ip route 指令默认的 table, 上述指令等价于 <code>ip route</code></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default via 192.168.176.1</code></td>
+<td>如果没有更具体的匹配,就发给 <code>192.168.176.1</code> 这台设备</td>
+</tr>
+<tr>
+<td><code>172.17.0.0/16 dev docker0</code></td>
+<td>发往 <code>172.17.0.0/16</code> 这个网段的包,从 <code>docker0</code> 网卡出去</td>
+</tr>
+<tr>
+<td><code>dev docker0</code></td>
+<td>Docker 安装时创建的虚拟网卡,<code>172.17.0.0/16</code> 是它的网段</td>
+</tr>
+<tr>
+<td><code>proto kernel</code></td>
+<td>这条路由是内核根据本机网卡 IP 自动生成的，也可能出现 <code>proto dhcp</code> 表示 DHCP 协议自动分配来的</td>
+</tr>
+<tr>
+<td><code>scope link</code></td>
+<td>目的地跟本机是同一链路(同一网段)</td>
+</tr>
+<tr>
+<td><code>src 172.17.0.1</code></td>
+<td>出去时用 <code>172.17.0.1</code> 作为源 IP</td>
+</tr>
+</tbody></table>
+<p>通常我们还会执行 <code>ip addr</code> 看本机的 ip 信息:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip addr<br>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000<br>    <span class="hljs-built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<br>    inet 127.0.0.1/8 scope host lo<br>       valid_lft forever preferred_lft forever<br>    inet6 ::1/128 scope host<br>       valid_lft forever preferred_lft forever<br>2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000<br>    <span class="hljs-built_in">link</span>/ether 00:15:5d:e0:2a:b7 brd ff:ff:ff:ff:ff:ff<br>    inet 192.168.187.60/20 brd 192.168.191.255 scope global eth0<br>       valid_lft forever preferred_lft forever<br>    inet6 fe80::215:5dff:fee0:2ab7/64 scope <span class="hljs-built_in">link</span><br>       valid_lft forever preferred_lft forever<br>3: docker0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default<br>    <span class="hljs-built_in">link</span>/ether 46:61:<span class="hljs-built_in">fc</span>:1c:93:8b brd ff:ff:ff:ff:ff:ff<br>    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0<br>       valid_lft forever preferred_lft forever<br>    inet6 fe80::4461:fcff:fe1c:938b/64 scope <span class="hljs-built_in">link</span><br>       valid_lft forever preferred_lft forever<br></code></pre></td></tr></table></figure>
+
+<p>可以看到返回值有 <code>eth0</code> 和 <code>docker0</code>，这也是上面 <code>ip route</code> 返回值表示的网卡名。</p>
+<p>到这里我们就知道发往某个 ip 的包该走哪个路由了，可以用 <code>ip route get &lt;ip&gt;</code> 指令测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip route get 8.8.8.8<br>8.8.8.8 via 192.168.176.1 dev eth0 src 192.168.187.60 uid 0<br>    cache<br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip route get 172.17.0.3<br>172.17.0.3 dev docker0 src 172.17.0.1 uid 0<br>    cache<br></code></pre></td></tr></table></figure>
+
+<p>由于 local 表一般转发一些本机（127.0…）、广播地址，所以测试的这些 IP 会走 main 表，根据路由规则：</p>
+<ul>
+<li>8.8.8.8 不满足 <code>docker0 172.17.0.0/16</code> 和 <code>eth0 192.168.176.0/20</code> 的规则，不在本机任何直连网段，下一跳会走 default 规则从 <code>eth0</code> 发给网关 <code>192.168.176.1</code>，出去时用 <code>192.168.187.60</code> 作为源 IP。</li>
+<li>172.17.0.3 满足 <code>docker0 172.17.0.0/16</code> 的规则，在本机直连网络中，直接从 <code>docker0</code> 发出，<code>172.17.0.1</code> 作为源 IP。</li>
+</ul>
+<p>注意下面比上面少了 <code>via 192.168.176.1</code> 的部分，原因就是 <code>172.17.0.3</code> 在系统直连网络内，主机不经过任何路由器，直接通过 ARP 拿到目标 MAC，把帧从对应接口发出去。有 <code>via</code> 则是目标不在本地链路，把包交给网关，让网关继续转发。</p>
+<p><img src="/../img/20261013-route-judge-1791873733438.png" srcset="/img/loading.gif" lazyload alt="路由决策两级查找:rule 选表 → 表内 LPM"></p>
+<h2 id="network-namespace"><a href="#network-namespace" class="headerlink" title="network namespace"></a>network namespace</h2><p>Linux 中有 NameSpace （命名空间）的技术，在许多的框架里也有体现：k8s、nacos、rabbitmq，ns 之间的内容相互隔离，那么 Network NameSpace 的作用也就显而易见了，在这个 ns 下的网络配置（网卡、路由表、ARP 表、iptables 规则）是独立的。</p>
+<p>一个小实践：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 添加一个 netns</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns add <span class="hljs-built_in">test</span><br><br><span class="hljs-comment"># 查看 netns 列表(/var//run/netns)</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns<br><span class="hljs-built_in">test</span><br><br><span class="hljs-comment"># 进入 test 的 netns 执行 ip addr</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> <span class="hljs-built_in">test</span> ip addr<br>1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000<br>    <span class="hljs-built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<br><br><span class="hljs-comment"># 进入 test 的 netns 执行 ip route</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> <span class="hljs-built_in">test</span> ip route<br><br><span class="hljs-comment"># 删除创建的 netns(清理)</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns del <span class="hljs-built_in">test</span><br></code></pre></td></tr></table></figure>
+
+<p>通过 <code>exec test netns</code> 的输出可知：netns 里看不到主机的网卡、路由规则。本机执行相关指令，也看不到 netns 内的网络设备，两边的世界是隔离的。那双方怎么通信呢？</p>
+<h2 id="veth-pair"><a href="#veth-pair" class="headerlink" title="veth pair"></a>veth pair</h2><p>解决方案是 <code>veth pair(虚拟以太网对)</code>，其特点如下：</p>
+<ul>
+<li>有两个端点，数据从一端进入一定从另一端出来；</li>
+<li>两端可以被各自赋 IP、参与路由；</li>
+</ul>
+<p>那么主机与 netns 内进程通信的解决方案就出来了：为 netns 创建一个 veth pair，一头在 netns 里，一头在主机上，这样 netns 就可以跟外界通信了。</p>
+<blockquote>
+<p>netns 创建时 <code>lo</code> 设备默认是 DOWN 状态（可以回看上文的 <code>ip netns exec test ip addr</code> 输出）。如果要在 netns 内跑需要”本机回环”才能正常工作的服务（比如很多 health 检测脚本会 <code>curl 127.0.0.1</code>），记得手动 <code>ip netns exec &lt;ns&gt; ip link set lo up</code>。</p>
+</blockquote>
+<p>veth pair 实践（实践过程中可以间断执行 <code>ip addr</code> 查看信息变化）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># [主机] 新增一个 netns</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns add test_veth<br><br><span class="hljs-comment"># [主机] 新增一个 veth-test 的设备, 类型是 veth, 对端名字叫 veth-test2</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip <span class="hljs-built_in">link</span> add veth-test <span class="hljs-built_in">type</span> veth peer name veth-test2<br><br><span class="hljs-comment"># [netns] 把对端名 veth-test2 放到 test_veth 的 netns 里</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-test2 netns test_veth<br><br><span class="hljs-comment"># [主机] 启动 veth-test</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-test up<br><br><span class="hljs-comment"># [netns] 启动 veth-test2</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> test_veth ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-test2 up<br><br><span class="hljs-comment"># [主机] 给 veth-test 分配 IP</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip addr add 10.11.13.3/24 dev veth-test<br><br><span class="hljs-comment"># [netns] 给 veth-test2 分配 IP</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> test_veth ip addr add 10.11.14.4/24 dev veth-test2<br><br><span class="hljs-comment"># [主机] 添加路由规则</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip route add 10.11.14.0/24 dev veth-test<br><br><span class="hljs-comment"># [netns] 添加路由规则</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> test_veth ip route add 10.11.13.0/24 dev veth-test2<br><br><span class="hljs-comment"># [主机] ping netns</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ping 10.11.14.4<br>PING 10.11.14.4 (10.11.14.4) 56(84) bytes of data.<br>64 bytes from 10.11.14.4: icmp_seq=1 ttl=64 <span class="hljs-keyword">time</span>=1.68 ms<br>64 bytes from 10.11.14.4: icmp_seq=2 ttl=64 <span class="hljs-keyword">time</span>=0.104 ms<br>64 bytes from 10.11.14.4: icmp_seq=3 ttl=64 <span class="hljs-keyword">time</span>=0.068 ms<br>^C<br>--- 10.11.14.4 ping statistics ---<br>3 packets transmitted, 3 received, 0% packet loss, <span class="hljs-keyword">time</span> 2031ms<br>rtt min/avg/max/mdev = 0.068/0.615/1.675/0.749 ms<br><br><span class="hljs-comment"># [netns] ping 主机</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> test_veth ping 10.11.13.3<br>PING 10.11.13.3 (10.11.13.3) 56(84) bytes of data.<br>64 bytes from 10.11.13.3: icmp_seq=1 ttl=64 <span class="hljs-keyword">time</span>=0.189 ms<br>64 bytes from 10.11.13.3: icmp_seq=2 ttl=64 <span class="hljs-keyword">time</span>=0.096 ms<br>64 bytes from 10.11.13.3: icmp_seq=3 ttl=64 <span class="hljs-keyword">time</span>=0.075 ms<br>^C<br>--- 10.11.13.3 ping statistics ---<br>3 packets transmitted, 3 received, 0% packet loss, <span class="hljs-keyword">time</span> 2043ms<br>rtt min/avg/max/mdev = 0.075/0.120/0.189/0.049 ms<br></code></pre></td></tr></table></figure>
+
+<p>可以发现，两边都能 ping 通，也就意味着打通了主机与 netns 里进程的互相通信。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 清理</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns del test_veth<br></code></pre></td></tr></table></figure>
+
+<p>网络拓扑如图：</p>
+<p><img src="/../img/20261013-veth-pair-netns.png" srcset="/img/loading.gif" lazyload alt="veth pair: 一根虚拟网线打通主机与 test_veth netns"></p>
+<p>注：<code>ip link add veth-test type veth peer name veth-test2</code> 这个指令执行完，veth 的两端都在主机上，在后续给某一端 set veth-name netns ns 时才把 veth-name 这个端点移动到 ns 里。</p>
+<h2 id="container"><a href="#container" class="headerlink" title="container"></a>container</h2><p>container（容器）的本质其实是进程。</p>
+<p>进程的定义非常多种多样，一个简单的定义是：进程是程序的动态执行。程序是代码或其产物（如二进制文件），静静的躺在磁盘上。而进程是程序被执行起来的样子：内存中的数据、寄存器里的值、堆栈和被打开的文件等这些数据和状态的总和就是进程。</p>
+<p>容器通过约束和修改进程的动态表现，为其创造出一个”边界”。其核心原理一个是前面介绍过的 NameSpace 技术，除了 network ns，linux 还提供了 pid、mount、uts、user 多种 ns，这是 linux 创建新进程的一个可选参数；另一个核心原理则是 Cgroups，既然容器是一个进程，自然会与系统的任何其他进程一起争抢资源，Cgroups 提供了限制进程能使用的资源（cpu、mem、blkio）上限的能力。</p>
+<p>所以一个进程运行在一个 netns 里，前面的内容实现了 netns 与主机的通信，也就是只要为每一个容器创建一个 veth 设备，容器与主机就可以通信了。</p>
+<p>那么容器与容器之间如何通信呢？</p>
+<p>一个简单的方案是，如果容器A需要与容器B通信，那么容器A和容器B间也添加一个 veth 设备，仔细想一下其实问题很多：如果互相通信的容器有 N个，那么需要 N(N-1)&#x2F;2 个 veth 设备，根本不可行。</p>
+<p>现实生活中，只要我们的设备连同一个路由器，互相之间就能通信，这里也是同理。</p>
+<h2 id="bridge"><a href="#bridge" class="headerlink" title="bridge"></a>bridge</h2><p>首先介绍一下交换机和路由器，交换机是二层设备，工作在数据链路层，会根据收到包的 MAC 地址转发给对应的主机；路由器是三层设备，工作在网络层，能根据收到包的 IP 地址决定从哪个网卡转发出去。</p>
+<p>bridge 就是让所有 veth 都接到一个虚拟交换机上，这样互相之间就可以通信了，N 个容器只需要 N 个 veth。</p>
+<p>大名鼎鼎的 docker0 就是一个 bridge。<strong>严格地说是一台二层交换机</strong>——它只会按 MAC 学习、转发同网段内的帧，并不会在不同 IP 网段之间路由包。所以光有 bridge 是不够的。</p>
+<p>解决这个问题的方案分两步：</p>
+<ol>
+<li><strong>给 bridge 本身赋一个 IP</strong>，让它”接入协议栈”：能查本机路由表、接收”目的 IP 是自己”的包、能从自己的视角看邻居表。</li>
+<li>**打开 <code>/proc/sys/net/ipv4/ip_forward=1</code>**，允许内核把”目的 IP 不是自己”的包继续向外转发。</li>
+</ol>
+<p>只有这两步都做了，bridge 才<strong>同时是一台 L2 交换机和一台 L3 路由器</strong>——容器之间同网段通信走 L2，容器对外网通信走 L3 转发。</p>
+<p>接下来是实践，创建 red、blue 两个 netns，每个 netns 对应一个 veth，最终效果：red 和 blue 可以互相 ping 通，并能访问外网（ping <a href="http://www.baidu.com）：">www.baidu.com）：</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 创建两个 netns</span><br>ip netns add red<br>ip netns add blue<br><br><span class="hljs-comment"># 创建 bridge，并给它分配网关 IP</span><br>ip <span class="hljs-built_in">link</span> add br0 <span class="hljs-built_in">type</span> bridge<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> br0 up<br>ip addr add 10.0.0.1/24 dev br0<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 为 red 创建 veth pair</span><br>ip <span class="hljs-built_in">link</span> add veth-red <span class="hljs-built_in">type</span> veth peer name veth-red-br<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-red netns red<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-red-br master br0<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-red-br up<br><br><span class="hljs-comment"># 为 blue 创建 veth pair</span><br>ip <span class="hljs-built_in">link</span> add veth-blue <span class="hljs-built_in">type</span> veth peer name veth-blue-br<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-blue netns blue<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-blue-br master br0<br>ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-blue-br up<br></code></pre></td></tr></table></figure>
+
+<p>此时 <code>veth-red-br</code> 和 <code>veth-blue-br</code> 都插在 <code>br0</code> 这个虚拟交换机上。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# brctl show<br>bridge name     bridge <span class="hljs-built_in">id</span>               STP enabled     interfaces<br>br0             8000.9ee0a443c089       no              veth-blue-br<br>                                                        veth-red-br<br></code></pre></td></tr></table></figure>
+
+<p>配置 netns 内的接口和路由:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 启动 red 里的 veth，并分配 IP</span><br>ip netns <span class="hljs-built_in">exec</span> red ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-red up<br>ip netns <span class="hljs-built_in">exec</span> red ip addr add 10.0.0.2/24 dev veth-red<br>ip netns <span class="hljs-built_in">exec</span> red ip route add default via 10.0.0.1<br><br><span class="hljs-comment"># 启动 blue 里的 veth，并分配 IP</span><br>ip netns <span class="hljs-built_in">exec</span> blue ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> veth-blue up<br>ip netns <span class="hljs-built_in">exec</span> blue ip addr add 10.0.0.3/24 dev veth-blue<br>ip netns <span class="hljs-built_in">exec</span> blue ip route add default via 10.0.0.1<br></code></pre></td></tr></table></figure>
+
+<p>查看默认出口网卡：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip route show default<br>default via 192.168.176.1 dev eth0 proto kernel<br></code></pre></td></tr></table></figure>
+
+<p>我这边是 eth0：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 开启 IP 转发</span><br>sysctl -w net.ipv4.ip_forward=1<br><br><span class="hljs-comment"># 对 10.0.0.0/24 做 MASQUERADE，从 eth0 出去</span><br>iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE<br><br><span class="hljs-comment"># 如果 FORWARD 链默认是 DROP，放行转发流量</span><br>iptables -I FORWARD 1 -i br0 -o eth0 -s 10.0.0.0/24 -j ACCEPT<br>iptables -I FORWARD 1 -i eth0 -o br0 -d 10.0.0.0/24 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT<br></code></pre></td></tr></table></figure>
+
+<p>之后就可以测试了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip netns <span class="hljs-built_in">exec</span> red ping 10.0.0.3<br>PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.<br>64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 <span class="hljs-keyword">time</span>=0.051 ms<br>64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 <span class="hljs-keyword">time</span>=0.126 ms<br>64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 <span class="hljs-keyword">time</span>=0.117 ms<br>^C<br>--- 10.0.0.3 ping statistics ---<br>3 packets transmitted, 3 received, 0% packet loss, <span class="hljs-keyword">time</span> 2055ms<br>rtt min/avg/max/mdev = 0.051/0.098/0.126/0.033 ms<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 110.242.70.57 是我这里解析出的 www.baidu.com 对应的 IP</span><br>root@DESKTOP-A8PBREO:/mnt/c/Users/14184/Documents# ip netns <span class="hljs-built_in">exec</span> red ping 110.242.70.57<br>PING 110.242.70.57 (110.242.70.57) 56(84) bytes of data.<br>64 bytes from 110.242.70.57: icmp_seq=1 ttl=50 <span class="hljs-keyword">time</span>=15.1 ms<br>64 bytes from 110.242.70.57: icmp_seq=2 ttl=50 <span class="hljs-keyword">time</span>=15.0 ms<br>64 bytes from 110.242.70.57: icmp_seq=3 ttl=50 <span class="hljs-keyword">time</span>=15.2 ms<br>^C<br>--- 110.242.70.57 ping statistics ---<br>3 packets transmitted, 3 received, 0% packet loss, <span class="hljs-keyword">time</span> 2003ms<br>rtt min/avg/max/mdev = 14.976/15.102/15.246/0.110 ms<br></code></pre></td></tr></table></figure>
+
+<p>注：如果还是不行，可以执行 <code>iptables -I FORWARD 1 -i br0 -o br0 -j ACCEPT </code> 试试。理论上，bridge 是二层设备，转发帧应该只看 MAC，不经过 IP 层的 netfilter。但 Linux 有一个模块叫 <code>br_netfilter</code>，Docker 会加载它并设置”同一个 bridge 内部端口到端口”的转发为 Drop，导致包被丢弃。</p>
+<p>网络拓扑如图：</p>
+<p><img src="/../img/20261013-bridge-topology.png" srcset="/img/loading.gif" lazyload alt="bridge: 把所有 veth 收口到一台虚拟交换机,并通过 eth0 走出外网"></p>
+<p>把上面所有零件拼起来，就是一次 <code>ping</code> 的完整路径：</p>
+<p><img src="/../img/20261013-container-to-internet.png" srcset="/img/loading.gif" lazyload alt="一次 ping 走过的网络设备:容器 → bridge → 主机协议栈 → eth0 → 网关 → 外网"></p>
+<h2 id="docker0"><a href="#docker0" class="headerlink" title="docker0"></a>docker0</h2><p>理解了上面的内容，那么学习 docker 网络也比较简单了。</p>
+<p>在装了 docker 的主机上执行 <code>ip addr</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@DESKTOP-A8PBREO:/mnt/c/Users/27184/Documents# ip addr<br>3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default<br>    <span class="hljs-built_in">link</span>/ether 46:61:<span class="hljs-built_in">fc</span>:1c:93:8b brd ff:ff:ff:ff:ff:ff<br>    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0<br>       valid_lft forever preferred_lft forever<br>    inet6 fe80::4461:fcff:fe1c:938b/64 scope <span class="hljs-built_in">link</span><br>       valid_lft forever preferred_lft forever<br></code></pre></td></tr></table></figure>
+
+<p>会找到这个叫 <code>docker0</code> 的网桥，它就是实现容器间通信、容器对外通信的核心。</p>
+<p>启动一个容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d mysql:5.7<br></code></pre></td></tr></table></figure>
+
+<p>启动完执行 <code>ip addr</code> 会发现多了一个设备，其实这是 veth 的一端，另一端就在容器里。</p>
+<p>如果创建一个网络:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs bash">[root@tssxserver ~]# docker network create test-veth<br>67b844951b1eb34589a2851afe1ee3635de6d453b3c3fabf9f69167be2279ebb<br><br>[root@tssxserver ~]# ip addr | grep 67b8449<br>32: br-67b844951b1e: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default<br>    inet 172.21.0.1/16 brd 172.21.255.255 scope global br-67b844951b1e<br></code></pre></td></tr></table></figure>
+
+<p>会发现多了一个 br 开头的设备名。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p> 容器网络并不是黑盒，整个文章其实就讲了 4 件事:</p>
+<ol>
+<li>路由决策(ip rule + ip route)：内核拿到一个 IP 包,先按优先级选路由表,再在表内做最长前缀匹配,得到”下一跳 + 出接口”。</li>
+<li>Network Namespace：把网卡、路由表、iptables 隔离开，让进程拥有自己独立的网络栈；veth pair 就像一根”虚拟网线”, 把两个 ns 串起来。</li>
+<li>Linux Bridge：虚拟的 L2 交换机，把”网线”的一端统一收口在一台设备上，实现 N 个 ns 之间两两通信。</li>
+<li>三层转发 + NAT：bridge 被赋 IP + ip_forward&#x3D;1 就升级成”带路由功能的小交换机”；iptables MASQUERADE 把容器源 IP 翻译成 eth0 的出网 IP，容器就真正”能上网”。</li>
+</ol>
+<p>Kubernetes 里的 CNI、那么多的网络实现 flannel、calico 等其实也是这些事情的不同拼装。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Docker/" class="print-no-link">#Docker</a>
+      
+        <a href="/tags/%E5%AE%B9%E5%99%A8/" class="print-no-link">#容器</a>
+      
+        <a href="/tags/%E7%BD%91%E7%BB%9C/" class="print-no-link">#网络</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从一行 ip route 到容器跨主机通信</div>
+      <div>https://zhuwenjie0716.github.io/2026/10/13/从一行-ip-route-到容器跨主机通信/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Wenjie Zhu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年10月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/30/TDengine-error-code-8984-Timeout-waiting-for-connection-from-pool/" title="TDengine : error code 8984, Timeout waiting for connection from pool">
+                        <span class="hidden-mobile">TDengine : error code 8984, Timeout waiting for connection from pool</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div> <span id="timeDate">载入天数...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/DynamicRibbon.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/Cherry.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/EmoryHuang/BlogBeautify@1.1/love.min.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
